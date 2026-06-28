@@ -18,7 +18,7 @@ func _on_root_child_entered(node: Node) -> void:
 	current_scene = node
 
 func change_scene(path: String) -> void:
-	get_tree().change_scene_to_file(path)
+	TransitionManager.fade_to(path)
 
 func set_state(new_state: GameState) -> void:
 	current_state = new_state
@@ -46,6 +46,7 @@ func grant_battle_rewards() -> void:
 	add_gold(total_gold)
 	var leveled_up := player_unit.add_xp(total_xp)
 	if leveled_up:
+		AudioManager.play_sfx_levelup()
 		level_up.emit(player_unit.level)
 	BattleManager.last_xp = total_xp
 	BattleManager.last_gold = total_gold

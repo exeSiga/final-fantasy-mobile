@@ -9,6 +9,7 @@ const CAMERA_LERP := 5.0
 
 func _ready() -> void:
 	GameManager.set_state(GameManager.GameState.WORLD)
+	AudioManager.play_world_bgm()
 	player.encounter_triggered.connect(_on_encounter)
 	camera.position_smoothing_enabled = true
 	camera.position_smoothing_speed = CAMERA_LERP

@@ -14,11 +14,14 @@ extends Node2D
 var _log_lines: PackedStringArray = []
 var _enemy_hp_bars: Array[HPBar] = []
 
+@onready var _bg: ColorRect = $Background
+
 func _ready() -> void:
 	victory_overlay.hide()
 	gameover_overlay.hide()
 	magic_menu.hide()
 	_build_magic_menu()
+	AudioManager.play_battle_bgm()
 	BattleManager.battle_started.connect(_on_battle_started)
 	BattleManager.action_result.connect(_on_action_result)
 	BattleManager.turn_changed.connect(_on_turn_changed)
@@ -53,22 +56,35 @@ func _on_action_result(attacker: String, target: String, damage: int) -> void:
 	elif damage <= 0 and damage > -1:
 		_log("%s casts on %s" % [attacker, target])
 		_spawn_popup("Buff!", Color(0.3, 0.8, 1, 1))
+		AudioManager.play_sfx_spell()
 	elif damage < 0:
 		_log("%s heals %d HP" % [attacker, -damage])
 		_spawn_popup("+%d HP" % (-damage), Color(0.3, 1, 0.3, 1))
+		AudioManager.play_sfx_spell()
 	else:
 		_log("%s → %s : %d dmg" % [attacker, target, damage])
 		_spawn_popup("-%d" % damage, Color(1, 0.3, 0.3, 1))
+		AudioManager.play_sfx_attack()
+		_shake_screen()
 	hero_hp_bar.animate_to(player.hp)
 	_refresh_hero_label(player)
 	for i in BattleManager.enemies.size():
 		if i < _enemy_hp_bars.size():
 			_enemy_hp_bars[i].animate_to(BattleManager.enemies[i].hp)
 
+func _shake_screen() -> void:
+	var t := create_tween()
+	t.tween_property(_bg, "position:x", 18.0, 0.04)
+	t.tween_property(_bg, "position:x", -18.0, 0.04)
+	t.tween_property(_bg, "position:x", 8.0, 0.04)
+	t.tween_property(_bg, "position:x", 0.0, 0.04)
+
 func _on_battle_ended(victory: bool) -> void:
 	action_buttons.hide()
 	magic_menu.hide()
+	AudioManager.stop_bgm()
 	if victory:
+		AudioManager.play_sfx_victory()
 		SaveSystem.save(0)
 		var title := victory_overlay.get_node("VBox/TitleLabel") as Label
 		title.text = "Victory!\n+%d XP  +%d G" % [BattleManager.last_xp, BattleManager.last_gold]

@@ -106,17 +106,17 @@
 
 ---
 
-## Sprint 8 — Audio & Polish [STATUS: TODO]
+## Sprint 8 — Audio & Polish [STATUS: DONE]
 **Goal:** Music, SFX, and basic visual polish
 **Tasks:**
-- [ ] Generate placeholder BGM loops with Godot's AudioStreamGenerator (simple sine tones)
-- [ ] WorldMap BGM, Battle BGM, Victory jingle (3 distinct tones)
-- [ ] SFX: attack hit, spell cast, level up, button click (Godot AudioStreamGenerator)
-- [ ] Screen shake on hit (Camera2D offset tween)
-- [ ] Flash white on damage (modulate tween on sprite)
-- [ ] Smooth scene transitions (ColorRect fade in/out)
-- [ ] Settings menu: BGM volume, SFX volume (sliders saved to config)
-**Review notes:**
+- [x] BGM procédural via AudioStreamGenerator (sine waves accordées)
+- [x] WorldMap BGM (do-mi-sol), Battle BGM (la mineur), Victory jingle (arpegio montant)
+- [x] SFX: attack hit, spell cast, level up, button click — tous via AudioStreamGenerator
+- [x] Screen shake sur les coups (tween position:x du Background de Battle)
+- [ ] Flash white on damage — omis (pas de sprite cible séparé)
+- [x] Smooth scene transitions (TransitionManager autoload, fade noir 0.35s)
+- [x] Settings menu: BGM/SFX volume sliders (SettingsMenu.tscn)
+**Review notes:** AudioManager entièrement procédural — zéro fichier audio requis. TransitionManager sur layer=100 intercepte tous les changements de scène. BGM fade non implémenté (simplifié).
 
 ---
 
