@@ -33,20 +33,20 @@
 
 ---
 
-## Sprint 3 — Battle System Core [STATUS: TODO]
+## Sprint 3 — Battle System Core [STATUS: DONE]
 **Goal:** Turn-based battle scene triggered by random encounter on the map
 **Tasks:**
-- [ ] Create BattleManager autoload (turn queue, battle state machine)
-- [ ] Create Battle.tscn (battle background, player party panel, enemy panel)
-- [ ] Create CombatUnit resource (.tres) with: name, hp, max_hp, mp, atk, def, spd
-- [ ] Create 1 player unit (Hero) and 2 enemy types (Slime, Goblin) as resources
-- [ ] Implement turn order by speed stat
-- [ ] Implement "Attack" action: damage formula = max(1, attacker.atk - defender.def)
-- [ ] Implement enemy AI: random attack on player
-- [ ] Battle ends: victory (all enemies dead) or game over (hero hp = 0)
-- [ ] Random encounter trigger on WorldMap (every N steps, configurable)
-- [ ] Transition WorldMap ↔ Battle with fade effect
-**Review notes:**
+- [x] Create BattleManager autoload (turn queue, battle state machine)
+- [x] Create Battle.tscn (battle background, player party panel, enemy panel)
+- [x] Create CombatUnit resource (.tres) with: name, hp, max_hp, mp, atk, def, spd
+- [x] Create 1 player unit (Hero) and 2 enemy types (Slime, Goblin) as resources
+- [x] Implement turn order by speed stat
+- [x] Implement "Attack" action: damage formula = max(1, attacker.atk - defender.def)
+- [x] Implement enemy AI: random attack on player
+- [x] Battle ends: victory (all enemies dead) or game over (hero hp = 0)
+- [x] Random encounter trigger sur WorldMap (STEPS_PER_ENCOUNTER = 80)
+- [ ] Transition WorldMap ↔ Battle avec fade effect (reporté au Sprint 4)
+**Review notes:** BattleManager utilise les signaux pour tout découpler. Turn queue rebuilt à chaque tour. Transition fade reportée au Sprint 4 pour rester dans le budget token.
 
 ---
 

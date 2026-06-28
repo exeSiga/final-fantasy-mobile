@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="CombatUnit" load_steps=2 format=3 uid="uid://hero"]
+
+[ext_resource type="Script" path="res://resources/CombatUnit.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+unit_name = "Hero"
+hp = 300
+max_hp = 300
+mp = 80
+max_mp = 80
+atk = 45
+def = 20
+spd = 30
+is_player = true
+sprite_color = Color(0.2, 0.4, 1, 1)
