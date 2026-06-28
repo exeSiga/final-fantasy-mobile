@@ -1,0 +1,48 @@
+{
+  "model": "claude-sonnet-4-6",
+  "permissions": {
+    "allow": [
+      "Read(**)",
+      "Write(**)",
+      "Bash(git *)",
+      "Bash(grep *)",
+      "Bash(find *)",
+      "Bash(mkdir *)",
+      "Bash(echo *)",
+      "Bash(cat *)",
+      "Bash(date*)",
+      "Bash(tail *)",
+      "Bash(head *)",
+      "Bash(cp *)",
+      "Bash(mv *)",
+      "Bash(godot *)",
+      "Bash(wc *)"
+    ],
+    "deny": [
+      "Bash(rm -rf /)",
+      "Bash(sudo rm *)"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '{\"additionalContext\": \"MODE AUTONOME ACTIF. Lis TASKS.md et SESSION_LOG.md en premier. Ne lis que les fichiers nécessaires. Lance /compact à 60% de contexte. Boucle sur les sprints sans t arrêter.\"}'"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "grep -qm1 'STATUS: TODO\\|STATUS: IN_PROGRESS' TASKS.md 2>/dev/null && echo '{\"decision\": \"block\", \"reason\": \"Sprint suivant disponible : continue la boucle autonome. Lis TASKS.md.\"}' || true"
+          }
+        ]
+      }
+    ]
+  }
+}
