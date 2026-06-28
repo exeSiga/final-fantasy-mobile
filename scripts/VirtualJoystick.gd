@@ -1,5 +1,4 @@
 extends Control
-class_name VirtualJoystick
 
 signal input_vector(vec: Vector2)
 
@@ -33,7 +32,10 @@ func _input(event: InputEvent) -> void:
 		var local: Vector2 = event.position - global_position - _center
 		var clamped: Vector2 = local.limit_length(RADIUS)
 		_knob.position = _base.size / 2.0 - _knob.size / 2.0 + clamped
-		_current_vec = clamped / RADIUS if local.length() > DEAD_ZONE else Vector2.ZERO
+		if local.length() > DEAD_ZONE:
+			_current_vec = clamped / RADIUS
+		else:
+			_current_vec = Vector2.ZERO
 		input_vector.emit(_current_vec)
 
 func _is_in_zone(pos: Vector2) -> bool:

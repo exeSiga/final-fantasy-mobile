@@ -6,7 +6,7 @@ const STEPS_PER_ENCOUNTER := 50
 
 @onready var player: CharacterBody2D = $Player
 @onready var camera: Camera2D = $Camera2D
-@onready var joystick: VirtualJoystick = $VirtualJoystick
+@onready var joystick: Control = $VirtualJoystick
 @onready var chest_label: Label = $UI/ChestLabel
 
 var _current_room: int = 0

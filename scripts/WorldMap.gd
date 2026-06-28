@@ -6,7 +6,7 @@ const CAMERA_LERP := 5.0
 
 @onready var player: CharacterBody2D = $Player
 @onready var camera: Camera2D = $Camera2D
-@onready var joystick: VirtualJoystick = $VirtualJoystick
+@onready var joystick: Control = $VirtualJoystick
 
 var _shop_scene: PackedScene = preload("res://scenes/ui/Shop.tscn")
 var _shop_open: bool = false
