@@ -26,20 +26,20 @@ func set_state(new_state: GameState) -> void:
 	current_state = new_state
 
 func new_game() -> void:
-	player_unit = load("res://resources/units/hero.tres").duplicate()
+	player_unit = load("res://resources/units/hero.tres").duplicate() as CombatUnit
 	gold = 0
 	inventory = {}
 	spells.clear()
-	spells.append(load("res://resources/spells/fire.tres"))
-	spells.append(load("res://resources/spells/cure.tres"))
-	spells.append(load("res://resources/spells/haste.tres"))
+	spells.append(load("res://resources/spells/fire.tres") as Spell)
+	spells.append(load("res://resources/spells/cure.tres") as Spell)
+	spells.append(load("res://resources/spells/haste.tres") as Spell)
 
 func add_item(item: Item, qty: int = 1) -> void:
-	var key := item.resource_path
+	var key: String = item.resource_path
 	inventory[key] = min(item.max_stack, inventory.get(key, 0) + qty)
 
 func use_item(item: Item) -> bool:
-	var key := item.resource_path
+	var key: String = item.resource_path
 	if inventory.get(key, 0) <= 0 or player_unit == null:
 		return false
 	match item.effect_type:
@@ -63,7 +63,7 @@ func use_item(item: Item) -> bool:
 func buy_item(item: Item) -> bool:
 	if gold < item.price:
 		return false
-	var key := item.resource_path
+	var key: String = item.resource_path
 	if inventory.get(key, 0) >= item.max_stack:
 		return false
 	gold -= item.price
@@ -78,13 +78,13 @@ func add_gold(amount: int) -> void:
 func grant_battle_rewards() -> void:
 	if player_unit == null:
 		return
-	var total_xp := 0
-	var total_gold := 0
-	for e in BattleManager.enemies:
+	var total_xp: int = 0
+	var total_gold: int = 0
+	for e: CombatUnit in BattleManager.enemies:
 		total_xp += e.xp_reward
 		total_gold += e.gold_reward
 	add_gold(total_gold)
-	var leveled_up := player_unit.add_xp(total_xp)
+	var leveled_up: bool = player_unit.add_xp(total_xp)
 	if leveled_up:
 		AudioManager.play_sfx_levelup()
 		level_up.emit(player_unit.level)

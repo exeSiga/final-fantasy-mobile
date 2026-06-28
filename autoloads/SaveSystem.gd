@@ -10,10 +10,10 @@ func _slot_path(slot: int) -> String:
 	return SAVE_DIR + "slot_%d.json" % slot
 
 func save(slot: int) -> void:
-	var p := GameManager.player_unit
+	var p: CombatUnit = GameManager.player_unit
 	if p == null:
 		return
-	var d := {
+	var d: Dictionary = {
 		"unit_name": p.unit_name,
 		"hp": p.hp, "max_hp": p.max_hp,
 		"mp": p.mp, "max_mp": p.max_mp,
@@ -23,22 +23,23 @@ func save(slot: int) -> void:
 		"timestamp": Time.get_datetime_string_from_system(),
 		"playtime": Time.get_ticks_msec() / 1000,
 	}
-	var file := FileAccess.open(_slot_path(slot), FileAccess.WRITE)
+	var file: FileAccess = FileAccess.open(_slot_path(slot), FileAccess.WRITE)
 	if file:
 		file.store_string(JSON.stringify(d))
 
 func load_save(slot: int) -> bool:
-	var path := _slot_path(slot)
+	var path: String = _slot_path(slot)
 	if not FileAccess.file_exists(path):
 		return false
-	var file := FileAccess.open(path, FileAccess.READ)
+	var file: FileAccess = FileAccess.open(path, FileAccess.READ)
 	if not file:
 		return false
-	var d = JSON.parse_string(file.get_as_text())
-	if not d is Dictionary:
+	var parsed: Variant = JSON.parse_string(file.get_as_text())
+	if not parsed is Dictionary:
 		return false
+	var d: Dictionary = parsed as Dictionary
 	GameManager.new_game()
-	var p := GameManager.player_unit
+	var p: CombatUnit = GameManager.player_unit
 	p.hp = d.get("hp", p.max_hp)
 	p.max_hp = d.get("max_hp", p.max_hp)
 	p.mp = d.get("mp", p.max_mp)
@@ -53,14 +54,14 @@ func load_save(slot: int) -> bool:
 	return true
 
 func get_slot_info(slot: int) -> Dictionary:
-	var path := _slot_path(slot)
+	var path: String = _slot_path(slot)
 	if not FileAccess.file_exists(path):
 		return {}
-	var file := FileAccess.open(path, FileAccess.READ)
+	var file: FileAccess = FileAccess.open(path, FileAccess.READ)
 	if not file:
 		return {}
-	var d = JSON.parse_string(file.get_as_text())
-	return d if d is Dictionary else {}
+	var parsed: Variant = JSON.parse_string(file.get_as_text())
+	return parsed as Dictionary if parsed is Dictionary else {}
 
 func delete_save(slot: int) -> void:
 	DirAccess.remove_absolute(_slot_path(slot))

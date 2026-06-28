@@ -13,3 +13,4 @@
 [2026-06-28 12:20] Sprint 9 (Mobile Controls) — DONE — ~24000 tokens
 [2026-06-28 12:55] Sprint 10 (First Dungeon) — DONE — ~29000 tokens
 [2026-06-28 13:25] Sprint 11 (Item System) — DONE — ~33500 tokens
+[2026-06-28 13:50] Sprint 12 (Final Polish) — DONE — ~37000 tokens

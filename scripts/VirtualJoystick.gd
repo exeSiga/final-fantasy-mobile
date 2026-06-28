@@ -30,12 +30,12 @@ func _input(event: InputEvent) -> void:
 			_knob.position = _base.size / 2.0 - _knob.size / 2.0
 			input_vector.emit(Vector2.ZERO)
 	elif event is InputEventScreenDrag and event.index == _touch_index:
-		var local := event.position - global_position - _center
-		var clamped := local.limit_length(RADIUS)
+		var local: Vector2 = event.position - global_position - _center
+		var clamped: Vector2 = local.limit_length(RADIUS)
 		_knob.position = _base.size / 2.0 - _knob.size / 2.0 + clamped
 		_current_vec = clamped / RADIUS if local.length() > DEAD_ZONE else Vector2.ZERO
 		input_vector.emit(_current_vec)
 
 func _is_in_zone(pos: Vector2) -> bool:
-	var local := pos - global_position
+	var local: Vector2 = pos - global_position
 	return local.x >= 0 and local.y >= 0 and local.x <= size.x and local.y <= size.y

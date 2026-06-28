@@ -18,8 +18,8 @@ func _build_slots() -> void:
 	for child in slot_container.get_children():
 		child.queue_free()
 	for i in SLOT_COUNT:
-		var info := SaveSystem.get_slot_info(i)
-		var btn := Button.new()
+		var info: Dictionary = SaveSystem.get_slot_info(i)
+		var btn: Button = Button.new()
 		if info.is_empty():
 			btn.text = "Slot %d — Empty" % (i + 1)
 		else:

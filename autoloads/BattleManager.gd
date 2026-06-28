@@ -39,7 +39,7 @@ func start_battle(dungeon: bool = false, boss: bool = false) -> void:
 	if is_boss_battle:
 		enemies.append(load(BOSS_PATH).duplicate())
 	else:
-		var pool := DUNGEON_POOL if dungeon_mode else ENEMY_POOL
+		var pool: Array = DUNGEON_POOL if dungeon_mode else ENEMY_POOL
 		var enemy_res: String = pool[randi() % pool.size()]
 		enemies.append(load(enemy_res).duplicate())
 		if randi() % 2 == 0:
@@ -58,7 +58,7 @@ func _build_turn_queue() -> void:
 	turn_queue.sort_custom(func(a: CombatUnit, b: CombatUnit) -> bool: return a.spd > b.spd)
 
 func _next_turn() -> void:
-	turn_queue = turn_queue.filter(func(u: CombatUnit) -> bool: return u.is_alive())
+	turn_queue = turn_queue.filter(func(u: CombatUnit) -> bool: return u.is_alive()) as Array[CombatUnit]
 	if turn_queue.is_empty():
 		_check_battle_end()
 		return
@@ -78,11 +78,11 @@ func _next_turn() -> void:
 func player_attack() -> void:
 	if state != BattleState.PLAYER_TURN:
 		return
-	var alive_enemies := enemies.filter(func(e: CombatUnit) -> bool: return e.is_alive())
+	var alive_enemies: Array = enemies.filter(func(e: CombatUnit) -> bool: return e.is_alive())
 	if alive_enemies.is_empty():
 		return
 	var target: CombatUnit = alive_enemies[randi() % alive_enemies.size()]
-	var dmg := player_unit.calc_damage_against(target)
+	var dmg: int = player_unit.calc_damage_against(target)
 	target.take_damage(dmg)
 	action_result.emit(player_unit.unit_name, target.unit_name, dmg)
 	_check_battle_end()
@@ -101,19 +101,19 @@ func player_cast_spell(spell: Spell) -> void:
 	player_unit.mp -= spell.mp_cost
 	match spell.effect_type:
 		Spell.EffectType.DAMAGE:
-			var alive_enemies := enemies.filter(func(e: CombatUnit) -> bool: return e.is_alive())
+			var alive_enemies: Array = enemies.filter(func(e: CombatUnit) -> bool: return e.is_alive())
 			if alive_enemies.is_empty():
 				return
 			var target: CombatUnit = alive_enemies[randi() % alive_enemies.size()]
-			var dmg := int(player_unit.atk * spell.damage_multiplier)
+			var dmg: int = int(player_unit.atk * spell.damage_multiplier)
 			target.hp = max(0, target.hp - dmg)
 			action_result.emit("Hero", target.unit_name, dmg)
 		Spell.EffectType.HEAL:
-			var heal := 60
+			var heal: int = 60
 			player_unit.hp = min(player_unit.max_hp, player_unit.hp + heal)
 			action_result.emit("Hero", "Hero", -heal)
 		Spell.EffectType.HASTE:
-			var old_spd := player_unit.spd
+			var old_spd: int = player_unit.spd
 			player_unit.spd = old_spd * 2
 			_haste_turns_left = HASTE_TURNS
 			action_result.emit("Hero", "Hero", 0)
@@ -132,7 +132,7 @@ func player_run() -> void:
 	battle_ended.emit(false)
 
 func _enemy_act(enemy: CombatUnit) -> void:
-	var dmg := enemy.calc_damage_against(player_unit)
+	var dmg: int = enemy.calc_damage_against(player_unit)
 	player_unit.take_damage(dmg)
 	action_result.emit(enemy.unit_name, player_unit.unit_name, dmg)
 	_check_battle_end()
@@ -140,7 +140,7 @@ func _enemy_act(enemy: CombatUnit) -> void:
 		return
 	if is_boss_battle and enemy.unit_name == "Dark Knight":
 		await get_tree().create_timer(0.6).timeout
-		var dmg2 := enemy.calc_damage_against(player_unit)
+		var dmg2: int = enemy.calc_damage_against(player_unit)
 		player_unit.take_damage(dmg2)
 		action_result.emit(enemy.unit_name, player_unit.unit_name, dmg2)
 		_check_battle_end()
@@ -153,7 +153,7 @@ func rebuild_and_next() -> void:
 	all.append(player_unit)
 	for e in enemies:
 		all.append(e)
-	turn_queue = all.filter(func(u: CombatUnit) -> bool: return u.is_alive())
+	turn_queue = all.filter(func(u: CombatUnit) -> bool: return u.is_alive()) as Array[CombatUnit]
 	turn_queue.sort_custom(func(a: CombatUnit, b: CombatUnit) -> bool: return a.spd > b.spd)
 	if not turn_queue.is_empty():
 		var next: CombatUnit = turn_queue.pop_front()
@@ -167,7 +167,7 @@ func rebuild_and_next() -> void:
 			_enemy_act(next)
 
 func _check_battle_end() -> void:
-	var all_enemies_dead := enemies.all(func(e: CombatUnit) -> bool: return not e.is_alive())
+	var all_enemies_dead: bool = enemies.all(func(e: CombatUnit) -> bool: return not e.is_alive())
 	if all_enemies_dead:
 		state = BattleState.VICTORY
 		GameManager.grant_battle_rewards()

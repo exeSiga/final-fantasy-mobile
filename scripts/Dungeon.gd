@@ -42,7 +42,7 @@ func _process(_delta: float) -> void:
 	_update_room()
 
 func _update_room() -> void:
-	var y := player.position.y
+	var y: float = player.position.y
 	_current_room = clamp(int(-y / ROOM_H), 0, 4)
 
 func _physics_process(_delta: float) -> void:

@@ -15,7 +15,7 @@ func _input(event: InputEvent) -> void:
 			_tracking = true
 		elif _tracking:
 			_tracking = false
-			var delta := event.position - _start_pos
+			var delta: Vector2 = event.position - _start_pos
 			if delta.length() < MIN_DISTANCE:
 				return
 			if abs(delta.x) > abs(delta.y):

@@ -52,7 +52,7 @@ func _on_turn_changed(unit: CombatUnit) -> void:
 	_log("%s's turn" % unit.unit_name)
 
 func _on_action_result(attacker: String, target: String, damage: int) -> void:
-	var player := BattleManager.player_unit
+	var player: CombatUnit = BattleManager.player_unit
 	if damage == -1:
 		_log("Not enough MP!")
 	elif damage <= 0 and damage > -1:
@@ -88,7 +88,7 @@ func _on_battle_ended(victory: bool) -> void:
 	if victory:
 		AudioManager.play_sfx_victory()
 		SaveSystem.save(0)
-		var title := victory_overlay.get_node("VBox/TitleLabel") as Label
+		var title: Label = victory_overlay.get_node("VBox/TitleLabel") as Label
 		title.text = "Victory!\n+%d XP  +%d G" % [BattleManager.last_xp, BattleManager.last_gold]
 		victory_overlay.show()
 	else:
@@ -174,7 +174,7 @@ func _build_item_menu() -> void:
 func _on_item_used(item: Item) -> void:
 	item_menu.hide()
 	action_buttons.show()
-	var ok := GameManager.use_item(item)
+	var ok: bool = GameManager.use_item(item)
 	if ok:
 		_log("Used %s!" % item.item_name)
 		_refresh_hero_label(BattleManager.player_unit)
