@@ -13,7 +13,7 @@ extends Node2D
 @onready var gameover_overlay: PanelContainer = $UI/GameOverOverlay
 
 var _log_lines: PackedStringArray = []
-var _enemy_hp_bars: Array[HPBar] = []
+var _enemy_hp_bars: Array = []
 
 @onready var _bg: ColorRect = $Background
 

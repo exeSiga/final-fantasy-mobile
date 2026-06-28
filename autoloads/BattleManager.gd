@@ -15,14 +15,14 @@ const BOSS_PATH := "res://resources/units/dark_knight.tres"
 var is_boss_battle: bool = false
 var dungeon_mode: bool = false
 
-signal battle_started(player_unit: CombatUnit, enemies: Array)
-signal turn_changed(unit: CombatUnit)
+signal battle_started(player_unit, enemies)
+signal turn_changed(unit)
 signal action_result(attacker: String, target: String, damage: int)
 signal battle_ended(victory: bool)
 
 var player_unit: CombatUnit = null
-var enemies: Array[CombatUnit] = []
-var turn_queue: Array[CombatUnit] = []
+var enemies: Array = []
+var turn_queue: Array = []
 var state: BattleState = BattleState.IDLE
 var last_xp: int = 0
 var last_gold: int = 0
@@ -55,10 +55,10 @@ func _build_turn_queue() -> void:
 	turn_queue.append(player_unit)
 	for e in enemies:
 		turn_queue.append(e)
-	turn_queue.sort_custom(func(a: CombatUnit, b: CombatUnit) -> bool: return a.spd > b.spd)
+	turn_queue.sort_custom(func(a, b) -> bool: return a.spd > b.spd)
 
 func _next_turn() -> void:
-	turn_queue = turn_queue.filter(func(u: CombatUnit) -> bool: return u.is_alive()) as Array[CombatUnit]
+	turn_queue = turn_queue.filter(func(u) -> bool: return u.is_alive())
 	if turn_queue.is_empty():
 		_check_battle_end()
 		return
@@ -78,7 +78,7 @@ func _next_turn() -> void:
 func player_attack() -> void:
 	if state != BattleState.PLAYER_TURN:
 		return
-	var alive_enemies: Array = enemies.filter(func(e: CombatUnit) -> bool: return e.is_alive())
+	var alive_enemies: Array = enemies.filter(func(e) -> bool: return e.is_alive())
 	if alive_enemies.is_empty():
 		return
 	var target: CombatUnit = alive_enemies[randi() % alive_enemies.size()]
@@ -101,7 +101,7 @@ func player_cast_spell(spell: Spell) -> void:
 	player_unit.mp -= spell.mp_cost
 	match spell.effect_type:
 		Spell.EffectType.DAMAGE:
-			var alive_enemies: Array = enemies.filter(func(e: CombatUnit) -> bool: return e.is_alive())
+			var alive_enemies: Array = enemies.filter(func(e) -> bool: return e.is_alive())
 			if alive_enemies.is_empty():
 				return
 			var target: CombatUnit = alive_enemies[randi() % alive_enemies.size()]
@@ -149,12 +149,12 @@ func _enemy_act(enemy: CombatUnit) -> void:
 	rebuild_and_next()
 
 func rebuild_and_next() -> void:
-	var all: Array[CombatUnit] = []
+	var all: Array = []
 	all.append(player_unit)
 	for e in enemies:
 		all.append(e)
-	turn_queue = all.filter(func(u: CombatUnit) -> bool: return u.is_alive()) as Array[CombatUnit]
-	turn_queue.sort_custom(func(a: CombatUnit, b: CombatUnit) -> bool: return a.spd > b.spd)
+	turn_queue = all.filter(func(u) -> bool: return u.is_alive())
+	turn_queue.sort_custom(func(a, b) -> bool: return a.spd > b.spd)
 	if not turn_queue.is_empty():
 		var next: CombatUnit = turn_queue.pop_front()
 		if next.is_player:
@@ -167,7 +167,7 @@ func rebuild_and_next() -> void:
 			_enemy_act(next)
 
 func _check_battle_end() -> void:
-	var all_enemies_dead: bool = enemies.all(func(e: CombatUnit) -> bool: return not e.is_alive())
+	var all_enemies_dead: bool = enemies.all(func(e) -> bool: return not e.is_alive())
 	if all_enemies_dead:
 		state = BattleState.VICTORY
 		GameManager.grant_battle_rewards()
