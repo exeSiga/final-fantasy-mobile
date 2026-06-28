@@ -21,7 +21,7 @@ func is_alive() -> bool:
 	return hp > 0
 
 func take_damage(amount: int) -> int:
-	var actual := max(1, amount - def)
+	var actual: int = max(1, amount - def)
 	hp = max(0, hp - actual)
 	return actual
 
