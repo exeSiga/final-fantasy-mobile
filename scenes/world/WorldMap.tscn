@@ -1,8 +1,9 @@
-[gd_scene load_steps=10 format=3 uid="uid://worldmap"]
+[gd_scene load_steps=11 format=3 uid="uid://worldmap"]
 
 [ext_resource type="Script" path="res://scripts/WorldMap.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/characters/Player.tscn" id="2"]
 [ext_resource type="PackedScene" path="res://scenes/ui/WorldHUD.tscn" id="3"]
+[ext_resource type="PackedScene" path="res://scenes/ui/VirtualJoystick.tscn" id="4"]
 
 [sub_resource type="RectangleShape2D" id="Wall_Top"]
 size = Vector2(3200, 32)
@@ -70,3 +71,5 @@ position = Vector2(1600, 1600)
 zoom = Vector2(0.8, 0.8)
 
 [node name="WorldHUD" parent="." instance=ExtResource("3")]
+
+[node name="VirtualJoystick" parent="." instance=ExtResource("4")]

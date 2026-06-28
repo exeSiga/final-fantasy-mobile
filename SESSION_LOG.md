@@ -9,3 +9,4 @@
 [2026-06-28 10:55] Sprint 5 (Progression System) — DONE — ~12500 tokens
 [2026-06-28 11:15] Sprint 6 (Magic System) — DONE — ~15500 tokens
 [2026-06-28 11:35] Sprint 7 (Save System) — DONE — ~18000 tokens
+[2026-06-28 12:00] Sprint 8 (Audio & Polish) — DONE — ~21500 tokens

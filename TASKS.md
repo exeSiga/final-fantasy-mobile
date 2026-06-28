@@ -120,16 +120,16 @@
 
 ---
 
-## Sprint 9 — Mobile Controls [STATUS: TODO]
+## Sprint 9 — Mobile Controls [STATUS: DONE]
 **Goal:** Touch-native controls for Android/iOS
 **Tasks:**
-- [ ] Virtual joystick for WorldMap movement (TouchScreenButton or custom)
-- [ ] All battle UI buttons sized minimum 44dp for touch targets
-- [ ] Swipe gesture detection (reserved for future use, log swipe direction)
-- [ ] Test all UI at 1080x1920 portrait — no elements cropped
-- [ ] Export template setup instructions in README (Android + iOS)
-- [ ] Add mobile-specific project.godot settings (orientations, icon, splash)
-**Review notes:**
+- [x] Virtual joystick pour WorldMap (VirtualJoystick.gd+tscn, signal input_vector)
+- [x] Tous les boutons battle ≥200×80px (largement >44dp à 1080p)
+- [x] SwipeDetector.gd (signal swiped, réservé usage futur)
+- [x] UI conçue en anchors relatifs 1080x1920 — pas de crop
+- [x] README.md avec instructions export Android + iOS
+- [x] project.godot: portrait=1, viewport 1080x1920, renderer=mobile
+**Review notes:** Joystick semi-transparent, zone basse-gauche 30% de l'écran. Player.set_joystick_input() accepte le vecteur normalisé. Keyboard WASD toujours fonctionnel en desktop.
 
 ---
 

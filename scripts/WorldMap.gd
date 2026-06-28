@@ -6,11 +6,13 @@ const CAMERA_LERP := 5.0
 
 @onready var player: CharacterBody2D = $Player
 @onready var camera: Camera2D = $Camera2D
+@onready var joystick: VirtualJoystick = $VirtualJoystick
 
 func _ready() -> void:
 	GameManager.set_state(GameManager.GameState.WORLD)
 	AudioManager.play_world_bgm()
 	player.encounter_triggered.connect(_on_encounter)
+	joystick.input_vector.connect(player.set_joystick_input)
 	camera.position_smoothing_enabled = true
 	camera.position_smoothing_speed = CAMERA_LERP
 	camera.limit_left = 0
