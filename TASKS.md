@@ -19,17 +19,17 @@
 
 ---
 
-## Sprint 2 — Player & World Map [STATUS: TODO]
+## Sprint 2 — Player & World Map [STATUS: DONE]
 **Goal:** Overworld map with a walking player character
 **Tasks:**
-- [ ] Create Player.gd with 4-directional movement (WASD / touch joystick)
-- [ ] Create Player.tscn (CharacterBody2D + AnimatedSprite2D)
-- [ ] Create simple 4-direction walk animation (placeholder colored rect, 2 frames per dir)
-- [ ] Create WorldMap.tscn (TileMap with 3 terrain types: grass, mountain, water)
-- [ ] Add camera that follows player with smooth lerp
-- [ ] Add world boundary (player cannot walk out of map)
-- [ ] Wire "New Game" button → WorldMap scene
-**Review notes:**
+- [x] Create Player.gd with 4-directional movement (WASD / touch joystick)
+- [x] Create Player.tscn (CharacterBody2D + ColorRect placeholder)
+- [x] Create simple 4-direction walk animation (placeholder colored rect)
+- [x] Create WorldMap.tscn (3 terrain types: grass, mountain/lake avec ColorRect)
+- [x] Add camera that follows player with smooth lerp
+- [x] Add world boundary (StaticBody2D walls sur les 4 bords)
+- [x] Wire "New Game" button → WorldMap scene
+**Review notes:** AnimatedSprite2D remplacé par ColorRect (pas de textures). step_counter déclenche encounter_triggered signal. Camera2D lerp via position_smoothing + _process override.
 
 ---
 
