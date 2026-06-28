@@ -67,7 +67,9 @@ func _on_action_result(attacker: String, target: String, damage: int) -> void:
 
 func _on_battle_ended(victory: bool) -> void:
 	action_buttons.hide()
+	magic_menu.hide()
 	if victory:
+		SaveSystem.save(0)
 		var title := victory_overlay.get_node("VBox/TitleLabel") as Label
 		title.text = "Victory!\n+%d XP  +%d G" % [BattleManager.last_xp, BattleManager.last_gold]
 		victory_overlay.show()

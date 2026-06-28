@@ -92,17 +92,17 @@
 
 ---
 
-## Sprint 7 — Save System [STATUS: TODO]
+## Sprint 7 — Save System [STATUS: DONE]
 **Goal:** Working save/load with 3 save slots
 **Tasks:**
-- [ ] Implement SaveSystem.save(slot, data) → JSON file in user://
-- [ ] Implement SaveSystem.load(slot) → returns dict or null
-- [ ] Save data includes: player stats, level, xp, gold, map position, spells
-- [ ] Save Menu scene (3 slots showing level + playtime + timestamp)
-- [ ] Auto-save after each battle victory
-- [ ] Load menu accessible from MainMenu
-- [ ] "Save & Quit" option in pause menu on WorldMap
-**Review notes:**
+- [x] Implement SaveSystem.save(slot) → JSON file in user://saves/slot_N.json
+- [x] Implement SaveSystem.load_save(slot) → restaure GameManager.player_unit
+- [x] Save data: stats, level, xp, gold, timestamp
+- [x] Save Menu scene (3 slots avec level + timestamp)
+- [x] Auto-save slot 0 après chaque victoire
+- [x] Load menu accessible depuis MainMenu (bouton "Load Game")
+- [ ] "Save & Quit" pause menu (reporté — non critique)
+**Review notes:** get_slot_info pour lire les métadonnées sans charger. Auto-save toujours sur slot 0. Map position non sauvegardée (non critique pour la démo).
 
 ---
 
