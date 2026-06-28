@@ -55,7 +55,7 @@ func _physics_process(_delta: float) -> void:
 func _trigger_dungeon_battle() -> void:
 	GameManager.return_after_battle = "res://scenes/world/Dungeon.tscn"
 	BattleManager.is_boss_battle = false
-	BattleManager._dungeon_mode = true
+	BattleManager.dungeon_mode = true
 	GameManager.change_scene("res://scenes/combat/Battle.tscn")
 
 func _on_door(_body: Node, next_room: int) -> void:
@@ -77,5 +77,5 @@ func _on_boss_trigger(_body: Node) -> void:
 		_boss_done = true
 		GameManager.return_after_battle = "res://scenes/world/WorldMap.tscn"
 		BattleManager.is_boss_battle = true
-		BattleManager._dungeon_mode = true
+		BattleManager.dungeon_mode = true
 		GameManager.change_scene("res://scenes/combat/Battle.tscn")

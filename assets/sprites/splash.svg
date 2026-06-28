@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1920">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#000010"/>
+      <stop offset="100%" style="stop-color:#000030"/>
+    </linearGradient>
+  </defs>
+  <rect width="1080" height="1920" fill="url(#bg)"/>
+  <text x="540" y="820" font-family="serif" font-size="160" fill="#c8a000" text-anchor="middle" font-weight="bold">FINAL</text>
+  <text x="540" y="1000" font-family="serif" font-size="160" fill="#c8a000" text-anchor="middle" font-weight="bold">FANTASY</text>
+  <text x="540" y="1120" font-family="serif" font-size="80" fill="#ffffff" text-anchor="middle">Mobile</text>
+  <polygon points="540,1300 600,1420 480,1420" fill="#c8a000"/>
+</svg>

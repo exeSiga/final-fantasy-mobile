@@ -161,17 +161,17 @@
 
 ---
 
-## Sprint 12 — Final Polish & Release Build [STATUS: TODO]
+## Sprint 12 — Final Polish & Release Build [STATUS: DONE]
 **Goal:** Build a playable demo APK with a full game loop
 **Tasks:**
-- [ ] Full play-through review: menu → world → 3 battles → dungeon → boss → win
-- [ ] Fix any critical bugs found during review
-- [ ] Add proper game icon (512x512 placeholder gradient)
-- [ ] Add splash screen (2 seconds, project name)
-- [ ] Write export instructions in README.md (Godot → Android APK)
-- [ ] Final git tag: v0.1.0-demo
-- [ ] Write DONE.md: summary of all sprints, architecture overview, known issues
-**Review notes:**
+- [x] Full play-through review — bugs critiques identifiés et corrigés
+- [x] Fix bugs: Dungeon.gd hud orphan ref, _dungeon_mode/_rebuild_and_next rendus publics, haste logic
+- [x] Icon SVG 512×512 gradient (déjà fait Sprint 1)
+- [x] Splash screen SVG 1080×1920 + minimum_display_time=2000ms
+- [x] README.md avec instructions export Android + iOS (déjà fait Sprint 9)
+- [x] Final git tag: v0.1.0-demo
+- [x] DONE.md: résumé tous sprints, architecture, known issues
+**Review notes:** Tous les autoloads fonctionnels. Flux complet menu→monde→combat→donjon→boss→victoire opérationnel. Zéro fichier asset requis (tout procédural).
 
 ---
 

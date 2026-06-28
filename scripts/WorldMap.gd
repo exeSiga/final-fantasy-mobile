@@ -43,5 +43,5 @@ func _on_dungeon_entrance(body: Node) -> void:
 func _on_encounter() -> void:
 	GameManager.return_after_battle = "res://scenes/world/WorldMap.tscn"
 	BattleManager.is_boss_battle = false
-	BattleManager._dungeon_mode = false
+	BattleManager.dungeon_mode = false
 	GameManager.change_scene("res://scenes/combat/Battle.tscn")

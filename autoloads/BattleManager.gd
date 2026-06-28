@@ -13,7 +13,7 @@ const DUNGEON_POOL := [
 const BOSS_PATH := "res://resources/units/dark_knight.tres"
 
 var is_boss_battle: bool = false
-var _dungeon_mode: bool = false
+var dungeon_mode: bool = false
 
 signal battle_started(player_unit: CombatUnit, enemies: Array)
 signal turn_changed(unit: CombatUnit)
@@ -29,7 +29,7 @@ var last_gold: int = 0
 
 func start_battle(dungeon: bool = false, boss: bool = false) -> void:
 	is_boss_battle = boss
-	_dungeon_mode = dungeon
+	dungeon_mode = dungeon
 	if GameManager.player_unit != null:
 		player_unit = GameManager.player_unit
 	else:
@@ -39,7 +39,7 @@ func start_battle(dungeon: bool = false, boss: bool = false) -> void:
 	if is_boss_battle:
 		enemies.append(load(BOSS_PATH).duplicate())
 	else:
-		var pool := DUNGEON_POOL if _dungeon_mode else ENEMY_POOL
+		var pool := DUNGEON_POOL if dungeon_mode else ENEMY_POOL
 		var enemy_res: String = pool[randi() % pool.size()]
 		enemies.append(load(enemy_res).duplicate())
 		if randi() % 2 == 0:
@@ -87,7 +87,7 @@ func player_attack() -> void:
 	action_result.emit(player_unit.unit_name, target.unit_name, dmg)
 	_check_battle_end()
 	if state == BattleState.IDLE:
-		_rebuild_and_next()
+		rebuild_and_next()
 
 const HASTE_TURNS := 2
 var _haste_turns_left: int = 0
@@ -123,7 +123,7 @@ func player_cast_spell(spell: Spell) -> void:
 			_haste_turns_left -= 1
 			if _haste_turns_left == 0:
 				player_unit.spd = player_unit.spd / 2
-		_rebuild_and_next()
+		rebuild_and_next()
 
 func player_run() -> void:
 	if state != BattleState.PLAYER_TURN:
@@ -146,9 +146,9 @@ func _enemy_act(enemy: CombatUnit) -> void:
 		_check_battle_end()
 		if state != BattleState.IDLE:
 			return
-	_rebuild_and_next()
+	rebuild_and_next()
 
-func _rebuild_and_next() -> void:
+func rebuild_and_next() -> void:
 	var all: Array[CombatUnit] = []
 	all.append(player_unit)
 	for e in enemies:
