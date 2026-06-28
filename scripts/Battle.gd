@@ -26,7 +26,7 @@ func _ready() -> void:
 	BattleManager.action_result.connect(_on_action_result)
 	BattleManager.turn_changed.connect(_on_turn_changed)
 	BattleManager.battle_ended.connect(_on_battle_ended)
-	BattleManager.start_battle()
+	BattleManager.start_battle(BattleManager._dungeon_mode, BattleManager.is_boss_battle)
 
 func _on_battle_started(player: CombatUnit, enemies: Array) -> void:
 	hero_hp_bar.set_unit(player)
@@ -153,7 +153,7 @@ func _on_run_pressed() -> void:
 	BattleManager.player_run()
 
 func _on_victory_continue_pressed() -> void:
-	GameManager.change_scene("res://scenes/world/WorldMap.tscn")
+	GameManager.change_scene(GameManager.return_after_battle)
 
 func _on_gameover_menu_pressed() -> void:
 	GameManager.change_scene("res://scenes/ui/MainMenu.tscn")

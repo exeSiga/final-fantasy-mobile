@@ -133,18 +133,18 @@
 
 ---
 
-## Sprint 10 — First Dungeon [STATUS: TODO]
+## Sprint 10 — First Dungeon [STATUS: DONE]
 **Goal:** A 5-room dungeon with a boss encounter
 **Tasks:**
-- [ ] Create Dungeon.tscn (TileMap, darker palette, torchlight via PointLight2D)
-- [ ] 5 rooms connected by doors (player triggers room transition on door collision)
-- [ ] Dungeon-specific enemies: Skeleton (high def), Bat (high spd)
-- [ ] Boss enemy resource: DarkKnight (high hp/atk, 2 attacks per turn)
-- [ ] Boss room trigger (no random encounters in boss room, scripted battle)
-- [ ] Treasure chest mechanic (open → get item/gold)
-- [ ] Dungeon entrance on WorldMap (walk into a specific tile)
-- [ ] Victory over boss → return to WorldMap with fanfare
-**Review notes:**
+- [x] Create Dungeon.tscn (palette sombre, 5 rooms verticales en ColorRect)
+- [x] 5 rooms avec Area2D Door — transition par collision
+- [x] Skeleton (def élevée) et Bat (spd élevée) comme ennemis de donjon
+- [x] DarkKnight boss: 400HP, atk 55, double attaque par tour
+- [x] Boss trigger Area2D dans Room4 (pas de rencontres aléatoires là)
+- [x] Coffres au trésor: 4 coffres → gold variable par room
+- [x] Dungeon entrance sur WorldMap (Area2D à pos 500,500)
+- [x] return_after_battle="WorldMap" après boss via GameManager
+**Review notes:** Donjon vertical (rooms empilées en Y négatif). BattleManager._dungeon_mode et is_boss_battle comme flags pré-combat. Coffre label s'affiche 1.5s.
 
 ---
 

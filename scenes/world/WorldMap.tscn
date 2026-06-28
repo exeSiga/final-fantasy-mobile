@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://worldmap"]
+[gd_scene load_steps=12 format=3 uid="uid://worldmap"]
 
 [ext_resource type="Script" path="res://scripts/WorldMap.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/characters/Player.tscn" id="2"]
@@ -16,6 +16,9 @@ size = Vector2(32, 3200)
 
 [sub_resource type="RectangleShape2D" id="Wall_Right"]
 size = Vector2(32, 3200)
+
+[sub_resource type="RectangleShape2D" id="Entrance_Shape"]
+size = Vector2(120, 120)
 
 [node name="WorldMap" type="Node2D"]
 script = ExtResource("1")
@@ -62,6 +65,16 @@ shape = SubResource("Wall_Left")
 position = Vector2(3200, 1600)
 [node name="WallRightShape" type="CollisionShape2D" parent="Boundaries/WallRight"]
 shape = SubResource("Wall_Right")
+
+[node name="DungeonEntrance" type="Area2D" parent="."]
+position = Vector2(500, 500)
+[node name="DungeonEntranceShape" type="CollisionShape2D" parent="DungeonEntrance"]
+shape = SubResource("Entrance_Shape")
+[node name="DungeonLabel" type="Label" parent="DungeonEntrance"]
+position = Vector2(-80, -60)
+text = "Dungeon ▼"
+theme_override_font_sizes/font_size = 28
+theme_override_colors/font_color = Color(1, 0.3, 0.3, 1)
 
 [node name="Player" parent="." instance=ExtResource("2")]
 position = Vector2(1600, 1600)

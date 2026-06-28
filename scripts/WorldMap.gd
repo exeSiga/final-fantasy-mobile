@@ -13,6 +13,7 @@ func _ready() -> void:
 	AudioManager.play_world_bgm()
 	player.encounter_triggered.connect(_on_encounter)
 	joystick.input_vector.connect(player.set_joystick_input)
+	$DungeonEntrance.body_entered.connect(_on_dungeon_entrance)
 	camera.position_smoothing_enabled = true
 	camera.position_smoothing_speed = CAMERA_LERP
 	camera.limit_left = 0
@@ -24,5 +25,12 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	camera.global_position = camera.global_position.lerp(player.global_position, CAMERA_LERP * get_process_delta_time())
 
+func _on_dungeon_entrance(body: Node) -> void:
+	if body == player:
+		GameManager.change_scene("res://scenes/world/Dungeon.tscn")
+
 func _on_encounter() -> void:
+	GameManager.return_after_battle = "res://scenes/world/WorldMap.tscn"
+	BattleManager.is_boss_battle = false
+	BattleManager._dungeon_mode = false
 	GameManager.change_scene("res://scenes/combat/Battle.tscn")

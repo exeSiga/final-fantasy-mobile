@@ -6,6 +6,14 @@ const ENEMY_POOL := [
 	"res://resources/units/slime.tres",
 	"res://resources/units/goblin.tres",
 ]
+const DUNGEON_POOL := [
+	"res://resources/units/skeleton.tres",
+	"res://resources/units/bat.tres",
+]
+const BOSS_PATH := "res://resources/units/dark_knight.tres"
+
+var is_boss_battle: bool = false
+var _dungeon_mode: bool = false
 
 signal battle_started(player_unit: CombatUnit, enemies: Array)
 signal turn_changed(unit: CombatUnit)
@@ -19,18 +27,24 @@ var state: BattleState = BattleState.IDLE
 var last_xp: int = 0
 var last_gold: int = 0
 
-func start_battle() -> void:
+func start_battle(dungeon: bool = false, boss: bool = false) -> void:
+	is_boss_battle = boss
+	_dungeon_mode = dungeon
 	if GameManager.player_unit != null:
 		player_unit = GameManager.player_unit
 	else:
 		GameManager.new_game()
 		player_unit = GameManager.player_unit
 	enemies.clear()
-	var enemy_res: String = ENEMY_POOL[randi() % ENEMY_POOL.size()]
-	enemies.append(load(enemy_res).duplicate())
-	if randi() % 2 == 0:
-		var second: String = ENEMY_POOL[randi() % ENEMY_POOL.size()]
-		enemies.append(load(second).duplicate())
+	if is_boss_battle:
+		enemies.append(load(BOSS_PATH).duplicate())
+	else:
+		var pool := DUNGEON_POOL if _dungeon_mode else ENEMY_POOL
+		var enemy_res: String = pool[randi() % pool.size()]
+		enemies.append(load(enemy_res).duplicate())
+		if randi() % 2 == 0:
+			var second: String = pool[randi() % pool.size()]
+			enemies.append(load(second).duplicate())
 	_build_turn_queue()
 	state = BattleState.IDLE
 	battle_started.emit(player_unit, enemies)
@@ -122,8 +136,17 @@ func _enemy_act(enemy: CombatUnit) -> void:
 	player_unit.take_damage(dmg)
 	action_result.emit(enemy.unit_name, player_unit.unit_name, dmg)
 	_check_battle_end()
-	if state == BattleState.IDLE:
-		_rebuild_and_next()
+	if state != BattleState.IDLE:
+		return
+	if is_boss_battle and enemy.unit_name == "Dark Knight":
+		await get_tree().create_timer(0.6).timeout
+		var dmg2 := enemy.calc_damage_against(player_unit)
+		player_unit.take_damage(dmg2)
+		action_result.emit(enemy.unit_name, player_unit.unit_name, dmg2)
+		_check_battle_end()
+		if state != BattleState.IDLE:
+			return
+	_rebuild_and_next()
 
 func _rebuild_and_next() -> void:
 	var all: Array[CombatUnit] = []

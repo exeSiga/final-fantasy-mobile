@@ -7,6 +7,7 @@ var current_scene: Node = null
 var player_unit: CombatUnit = null
 var gold: int = 0
 var spells: Array[Spell] = []
+var return_after_battle: String = "res://scenes/world/WorldMap.tscn"
 
 signal gold_changed(new_amount: int)
 signal level_up(new_level: int)

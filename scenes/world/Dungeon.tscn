@@ -1,0 +1,190 @@
+[gd_scene load_steps=19 format=3 uid="uid://dungeon"]
+
+[ext_resource type="Script" path="res://scripts/Dungeon.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/characters/Player.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/ui/VirtualJoystick.tscn" id="3"]
+
+[sub_resource type="RectangleShape2D" id="DoorShape"]
+size = Vector2(200, 32)
+
+[sub_resource type="RectangleShape2D" id="ChestShape"]
+size = Vector2(64, 64)
+
+[sub_resource type="RectangleShape2D" id="BossShape"]
+size = Vector2(400, 80)
+
+[sub_resource type="RectangleShape2D" id="WallH"]
+size = Vector2(1080, 32)
+
+[sub_resource type="RectangleShape2D" id="WallV"]
+size = Vector2(32, 1600)
+
+[node name="Dungeon" type="Node2D"]
+script = ExtResource("1")
+
+[node name="Rooms" type="Node2D" parent="."]
+
+[node name="Room0" type="Node2D" parent="Rooms"]
+
+[node name="Floor0" type="ColorRect" parent="Rooms/Room0"]
+offset_left = 0.0
+offset_top = -1600.0
+offset_right = 1080.0
+offset_bottom = 0.0
+color = Color(0.12, 0.08, 0.18, 1)
+
+[node name="Door" type="Area2D" parent="Rooms/Room0"]
+position = Vector2(540, -1520)
+[node name="DoorShape" type="CollisionShape2D" parent="Rooms/Room0/Door"]
+shape = SubResource("DoorShape")
+[node name="DoorRect" type="ColorRect" parent="Rooms/Room0/Door"]
+offset_left = -100.0
+offset_top = -16.0
+offset_right = 100.0
+offset_bottom = 16.0
+color = Color(0.6, 0.4, 0.0, 1)
+
+[node name="Chest" type="Area2D" parent="Rooms/Room0"]
+position = Vector2(200, -400)
+[node name="ChestShape" type="CollisionShape2D" parent="Rooms/Room0/Chest"]
+shape = SubResource("ChestShape")
+[node name="ChestRect" type="ColorRect" parent="Rooms/Room0/Chest"]
+offset_left = -32.0
+offset_top = -32.0
+offset_right = 32.0
+offset_bottom = 32.0
+color = Color(0.7, 0.5, 0.1, 1)
+
+[node name="Room1" type="Node2D" parent="Rooms"]
+
+[node name="Floor1" type="ColorRect" parent="Rooms/Room1"]
+offset_left = 0.0
+offset_top = -3200.0
+offset_right = 1080.0
+offset_bottom = -1600.0
+color = Color(0.10, 0.06, 0.16, 1)
+
+[node name="Door" type="Area2D" parent="Rooms/Room1"]
+position = Vector2(540, -3120)
+[node name="DoorShape" type="CollisionShape2D" parent="Rooms/Room1/Door"]
+shape = SubResource("DoorShape")
+[node name="DoorRect" type="ColorRect" parent="Rooms/Room1/Door"]
+offset_left = -100.0
+offset_top = -16.0
+offset_right = 100.0
+offset_bottom = 16.0
+color = Color(0.6, 0.4, 0.0, 1)
+
+[node name="Chest" type="Area2D" parent="Rooms/Room1"]
+position = Vector2(880, -2000)
+[node name="ChestShape" type="CollisionShape2D" parent="Rooms/Room1/Chest"]
+shape = SubResource("ChestShape")
+[node name="ChestRect" type="ColorRect" parent="Rooms/Room1/Chest"]
+offset_left = -32.0
+offset_top = -32.0
+offset_right = 32.0
+offset_bottom = 32.0
+color = Color(0.7, 0.5, 0.1, 1)
+
+[node name="Room2" type="Node2D" parent="Rooms"]
+
+[node name="Floor2" type="ColorRect" parent="Rooms/Room2"]
+offset_left = 0.0
+offset_top = -4800.0
+offset_right = 1080.0
+offset_bottom = -3200.0
+color = Color(0.08, 0.05, 0.14, 1)
+
+[node name="Door" type="Area2D" parent="Rooms/Room2"]
+position = Vector2(540, -4720)
+[node name="DoorShape" type="CollisionShape2D" parent="Rooms/Room2/Door"]
+shape = SubResource("DoorShape")
+[node name="DoorRect" type="ColorRect" parent="Rooms/Room2/Door"]
+offset_left = -100.0
+offset_top = -16.0
+offset_right = 100.0
+offset_bottom = 16.0
+color = Color(0.6, 0.4, 0.0, 1)
+
+[node name="Chest" type="Area2D" parent="Rooms/Room2"]
+position = Vector2(300, -3800)
+[node name="ChestShape" type="CollisionShape2D" parent="Rooms/Room2/Chest"]
+shape = SubResource("ChestShape")
+[node name="ChestRect" type="ColorRect" parent="Rooms/Room2/Chest"]
+offset_left = -32.0
+offset_top = -32.0
+offset_right = 32.0
+offset_bottom = 32.0
+color = Color(0.7, 0.5, 0.1, 1)
+
+[node name="Room3" type="Node2D" parent="Rooms"]
+
+[node name="Floor3" type="ColorRect" parent="Rooms/Room3"]
+offset_left = 0.0
+offset_top = -6400.0
+offset_right = 1080.0
+offset_bottom = -4800.0
+color = Color(0.07, 0.04, 0.12, 1)
+
+[node name="Door" type="Area2D" parent="Rooms/Room3"]
+position = Vector2(540, -6320)
+[node name="DoorShape" type="CollisionShape2D" parent="Rooms/Room3/Door"]
+shape = SubResource("DoorShape")
+[node name="DoorRect" type="ColorRect" parent="Rooms/Room3/Door"]
+offset_left = -100.0
+offset_top = -16.0
+offset_right = 100.0
+offset_bottom = 16.0
+color = Color(0.6, 0.4, 0.0, 1)
+
+[node name="Chest" type="Area2D" parent="Rooms/Room3"]
+position = Vector2(700, -5400)
+[node name="ChestShape" type="CollisionShape2D" parent="Rooms/Room3/Chest"]
+shape = SubResource("ChestShape")
+[node name="ChestRect" type="ColorRect" parent="Rooms/Room3/Chest"]
+offset_left = -32.0
+offset_top = -32.0
+offset_right = 32.0
+offset_bottom = 32.0
+color = Color(0.7, 0.5, 0.1, 1)
+
+[node name="Room4" type="Node2D" parent="Rooms"]
+
+[node name="Floor4" type="ColorRect" parent="Rooms/Room4"]
+offset_left = 0.0
+offset_top = -8000.0
+offset_right = 1080.0
+offset_bottom = -6400.0
+color = Color(0.05, 0.02, 0.10, 1)
+
+[node name="BossLabel" type="Label" parent="Rooms/Room4"]
+position = Vector2(440, -7800)
+text = "BOSS"
+theme_override_font_sizes/font_size = 72
+theme_override_colors/font_color = Color(1, 0.1, 0.1, 1)
+
+[node name="BossTrigger" type="Area2D" parent="Rooms/Room4"]
+position = Vector2(540, -7400)
+[node name="BossShape" type="CollisionShape2D" parent="Rooms/Room4/BossTrigger"]
+shape = SubResource("BossShape")
+
+[node name="Player" parent="." instance=ExtResource("2")]
+position = Vector2(540, -50)
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(540, -50)
+zoom = Vector2(0.85, 0.85)
+
+[node name="VirtualJoystick" parent="." instance=ExtResource("3")]
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="ChestLabel" type="Label" parent="UI"]
+anchor_left = 0.5
+anchor_top = 0.4
+anchor_right = 0.5
+anchor_bottom = 0.4
+text = ""
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 48
+theme_override_colors/font_color = Color(1, 0.85, 0.1, 1)
