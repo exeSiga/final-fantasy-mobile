@@ -4,7 +4,7 @@ enum GameState { MAIN_MENU, WORLD, BATTLE, CUTSCENE, GAME_OVER }
 
 var current_state: GameState = GameState.MAIN_MENU
 var current_scene: Node = null
-var player_unit: Resource = null
+var player_unit = null
 var gold: int = 0
 var spells: Array = []
 var inventory: Dictionary = {}
@@ -42,20 +42,19 @@ func use_item(item: Resource) -> bool:
 	var key: String = item.resource_path
 	if inventory.get(key, 0) <= 0 or player_unit == null:
 		return false
-	var unit := player_unit as CombatUnit
 	match item.effect_type:
 		0:  # HEAL_HP
-			if unit.hp >= unit.max_hp:
+			if player_unit.hp >= player_unit.max_hp:
 				return false
-			unit.hp = min(unit.max_hp, unit.hp + item.effect_value)
+			player_unit.hp = min(player_unit.max_hp, player_unit.hp + item.effect_value)
 		1:  # HEAL_MP
-			if unit.mp >= unit.max_mp:
+			if player_unit.mp >= player_unit.max_mp:
 				return false
-			unit.mp = min(unit.max_mp, unit.mp + item.effect_value)
+			player_unit.mp = min(player_unit.max_mp, player_unit.mp + item.effect_value)
 		2:  # REVIVE
-			if unit.is_alive():
+			if player_unit.is_alive():
 				return false
-			unit.hp = item.effect_value
+			player_unit.hp = item.effect_value
 	inventory[key] -= 1
 	if inventory[key] <= 0:
 		inventory.erase(key)
@@ -82,14 +81,12 @@ func grant_battle_rewards() -> void:
 	var total_xp: int = 0
 	var total_gold: int = 0
 	for e in BattleManager.enemies:
-		var unit := e as CombatUnit
-		total_xp += unit.xp_reward
-		total_gold += unit.gold_reward
+		total_xp += e.xp_reward
+		total_gold += e.gold_reward
 	add_gold(total_gold)
-	var unit := player_unit as CombatUnit
-	var leveled_up: bool = unit.add_xp(total_xp)
+	var leveled_up: bool = player_unit.add_xp(total_xp)
 	if leveled_up:
 		AudioManager.play_sfx_levelup()
-		level_up.emit(unit.level)
+		level_up.emit(player_unit.level)
 	BattleManager.last_xp = total_xp
 	BattleManager.last_gold = total_gold

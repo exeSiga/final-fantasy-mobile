@@ -10,7 +10,7 @@ func _slot_path(slot: int) -> String:
 	return SAVE_DIR + "slot_%d.json" % slot
 
 func save(slot: int) -> void:
-	var p: CombatUnit = GameManager.player_unit
+	var p = GameManager.player_unit
 	if p == null:
 		return
 	var d: Dictionary = {
@@ -39,7 +39,7 @@ func load_save(slot: int) -> bool:
 		return false
 	var d: Dictionary = parsed as Dictionary
 	GameManager.new_game()
-	var p: CombatUnit = GameManager.player_unit
+	var p = GameManager.player_unit
 	p.hp = d.get("hp", p.max_hp)
 	p.max_hp = d.get("max_hp", p.max_hp)
 	p.mp = d.get("mp", p.max_mp)
