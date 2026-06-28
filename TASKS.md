@@ -175,6 +175,43 @@
 
 ---
 
+## Sprint 13 — Bugfix & Quality Template [STATUS: DONE]
+**Goal:** Corriger les bugs runtime découverts à l'audit + refondre le système d'automatisation avec contrôles obligatoires
+
+**Acceptance Criteria:**
+- [x] AC1: Après un attaque joueur, le tour passe à l'ennemi (rebuild_and_next est bien appelé)
+- [x] AC2: Après un tour ennemi, le tour revient au joueur (même correction IDLE→ENEMY_TURN)
+- [x] AC3: Le compteur _haste_turns_left décrémente à chaque action joueur (attaque, sort, objet)
+- [x] AC4: Écran de victoire affiche XP et or corrects sans crash (path @onready sécurisé)
+- [x] AC5: HPBar passe au rouge à 25% HP (division float correcte)
+- [x] AC6: CLAUDE.md définit 4 phases (Lecture/Implémentation/Contrôle/Clôture) avec gates A/B/C/D
+- [x] AC7: TASKS.md utilise le nouveau format avec Acceptance Criteria + Verification Notes
+
+**Tasks:**
+- [x] BattleManager.gd: extraire _after_player_turn(), corriger condition IDLE→PLAYER_TURN
+- [x] BattleManager.gd: corriger _enemy_act() condition IDLE→ENEMY_TURN
+- [x] Battle.gd: @onready var _victory_title remplace get_node() fragile
+- [x] Battle.gd: _on_item_used appelle _after_player_turn() au lieu de rebuild_and_next()
+- [x] HPBar.gd: float(new_hp) / max_value pour division correcte
+- [x] CLAUDE.md: refonte complète avec 4 phases + 4 control gates
+- [x] TASKS.md: sprint 13 avec Acceptance Criteria + Verification Notes
+
+**Verification Notes:**
+- Contrôle A (static): ✅ check_compat.sh — All clear
+- Contrôle B (godot parse): ✅ aucun SCRIPT ERROR détecté
+- Contrôle C (logic trace):
+  - AC1: player_attack() → _after_player_turn() → _check_battle_end() → state!=PLAYER_TURN? non → rebuild_and_next() ✅
+  - AC2: _enemy_act() → _check_battle_end() → state!=ENEMY_TURN? non → rebuild_and_next() ✅
+  - AC3: _after_player_turn() appelé depuis player_attack(), player_cast_spell(), _on_item_used() ✅
+  - AC4: @onready _victory_title résolu au _ready(), plus de get_node() dynamique ✅
+  - AC5: float(new_hp)/max_value → comparaison float/float correcte ✅
+- Contrôle D (regression): Flow MainMenu→WorldMap→Battle→Victory intact; haste SPELL_HASTE active bien player_unit.spd*2, reset après HASTE_TURNS actions
+- Déferments: Aucun
+
+**Review notes:** Bugfix critique — les tours ne s'avançaient jamais (condition BattleState.IDLE incorrecte partout). Haste ne tick down qu'avec la nouvelle méthode centralisée _after_player_turn().
+
+---
+
 ## Backlog (Not Scheduled)
 - Multiple party members
 - Equipment system

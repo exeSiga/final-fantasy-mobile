@@ -11,6 +11,7 @@ extends Node2D
 @onready var popup_layer: CanvasLayer = $PopupLayer
 @onready var victory_overlay: PanelContainer = $UI/VictoryOverlay
 @onready var gameover_overlay: PanelContainer = $UI/GameOverOverlay
+@onready var _victory_title: Label = $UI/VictoryOverlay/VBox/TitleLabel
 @onready var hero_sprite: ColorRect = $ArenaContainer/HeroSprite
 @onready var _enemy_sprites_container: HBoxContainer = $ArenaContainer/EnemySprites
 
@@ -119,8 +120,7 @@ func _on_battle_ended(victory: bool) -> void:
 	if victory:
 		AudioManager.play_sfx_victory()
 		SaveSystem.save(0)
-		var title: Label = victory_overlay.get_node("VBox/TitleLabel") as Label
-		title.text = "Victory!\n+%d XP  +%d G" % [BattleManager.last_xp, BattleManager.last_gold]
+		_victory_title.text = "Victory!\n+%d XP  +%d G" % [BattleManager.last_xp, BattleManager.last_gold]
 		victory_overlay.show()
 	else:
 		gameover_overlay.show()
@@ -215,7 +215,7 @@ func _on_item_used(item) -> void:
 		if GameManager.player_unit != null:
 			BattleManager.player_unit = GameManager.player_unit
 		if BattleManager.state == BattleManager.BattleState.PLAYER_TURN:
-			BattleManager.rebuild_and_next()
+			BattleManager._after_player_turn()
 	else:
 		_log("Can't use that now.")
 

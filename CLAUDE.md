@@ -5,108 +5,160 @@ Mobile RPG inspired by Final Fantasy, built with Godot 4 (GDScript).
 Target: Android & iOS. Dev mode: fully autonomous agile loop.
 
 ## Stack
-- Engine: Godot 4.3+ (GDScript)
+- Engine: Godot 4.6+ (GDScript)
 - Architecture: Scene-based, Resource-driven
 - Version control: Git (commit after each sprint)
 - Task management: TASKS.md (source of truth)
 
-## Autonomous Loop
+---
 
-At the start of every session:
-1. Check SESSION_LOG.md — see what was last done
-2. Read TASKS.md — find first sprint STATUS: TODO or IN_PROGRESS
-3. Implement all tasks in that sprint
-4. Self code-review (checklist below)
-5. Mark sprint DONE in TASKS.md, fill review notes
-6. Git commit: `git add -A && git commit -m "feat(sprint-N): name"`
-7. Append one line to SESSION_LOG.md: date + sprint done + token estimate
-8. Start next sprint immediately — no pause between sprints
-9. If no more TODO sprints: write DONE.md and stop
+## Autonomous Loop — 4 Phases par Sprint
 
-## Token Budget Rules (CRITICAL — read first)
+Au démarrage de chaque session :
+1. Lire SESSION_LOG.md — voir le dernier sprint terminé
+2. Lire TASKS.md — trouver le premier sprint STATUS: TODO ou IN_PROGRESS
+3. Exécuter les 4 phases ci-dessous pour ce sprint
+4. Passer au sprint suivant sans pause
+5. Si plus aucun sprint TODO : écrire DONE.md et s'arrêter
 
-The Pro plan ($20/month) has ~44,000 tokens per 5-hour window.
-This is a HARD budget. Violating it wastes money. Always optimize.
+---
 
-### Rules to follow every sprint:
+### Phase 1 — LECTURE (ne pas écrire de code encore)
 
-**Files:**
-- Never read a file you don't need. Check filename before opening.
-- Read only the relevant section of large files (use line ranges).
-- Never cat the entire project tree — use targeted reads.
+- Lire les **Acceptance Criteria** du sprint dans TASKS.md
+- Identifier les fichiers impactés via `grep`/`find` uniquement — ne pas lire un fichier non nécessaire
+- Dresser la liste des changements à effectuer avant d'ouvrir un seul fichier
 
-**Writing code:**
-- Write complete, correct code on the first attempt. No exploratory drafts.
-- Do not re-read files you just wrote unless debugging a specific error.
-- Prefer writing multiple small files over one large file.
+### Phase 2 — IMPLÉMENTATION
 
-**Context hygiene:**
-- Run `/compact` when context reaches ~60% full (check with `/cost`).
-- Before compacting: write current sprint status to TASKS.md so you can resume.
-- After compacting: re-read only TASKS.md and the files needed for the current task.
+- Écrire le code complet et correct du premier coup — pas de brouillons exploratoires
+- Ne pas relire un fichier qu'on vient d'écrire sauf en cas d'erreur avérée
+- Préférer plusieurs petits fichiers plutôt qu'un gros
+- Pour créer une scène Godot : écrire le format .tscn texte directement
 
-**Efficient patterns:**
-- Use grep/find to locate specific code, not cat on whole files.
-- When creating a Godot scene, write the .tscn text format directly — no exploration needed.
-- Reuse patterns from previous sprints — check git log for reference, not re-reading files.
+### Phase 3 — CONTRÔLE OBLIGATOIRE (ne pas passer à DONE sans)
 
-### When the session limit is near:
-1. Complete the current task (don't stop mid-implementation)
-2. Update TASKS.md with exact task status
-3. Commit everything
-4. Append to SESSION_LOG.md
-5. Stop cleanly — the next `bash run.sh` will resume correctly
-
-## SESSION_LOG.md Format
-
-Append one line per sprint:
+#### Contrôle A — Compatibilité statique Godot 4.6+
+```bash
+bash check_compat.sh
 ```
-[YYYY-MM-DD HH:MM] Sprint N (name) — DONE — ~XXXX tokens used
-```
+→ Doit afficher `✅ All clear`. Si ❌ : corriger avant de continuer.
 
-## TASKS.md Format
+#### Contrôle B — Parse Godot headless
+```bash
+timeout 12 /home/siga/godot4 --headless --check-only . 2>&1 | grep "SCRIPT ERROR"
+```
+→ Résultat doit être **vide**. Si une erreur apparaît : corriger avant de continuer.
+
+#### Contrôle C — Trace logique par Acceptance Criterion
+Pour chaque AC du sprint, répondre mentalement à :
+1. Quel signal ou fonction déclenche ce comportement ?
+2. Quel fichier:ligne implémente la logique principale ?
+3. Y a-t-il des guards null là où un objet peut être absent ?
+4. Que se passe-t-il si un tableau est vide, ou si l'état initial est nul ?
+
+#### Contrôle D — Régression du chemin critique
+Tracer mentalement ce flow complet après chaque sprint :
+```
+MainMenu → New Game → WorldMap → (mouvement) → Battle → (combat) → Victory → WorldMap
+```
+Ne pas marquer DONE si un maillon de ce flow est cassé.
+
+### Phase 4 — CLÔTURE
+
+- Remplir **Verification Notes** dans TASKS.md avec les résultats des 4 contrôles
+- Marquer STATUS: **DONE** seulement si les 4 contrôles passent
+  - Si un contrôle échoue → corriger et recommencer ce contrôle
+  - Si bloqué → STATUS: BLOCKED + noter le blocage dans Verification Notes
+- `git add -A && git commit -m "feat(sprint-N): name"`
+- Appender une ligne à SESSION_LOG.md
+- Passer au sprint suivant
+
+---
+
+## TASKS.md Format (avec Acceptance Criteria)
 
 ```
 ## Sprint N — [Name] [STATUS: TODO | IN_PROGRESS | DONE | BLOCKED]
 **Goal:** One-line description
+
+**Acceptance Criteria:**
+- [ ] AC1: (observable, testable — ex: "Player can cast Fire, loses 10 MP")
+- [ ] AC2: (ex: "Enemy dies when HP reaches 0, disparaît de l'arène")
+- [ ] AC3: (ex: "Victory screen shows correct XP and gold")
+
 **Tasks:**
 - [ ] Task description
 - [x] Completed task
-**Review notes:** (filled after completion)
+
+**Verification Notes:** (rempli pendant la Phase 3)
+- Contrôle A (static): ✅ / ❌
+- Contrôle B (godot parse): ✅ / ❌
+- Contrôle C (logic trace):
+  - AC1: [chemin de code tracé]
+  - AC2: [chemin de code tracé]
+- Contrôle D (regression): [ce qui a été vérifié]
+- Déferments: [problèmes délibérément reportés]
+
+**Review notes:** (rempli après completion)
 ```
 
-## Code Review Checklist
+---
 
-Before marking a sprint DONE:
-- [ ] All sprint tasks implemented
-- [ ] No hardcoded magic numbers (use constants)
-- [ ] Scenes cleanly separated (no monolithic scripts)
-- [ ] Signals used for decoupled communication
-- [ ] No orphan nodes (queue_free used properly)
-- [ ] Code: snake_case, typed variables where possible
-- [ ] Godot 4.6+: no `Array[UserClass]` anywhere (use `Array`)
-- [ ] Godot 4.6+: no typed signal params with user class_names
-- [ ] Run `bash check_compat.sh` — must output ✅ All clear
-- [ ] Run `/home/siga/godot4 --headless --check-only . 2>&1 | grep -i "SCRIPT ERROR"` — must be empty
-- [ ] Git commit done
+## SESSION_LOG.md Format
+
+Appender une ligne par sprint :
+```
+[YYYY-MM-DD HH:MM] Sprint N (name) — DONE — ~XXXX tokens used
+```
+
+---
+
+## Token Budget Rules (CRITICAL)
+
+Le plan Pro ($20/mois) a ~44 000 tokens par fenêtre de 5h. Budget STRICT.
+
+**Fichiers :**
+- Ne jamais lire un fichier non nécessaire. Vérifier le nom avant d'ouvrir.
+- Lire uniquement la section pertinente des grands fichiers (line ranges).
+- Jamais de `cat` sur tout l'arbre projet — ciblé uniquement.
+
+**Code :**
+- Code complet et correct du premier coup. Pas de brouillons exploratoires.
+- Ne pas relire les fichiers qu'on vient d'écrire sauf erreur avérée.
+- Préférer plusieurs petits fichiers à un gros.
+
+**Hygiene du contexte :**
+- Exécuter `/compact` quand le contexte atteint ~60% (vérifier avec `/cost`).
+- Avant compactage : écrire le statut du sprint dans TASKS.md.
+- Après compactage : relire uniquement TASKS.md et les fichiers du sprint en cours.
+
+**Quand la limite de session approche :**
+1. Terminer la tâche en cours (ne pas s'arrêter au milieu)
+2. Mettre à jour TASKS.md avec le statut exact
+3. Committer
+4. Appender SESSION_LOG.md
+5. S'arrêter proprement
+
+---
 
 ## Godot 4.6+ Compatibility — FORBIDDEN Patterns
 
-These patterns compile in 4.3 but BREAK in 4.6+. Memorize them.
+Ces patterns compilent en 4.3 mais CASSENT en 4.6+. À mémoriser.
 
-### Autoload #1 (GameManager) — class_names NOT yet registered at parse time:
-- ❌ `var x: UserClass = null` → use `var x = null` (untyped)
-- ❌ `var arr: Array[UserClass] = []` → use `var arr: Array = []`
-- ❌ `signal foo(param: UserClass)` → use `signal foo(param)`
-- ❌ `var x := expr as UserClass` → walrus + as-cast = INFER_VARIANT error
-- ❌ `for e: UserClass in array:` → use `for e in array:`
-- ✅ Duck-type at runtime: `player_unit.hp` works on untyped var
+**Dans tous les autoloads (GameManager, BattleManager, SaveSystem, etc.) :**
+Les `class_name` définis par l'utilisateur NE SONT PAS disponibles au parse-time des autoloads.
 
-### Everywhere (all autoloads and scene scripts):
-- ❌ `Array[UserClass]` — always use plain `Array`
-- ❌ `signal foo(p: UserClass)` — remove type annotation from signal params
-- ❌ `class_name Foo` + typed signal in same .gd file
-- ✅ Built-in typed arrays are OK: `Array[int]`, `Array[float]`, `Array[String]`, `Array[Vector2]`, `Array[bool]`
+- ❌ `var x: UserClass = null` → utiliser `var x = null` (non typé)
+- ❌ `var arr: Array[UserClass] = []` → utiliser `var arr: Array = []`
+- ❌ `signal foo(param: UserClass)` → utiliser `signal foo(param)`
+- ❌ `var x := expr as UserClass` → walrus + as-cast = erreur INFER_VARIANT
+- ❌ `for e: UserClass in array:` → utiliser `for e in array:`
+- ❌ `class_name Foo` + signal typé dans le même fichier .gd
+- ✅ Duck-typing à l'exécution : `player_unit.hp` fonctionne sur var non typée
+- ✅ Types built-in OK : `Array[int]`, `Array[String]`, `Array[float]`, `Array[Vector2]`
+
+---
 
 ## Project Architecture (Godot 4)
 

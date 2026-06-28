@@ -90,9 +90,7 @@ func player_attack() -> void:
 	var dmg: int = player_unit.calc_damage_against(target)
 	target.take_damage(dmg)
 	action_result.emit(player_unit.unit_name, target.unit_name, dmg)
-	_check_battle_end()
-	if state == BattleState.IDLE:
-		rebuild_and_next()
+	_after_player_turn()
 
 const HASTE_TURNS := 2
 var _haste_turns_left: int = 0
@@ -122,13 +120,17 @@ func player_cast_spell(spell) -> void:
 			player_unit.spd = old_spd * 2
 			_haste_turns_left = HASTE_TURNS
 			action_result.emit("Hero", "Hero", 0)
+	_after_player_turn()
+
+func _after_player_turn() -> void:
 	_check_battle_end()
-	if state == BattleState.IDLE:
-		if _haste_turns_left > 0:
-			_haste_turns_left -= 1
-			if _haste_turns_left == 0:
-				player_unit.spd = player_unit.spd / 2
-		rebuild_and_next()
+	if state != BattleState.PLAYER_TURN:
+		return
+	if _haste_turns_left > 0:
+		_haste_turns_left -= 1
+		if _haste_turns_left == 0:
+			player_unit.spd = player_unit.spd / 2
+	rebuild_and_next()
 
 func player_run() -> void:
 	if state != BattleState.PLAYER_TURN:
@@ -141,7 +143,7 @@ func _enemy_act(enemy) -> void:
 	player_unit.take_damage(dmg)
 	action_result.emit(enemy.unit_name, player_unit.unit_name, dmg)
 	_check_battle_end()
-	if state != BattleState.IDLE:
+	if state != BattleState.ENEMY_TURN:
 		return
 	if is_boss_battle and enemy.unit_name == "Dark Knight":
 		await get_tree().create_timer(0.6).timeout
@@ -149,7 +151,7 @@ func _enemy_act(enemy) -> void:
 		player_unit.take_damage(dmg2)
 		action_result.emit(enemy.unit_name, player_unit.unit_name, dmg2)
 		_check_battle_end()
-		if state != BattleState.IDLE:
+		if state != BattleState.ENEMY_TURN:
 			return
 	rebuild_and_next()
 
