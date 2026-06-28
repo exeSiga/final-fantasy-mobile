@@ -65,16 +65,16 @@
 
 ---
 
-## Sprint 5 — Progression System [STATUS: TODO]
+## Sprint 5 — Progression System [STATUS: DONE]
 **Goal:** XP, leveling, and gold economy
 **Tasks:**
-- [ ] Add to CombatUnit: xp_reward, gold_reward, level, xp, xp_to_next_level
-- [ ] Implement XP gain after battle victory
-- [ ] Implement level-up: increase atk/def/hp_max, heal to full, show level-up popup
-- [ ] Gold system: gain gold from battles, store in GameManager
-- [ ] Persist player stats between battles (GameManager.player_unit)
-- [ ] Display level and gold on WorldMap HUD
-**Review notes:**
+- [x] Add to CombatUnit: xp_reward, gold_reward, level, xp, xp_to_next_level
+- [x] Implement XP gain after battle victory (GameManager.grant_battle_rewards)
+- [x] Implement level-up: atk+3/def+2/spd+1/max_hp+20, heal to full, signal level_up
+- [x] Gold system: gain gold from battles, store in GameManager.gold
+- [x] Persist player stats between battles (GameManager.player_unit réutilisé par BattleManager)
+- [x] Display level and gold on WorldMap HUD (WorldHUD.tscn)
+**Review notes:** xp_to_next_level *= 1.4 à chaque level. Victory overlay affiche XP et Gold gagnés. WorldHUD se connecte aux signaux gold_changed et level_up.
 
 ---
 

@@ -5,4 +5,5 @@ func _ready() -> void:
 	$VBox/NewGameButton.pressed.connect(_on_new_game)
 
 func _on_new_game() -> void:
+	GameManager.new_game()
 	GameManager.change_scene("res://scenes/world/WorldMap.tscn")

@@ -16,9 +16,15 @@ var player_unit: CombatUnit = null
 var enemies: Array[CombatUnit] = []
 var turn_queue: Array[CombatUnit] = []
 var state: BattleState = BattleState.IDLE
+var last_xp: int = 0
+var last_gold: int = 0
 
 func start_battle() -> void:
-	player_unit = load("res://resources/units/hero.tres").duplicate()
+	if GameManager.player_unit != null:
+		player_unit = GameManager.player_unit
+	else:
+		GameManager.new_game()
+		player_unit = GameManager.player_unit
 	enemies.clear()
 	var enemy_res: String = ENEMY_POOL[randi() % ENEMY_POOL.size()]
 	enemies.append(load(enemy_res).duplicate())
@@ -105,6 +111,7 @@ func _check_battle_end() -> void:
 	var all_enemies_dead := enemies.all(func(e: CombatUnit) -> bool: return not e.is_alive())
 	if all_enemies_dead:
 		state = BattleState.VICTORY
+		GameManager.grant_battle_rewards()
 		battle_ended.emit(true)
 		return
 	if not player_unit.is_alive():
