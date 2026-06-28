@@ -6,6 +6,7 @@ var current_state: GameState = GameState.MAIN_MENU
 var current_scene: Node = null
 var player_unit: CombatUnit = null
 var gold: int = 0
+var spells: Array[Spell] = []
 
 signal gold_changed(new_amount: int)
 signal level_up(new_level: int)
@@ -25,6 +26,10 @@ func set_state(new_state: GameState) -> void:
 func new_game() -> void:
 	player_unit = load("res://resources/units/hero.tres").duplicate()
 	gold = 0
+	spells.clear()
+	spells.append(load("res://resources/spells/fire.tres"))
+	spells.append(load("res://resources/spells/cure.tres"))
+	spells.append(load("res://resources/spells/haste.tres"))
 
 func add_gold(amount: int) -> void:
 	gold += amount

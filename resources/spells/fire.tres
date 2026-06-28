@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="Spell" load_steps=2 format=3 uid="uid://fire"]
+
+[ext_resource type="Script" path="res://resources/Spell.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+spell_name = "Fire"
+mp_cost = 10
+damage_multiplier = 2.2
+effect_type = 0
+description = "Burns an enemy for 2.2x damage"

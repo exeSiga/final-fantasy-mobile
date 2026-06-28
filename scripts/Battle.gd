@@ -3,8 +3,10 @@ extends Node2D
 @onready var log_label: Label = $UI/LogPanel/LogLabel
 @onready var hero_hp_bar: HPBar = $UI/HeroPanel/HeroHPBar
 @onready var hero_hp_label: Label = $UI/HeroPanel/HeroHPLabel
+@onready var hero_mp_label: Label = $UI/HeroPanel/HeroMPLabel
 @onready var enemy_panel: VBoxContainer = $UI/EnemyPanel
 @onready var action_buttons: HBoxContainer = $UI/ActionButtons
+@onready var magic_menu: VBoxContainer = $UI/MagicMenu
 @onready var popup_layer: CanvasLayer = $PopupLayer
 @onready var victory_overlay: PanelContainer = $UI/VictoryOverlay
 @onready var gameover_overlay: PanelContainer = $UI/GameOverOverlay
@@ -15,6 +17,8 @@ var _enemy_hp_bars: Array[HPBar] = []
 func _ready() -> void:
 	victory_overlay.hide()
 	gameover_overlay.hide()
+	magic_menu.hide()
+	_build_magic_menu()
 	BattleManager.battle_started.connect(_on_battle_started)
 	BattleManager.action_result.connect(_on_action_result)
 	BattleManager.turn_changed.connect(_on_turn_changed)
@@ -27,19 +31,39 @@ func _on_battle_started(player: CombatUnit, enemies: Array) -> void:
 	_build_enemy_bars(enemies)
 	_log("Battle start!")
 
+func _build_magic_menu() -> void:
+	for child in magic_menu.get_children():
+		if child.name != "CloseButton":
+			child.queue_free()
+	for spell in GameManager.spells:
+		var btn := Button.new()
+		btn.text = "%s  MP:%d" % [spell.spell_name, spell.mp_cost]
+		btn.theme_override_font_sizes = {"font_size": 28}
+		btn.pressed.connect(_on_spell_selected.bind(spell))
+		magic_menu.add_child(btn)
+
 func _on_turn_changed(unit: CombatUnit) -> void:
 	action_buttons.visible = unit.is_player
 	_log("%s's turn" % unit.unit_name)
 
 func _on_action_result(attacker: String, target: String, damage: int) -> void:
-	_log("%s → %s : %d dmg" % [attacker, target, damage])
 	var player := BattleManager.player_unit
+	if damage == -1:
+		_log("Not enough MP!")
+	elif damage <= 0 and damage > -1:
+		_log("%s casts on %s" % [attacker, target])
+		_spawn_popup("Buff!", Color(0.3, 0.8, 1, 1))
+	elif damage < 0:
+		_log("%s heals %d HP" % [attacker, -damage])
+		_spawn_popup("+%d HP" % (-damage), Color(0.3, 1, 0.3, 1))
+	else:
+		_log("%s → %s : %d dmg" % [attacker, target, damage])
+		_spawn_popup("-%d" % damage, Color(1, 0.3, 0.3, 1))
 	hero_hp_bar.animate_to(player.hp)
 	_refresh_hero_label(player)
 	for i in BattleManager.enemies.size():
 		if i < _enemy_hp_bars.size():
 			_enemy_hp_bars[i].animate_to(BattleManager.enemies[i].hp)
-	_spawn_popup("-%d" % damage, Color(1, 0.3, 0.3, 1))
 
 func _on_battle_ended(victory: bool) -> void:
 	action_buttons.hide()
@@ -68,6 +92,7 @@ func _build_enemy_bars(enemies: Array) -> void:
 
 func _refresh_hero_label(player: CombatUnit) -> void:
 	hero_hp_label.text = "HP  %d / %d" % [player.hp, player.max_hp]
+	hero_mp_label.text = "MP  %d / %d" % [player.mp, player.max_mp]
 
 func _log(msg: String) -> void:
 	_log_lines.append(msg)
@@ -91,7 +116,17 @@ func _on_attack_pressed() -> void:
 	BattleManager.player_attack()
 
 func _on_magic_pressed() -> void:
-	_log("No spells learned yet.")
+	action_buttons.hide()
+	magic_menu.show()
+
+func _on_spell_selected(spell: Spell) -> void:
+	magic_menu.hide()
+	action_buttons.show()
+	BattleManager.player_cast_spell(spell)
+
+func _on_magic_close_pressed() -> void:
+	magic_menu.hide()
+	action_buttons.show()
 
 func _on_item_pressed() -> void:
 	_log("No items in bag.")

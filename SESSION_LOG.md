@@ -6,3 +6,4 @@
 [2026-06-28 10:10] Sprint 2 (Player & World Map) — DONE — ~5000 tokens
 [2026-06-28 10:25] Sprint 3 (Battle System Core) — DONE — ~7500 tokens
 [2026-06-28 10:40] Sprint 4 (Battle UI & Feedback) — DONE — ~10000 tokens
+[2026-06-28 10:55] Sprint 5 (Progression System) — DONE — ~12500 tokens

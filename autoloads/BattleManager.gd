@@ -75,6 +75,42 @@ func player_attack() -> void:
 	if state == BattleState.IDLE:
 		_rebuild_and_next()
 
+const HASTE_TURNS := 2
+var _haste_turns_left: int = 0
+
+func player_cast_spell(spell: Spell) -> void:
+	if state != BattleState.PLAYER_TURN:
+		return
+	if player_unit.mp < spell.mp_cost:
+		action_result.emit("Hero", "—", -1)
+		return
+	player_unit.mp -= spell.mp_cost
+	match spell.effect_type:
+		Spell.EffectType.DAMAGE:
+			var alive_enemies := enemies.filter(func(e: CombatUnit) -> bool: return e.is_alive())
+			if alive_enemies.is_empty():
+				return
+			var target: CombatUnit = alive_enemies[randi() % alive_enemies.size()]
+			var dmg := int(player_unit.atk * spell.damage_multiplier)
+			target.hp = max(0, target.hp - dmg)
+			action_result.emit("Hero", target.unit_name, dmg)
+		Spell.EffectType.HEAL:
+			var heal := 60
+			player_unit.hp = min(player_unit.max_hp, player_unit.hp + heal)
+			action_result.emit("Hero", "Hero", -heal)
+		Spell.EffectType.HASTE:
+			var old_spd := player_unit.spd
+			player_unit.spd = old_spd * 2
+			_haste_turns_left = HASTE_TURNS
+			action_result.emit("Hero", "Hero", 0)
+	_check_battle_end()
+	if state == BattleState.IDLE:
+		if _haste_turns_left > 0:
+			_haste_turns_left -= 1
+			if _haste_turns_left == 0:
+				player_unit.spd = player_unit.spd / 2
+		_rebuild_and_next()
+
 func player_run() -> void:
 	if state != BattleState.PLAYER_TURN:
 		return
@@ -112,6 +148,8 @@ func _check_battle_end() -> void:
 	if all_enemies_dead:
 		state = BattleState.VICTORY
 		GameManager.grant_battle_rewards()
+		var mp_restore := int(player_unit.max_mp * 0.2)
+		player_unit.mp = min(player_unit.max_mp, player_unit.mp + mp_restore)
 		battle_ended.emit(true)
 		return
 	if not player_unit.is_alive():

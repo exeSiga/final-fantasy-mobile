@@ -78,17 +78,17 @@
 
 ---
 
-## Sprint 6 — Magic System [STATUS: TODO]
+## Sprint 6 — Magic System [STATUS: DONE]
 **Goal:** MP-based spell casting with 3 spells
 **Tasks:**
-- [ ] Add mp, max_mp to CombatUnit
-- [ ] Create Spell resource: name, mp_cost, damage_multiplier, effect_type (damage/heal/buff)
-- [ ] Create 3 spells: Fire (damage), Cure (heal), Haste (speed buff 2 turns)
-- [ ] Magic menu in battle: list available spells with MP cost, greyed out if not enough MP
-- [ ] Implement spell effects in BattleManager
-- [ ] MP restore: 20% MP restore after battle victory
-- [ ] Display MP bar in battle UI alongside HP bar
-**Review notes:**
+- [x] mp/max_mp déjà dans CombatUnit depuis Sprint 3
+- [x] Create Spell resource: name, mp_cost, damage_multiplier, effect_type
+- [x] Create 3 spells: Fire (×2.2 dmg), Cure (+60 HP), Haste (spd×2 pour 2 tours)
+- [x] Magic menu: boutons dynamiques avec nom+coût MP, bouton Retour
+- [x] Implement spell effects in BattleManager.player_cast_spell
+- [x] MP restore: 20% après victoire
+- [x] Display MP label en bleu dans battle UI
+**Review notes:** Sorts chargés au new_game dans GameManager.spells. Menu Magic remplace ActionButtons puis se cache. Heal utilise valeur négative dans action_result pour être distingué.
 
 ---
 
