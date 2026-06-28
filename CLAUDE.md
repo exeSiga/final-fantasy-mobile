@@ -84,7 +84,29 @@ Before marking a sprint DONE:
 - [ ] Signals used for decoupled communication
 - [ ] No orphan nodes (queue_free used properly)
 - [ ] Code: snake_case, typed variables where possible
+- [ ] Godot 4.6+: no `Array[UserClass]` anywhere (use `Array`)
+- [ ] Godot 4.6+: no typed signal params with user class_names
+- [ ] Run `bash check_compat.sh` — must output ✅ All clear
+- [ ] Run `/home/siga/godot4 --headless --check-only . 2>&1 | grep -i "SCRIPT ERROR"` — must be empty
 - [ ] Git commit done
+
+## Godot 4.6+ Compatibility — FORBIDDEN Patterns
+
+These patterns compile in 4.3 but BREAK in 4.6+. Memorize them.
+
+### Autoload #1 (GameManager) — class_names NOT yet registered at parse time:
+- ❌ `var x: UserClass = null` → use `var x = null` (untyped)
+- ❌ `var arr: Array[UserClass] = []` → use `var arr: Array = []`
+- ❌ `signal foo(param: UserClass)` → use `signal foo(param)`
+- ❌ `var x := expr as UserClass` → walrus + as-cast = INFER_VARIANT error
+- ❌ `for e: UserClass in array:` → use `for e in array:`
+- ✅ Duck-type at runtime: `player_unit.hp` works on untyped var
+
+### Everywhere (all autoloads and scene scripts):
+- ❌ `Array[UserClass]` — always use plain `Array`
+- ❌ `signal foo(p: UserClass)` — remove type annotation from signal params
+- ❌ `class_name Foo` + typed signal in same .gd file
+- ✅ Built-in typed arrays are OK: `Array[int]`, `Array[float]`, `Array[String]`, `Array[Vector2]`, `Array[bool]`
 
 ## Project Architecture (Godot 4)
 

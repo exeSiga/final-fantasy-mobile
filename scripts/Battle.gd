@@ -11,9 +11,12 @@ extends Node2D
 @onready var popup_layer: CanvasLayer = $PopupLayer
 @onready var victory_overlay: PanelContainer = $UI/VictoryOverlay
 @onready var gameover_overlay: PanelContainer = $UI/GameOverOverlay
+@onready var hero_sprite: ColorRect = $ArenaContainer/HeroSprite
+@onready var _enemy_sprites_container: HBoxContainer = $ArenaContainer/EnemySprites
 
 var _log_lines: PackedStringArray = []
 var _enemy_hp_bars: Array = []
+var _enemy_sprite_list: Array = []
 
 @onready var _bg: ColorRect = $Background
 
@@ -30,11 +33,37 @@ func _ready() -> void:
 	BattleManager.battle_ended.connect(_on_battle_ended)
 	BattleManager.start_battle(BattleManager.dungeon_mode, BattleManager.is_boss_battle)
 
-func _on_battle_started(player: CombatUnit, enemies: Array) -> void:
+func _on_battle_started(player, enemies) -> void:
+	hero_sprite.color = player.sprite_color
+	_build_enemy_sprites(enemies)
 	hero_hp_bar.set_unit(player)
 	_refresh_hero_label(player)
 	_build_enemy_bars(enemies)
 	_log("Battle start!")
+
+func _build_enemy_sprites(enemies: Array) -> void:
+	for child in _enemy_sprites_container.get_children():
+		child.queue_free()
+	_enemy_sprite_list.clear()
+	for e in enemies:
+		var container := VBoxContainer.new()
+		var rect := ColorRect.new()
+		rect.custom_minimum_size = Vector2(160, 160)
+		rect.color = e.sprite_color
+		var lbl := Label.new()
+		lbl.text = e.unit_name
+		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		lbl.theme_override_font_sizes = {"font_size": 22}
+		container.add_child(rect)
+		container.add_child(lbl)
+		_enemy_sprites_container.add_child(container)
+		_enemy_sprite_list.append(container)
+
+func _update_enemy_sprites() -> void:
+	for i in BattleManager.enemies.size():
+		if i < _enemy_sprite_list.size():
+			var e = BattleManager.enemies[i]
+			_enemy_sprite_list[i].modulate.a = 0.25 if not e.is_alive() else 1.0
 
 func _build_magic_menu() -> void:
 	for child in magic_menu.get_children():
@@ -47,12 +76,12 @@ func _build_magic_menu() -> void:
 		btn.pressed.connect(_on_spell_selected.bind(spell))
 		magic_menu.add_child(btn)
 
-func _on_turn_changed(unit: CombatUnit) -> void:
+func _on_turn_changed(unit) -> void:
 	action_buttons.visible = unit.is_player
 	_log("%s's turn" % unit.unit_name)
 
 func _on_action_result(attacker: String, target: String, damage: int) -> void:
-	var player: CombatUnit = BattleManager.player_unit
+	var player = BattleManager.player_unit
 	if damage == -1:
 		_log("Not enough MP!")
 	elif damage <= 0 and damage > -1:
@@ -68,11 +97,13 @@ func _on_action_result(attacker: String, target: String, damage: int) -> void:
 		_spawn_popup("-%d" % damage, Color(1, 0.3, 0.3, 1))
 		AudioManager.play_sfx_attack()
 		_shake_screen()
-	hero_hp_bar.animate_to(player.hp)
-	_refresh_hero_label(player)
+	if player != null:
+		hero_hp_bar.animate_to(player.hp)
+		_refresh_hero_label(player)
 	for i in BattleManager.enemies.size():
 		if i < _enemy_hp_bars.size():
 			_enemy_hp_bars[i].animate_to(BattleManager.enemies[i].hp)
+	_update_enemy_sprites()
 
 func _shake_screen() -> void:
 	var t := create_tween()
@@ -110,7 +141,7 @@ func _build_enemy_bars(enemies: Array) -> void:
 		enemy_panel.add_child(row)
 		_enemy_hp_bars.append(bar)
 
-func _refresh_hero_label(player: CombatUnit) -> void:
+func _refresh_hero_label(player) -> void:
 	hero_hp_label.text = "HP  %d / %d" % [player.hp, player.max_hp]
 	hero_mp_label.text = "MP  %d / %d" % [player.mp, player.max_mp]
 
@@ -139,7 +170,7 @@ func _on_magic_pressed() -> void:
 	action_buttons.hide()
 	magic_menu.show()
 
-func _on_spell_selected(spell: Spell) -> void:
+func _on_spell_selected(spell) -> void:
 	magic_menu.hide()
 	action_buttons.show()
 	BattleManager.player_cast_spell(spell)
@@ -171,15 +202,18 @@ func _build_item_menu() -> void:
 		btn.pressed.connect(_on_item_used.bind(item))
 		item_menu.add_child(btn)
 
-func _on_item_used(item: Item) -> void:
+func _on_item_used(item) -> void:
 	item_menu.hide()
 	action_buttons.show()
 	var ok: bool = GameManager.use_item(item)
 	if ok:
 		_log("Used %s!" % item.item_name)
-		_refresh_hero_label(BattleManager.player_unit)
-		hero_hp_bar.animate_to(BattleManager.player_unit.hp)
-		BattleManager.player_unit = GameManager.player_unit
+		var player = BattleManager.player_unit
+		if player != null:
+			_refresh_hero_label(player)
+			hero_hp_bar.animate_to(player.hp)
+		if GameManager.player_unit != null:
+			BattleManager.player_unit = GameManager.player_unit
 		if BattleManager.state == BattleManager.BattleState.PLAYER_TURN:
 			BattleManager.rebuild_and_next()
 	else:

@@ -12,6 +12,11 @@ const DUNGEON_POOL := [
 ]
 const BOSS_PATH := "res://resources/units/dark_knight.tres"
 
+# Spell effect types (mirrors Spell.EffectType — can't reference class_name in autoload)
+const SPELL_DAMAGE := 0
+const SPELL_HEAL := 1
+const SPELL_HASTE := 2
+
 var is_boss_battle: bool = false
 var dungeon_mode: bool = false
 
@@ -20,7 +25,7 @@ signal turn_changed(unit)
 signal action_result(attacker: String, target: String, damage: int)
 signal battle_ended(victory: bool)
 
-var player_unit: CombatUnit = null
+var player_unit = null
 var enemies: Array = []
 var turn_queue: Array = []
 var state: BattleState = BattleState.IDLE
@@ -62,7 +67,7 @@ func _next_turn() -> void:
 	if turn_queue.is_empty():
 		_check_battle_end()
 		return
-	var current: CombatUnit = turn_queue.pop_front()
+	var current = turn_queue.pop_front()
 	if not current.is_alive():
 		_next_turn()
 		return
@@ -81,7 +86,7 @@ func player_attack() -> void:
 	var alive_enemies: Array = enemies.filter(func(e) -> bool: return e.is_alive())
 	if alive_enemies.is_empty():
 		return
-	var target: CombatUnit = alive_enemies[randi() % alive_enemies.size()]
+	var target = alive_enemies[randi() % alive_enemies.size()]
 	var dmg: int = player_unit.calc_damage_against(target)
 	target.take_damage(dmg)
 	action_result.emit(player_unit.unit_name, target.unit_name, dmg)
@@ -92,7 +97,7 @@ func player_attack() -> void:
 const HASTE_TURNS := 2
 var _haste_turns_left: int = 0
 
-func player_cast_spell(spell: Spell) -> void:
+func player_cast_spell(spell) -> void:
 	if state != BattleState.PLAYER_TURN:
 		return
 	if player_unit.mp < spell.mp_cost:
@@ -100,19 +105,19 @@ func player_cast_spell(spell: Spell) -> void:
 		return
 	player_unit.mp -= spell.mp_cost
 	match spell.effect_type:
-		Spell.EffectType.DAMAGE:
+		SPELL_DAMAGE:
 			var alive_enemies: Array = enemies.filter(func(e) -> bool: return e.is_alive())
 			if alive_enemies.is_empty():
 				return
-			var target: CombatUnit = alive_enemies[randi() % alive_enemies.size()]
+			var target = alive_enemies[randi() % alive_enemies.size()]
 			var dmg: int = int(player_unit.atk * spell.damage_multiplier)
 			target.hp = max(0, target.hp - dmg)
 			action_result.emit("Hero", target.unit_name, dmg)
-		Spell.EffectType.HEAL:
+		SPELL_HEAL:
 			var heal: int = 60
 			player_unit.hp = min(player_unit.max_hp, player_unit.hp + heal)
 			action_result.emit("Hero", "Hero", -heal)
-		Spell.EffectType.HASTE:
+		SPELL_HASTE:
 			var old_spd: int = player_unit.spd
 			player_unit.spd = old_spd * 2
 			_haste_turns_left = HASTE_TURNS
@@ -131,7 +136,7 @@ func player_run() -> void:
 	state = BattleState.IDLE
 	battle_ended.emit(false)
 
-func _enemy_act(enemy: CombatUnit) -> void:
+func _enemy_act(enemy) -> void:
 	var dmg: int = enemy.calc_damage_against(player_unit)
 	player_unit.take_damage(dmg)
 	action_result.emit(enemy.unit_name, player_unit.unit_name, dmg)
@@ -156,7 +161,7 @@ func rebuild_and_next() -> void:
 	turn_queue = all.filter(func(u) -> bool: return u.is_alive())
 	turn_queue.sort_custom(func(a, b) -> bool: return a.spd > b.spd)
 	if not turn_queue.is_empty():
-		var next: CombatUnit = turn_queue.pop_front()
+		var next = turn_queue.pop_front()
 		if next.is_player:
 			state = BattleState.PLAYER_TURN
 			turn_changed.emit(next)
@@ -171,7 +176,7 @@ func _check_battle_end() -> void:
 	if all_enemies_dead:
 		state = BattleState.VICTORY
 		GameManager.grant_battle_rewards()
-		var mp_restore := int(player_unit.max_mp * 0.2)
+		var mp_restore: int = int(player_unit.max_mp * 0.2)
 		player_unit.mp = min(player_unit.max_mp, player_unit.mp + mp_restore)
 		battle_ended.emit(true)
 		return

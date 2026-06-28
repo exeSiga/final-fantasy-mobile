@@ -1,5 +1,4 @@
 extends Node
-class_name SwipeDetector
 
 signal swiped(direction: String)
 
