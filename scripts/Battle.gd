@@ -7,6 +7,7 @@ extends Node2D
 @onready var enemy_panel: VBoxContainer = $UI/EnemyPanel
 @onready var action_buttons: HBoxContainer = $UI/ActionButtons
 @onready var magic_menu: VBoxContainer = $UI/MagicMenu
+@onready var item_menu: VBoxContainer = $UI/ItemMenu
 @onready var popup_layer: CanvasLayer = $PopupLayer
 @onready var victory_overlay: PanelContainer = $UI/VictoryOverlay
 @onready var gameover_overlay: PanelContainer = $UI/GameOverOverlay
@@ -20,6 +21,7 @@ func _ready() -> void:
 	victory_overlay.hide()
 	gameover_overlay.hide()
 	magic_menu.hide()
+	item_menu.hide()
 	_build_magic_menu()
 	AudioManager.play_battle_bgm()
 	BattleManager.battle_started.connect(_on_battle_started)
@@ -147,7 +149,45 @@ func _on_magic_close_pressed() -> void:
 	action_buttons.show()
 
 func _on_item_pressed() -> void:
-	_log("No items in bag.")
+	_build_item_menu()
+	action_buttons.hide()
+	item_menu.show()
+
+func _build_item_menu() -> void:
+	for child in item_menu.get_children():
+		if child.name != "ItemCloseButton":
+			child.queue_free()
+	if GameManager.inventory.is_empty():
+		var lbl := Label.new()
+		lbl.text = "— Empty —"
+		item_menu.add_child(lbl)
+		return
+	for key in GameManager.inventory:
+		var item: Item = load(key)
+		var qty: int = GameManager.inventory[key]
+		var btn := Button.new()
+		btn.text = "%s x%d" % [item.item_name, qty]
+		btn.theme_override_font_sizes = {"font_size": 28}
+		btn.pressed.connect(_on_item_used.bind(item))
+		item_menu.add_child(btn)
+
+func _on_item_used(item: Item) -> void:
+	item_menu.hide()
+	action_buttons.show()
+	var ok := GameManager.use_item(item)
+	if ok:
+		_log("Used %s!" % item.item_name)
+		_refresh_hero_label(BattleManager.player_unit)
+		hero_hp_bar.animate_to(BattleManager.player_unit.hp)
+		BattleManager.player_unit = GameManager.player_unit
+		if BattleManager.state == BattleManager.BattleState.PLAYER_TURN:
+			BattleManager._rebuild_and_next()
+	else:
+		_log("Can't use that now.")
+
+func _on_item_close_pressed() -> void:
+	item_menu.hide()
+	action_buttons.show()
 
 func _on_run_pressed() -> void:
 	BattleManager.player_run()

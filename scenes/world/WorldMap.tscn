@@ -1,9 +1,10 @@
-[gd_scene load_steps=12 format=3 uid="uid://worldmap"]
+[gd_scene load_steps=13 format=3 uid="uid://worldmap"]
 
 [ext_resource type="Script" path="res://scripts/WorldMap.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/characters/Player.tscn" id="2"]
 [ext_resource type="PackedScene" path="res://scenes/ui/WorldHUD.tscn" id="3"]
 [ext_resource type="PackedScene" path="res://scenes/ui/VirtualJoystick.tscn" id="4"]
+[ext_resource type="PackedScene" path="res://scenes/ui/Shop.tscn" id="5"]
 
 [sub_resource type="RectangleShape2D" id="Wall_Top"]
 size = Vector2(3200, 32)
@@ -18,6 +19,9 @@ size = Vector2(32, 3200)
 size = Vector2(32, 3200)
 
 [sub_resource type="RectangleShape2D" id="Entrance_Shape"]
+size = Vector2(120, 120)
+
+[sub_resource type="RectangleShape2D" id="Shop_Shape"]
 size = Vector2(120, 120)
 
 [node name="WorldMap" type="Node2D"]
@@ -84,5 +88,20 @@ position = Vector2(1600, 1600)
 zoom = Vector2(0.8, 0.8)
 
 [node name="WorldHUD" parent="." instance=ExtResource("3")]
+
+[node name="ShopNPC" type="Area2D" parent="."]
+position = Vector2(1200, 1600)
+[node name="ShopNPCShape" type="CollisionShape2D" parent="ShopNPC"]
+shape = SubResource("Shop_Shape")
+[node name="ShopNPCSprite" type="ColorRect" parent="ShopNPC"]
+offset_left = -40.0
+offset_top = -60.0
+offset_right = 40.0
+offset_bottom = 60.0
+color = Color(0.9, 0.7, 0.1, 1)
+[node name="ShopLabel" type="Label" parent="ShopNPC"]
+position = Vector2(-60, -90)
+text = "Shop"
+theme_override_font_sizes/font_size = 28
 
 [node name="VirtualJoystick" parent="." instance=ExtResource("4")]

@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="Item" load_steps=2 format=3 uid="uid://hipotion"]
+[ext_resource type="Script" path="res://resources/Item.gd" id="1"]
+[resource]
+script = ExtResource("1")
+item_name = "Hi-Potion"
+description = "Restores 150 HP"
+effect_type = 0
+effect_value = 150
+price = 80
+max_stack = 9

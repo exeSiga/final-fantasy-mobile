@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="Item" load_steps=2 format=3 uid="uid://phoenixdown"]
+[ext_resource type="Script" path="res://resources/Item.gd" id="1"]
+[resource]
+script = ExtResource("1")
+item_name = "Phoenix Down"
+description = "Revive with 1 HP"
+effect_type = 2
+effect_value = 1
+price = 150
+max_stack = 9

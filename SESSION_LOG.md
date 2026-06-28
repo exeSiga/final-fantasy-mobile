@@ -11,3 +11,4 @@
 [2026-06-28 11:35] Sprint 7 (Save System) — DONE — ~18000 tokens
 [2026-06-28 12:00] Sprint 8 (Audio & Polish) — DONE — ~21500 tokens
 [2026-06-28 12:20] Sprint 9 (Mobile Controls) — DONE — ~24000 tokens
+[2026-06-28 12:55] Sprint 10 (First Dungeon) — DONE — ~29000 tokens

@@ -8,12 +8,16 @@ const CAMERA_LERP := 5.0
 @onready var camera: Camera2D = $Camera2D
 @onready var joystick: VirtualJoystick = $VirtualJoystick
 
+var _shop_scene: PackedScene = preload("res://scenes/ui/Shop.tscn")
+var _shop_open: bool = false
+
 func _ready() -> void:
 	GameManager.set_state(GameManager.GameState.WORLD)
 	AudioManager.play_world_bgm()
 	player.encounter_triggered.connect(_on_encounter)
 	joystick.input_vector.connect(player.set_joystick_input)
 	$DungeonEntrance.body_entered.connect(_on_dungeon_entrance)
+	$ShopNPC.body_entered.connect(_on_shop_entered)
 	camera.position_smoothing_enabled = true
 	camera.position_smoothing_speed = CAMERA_LERP
 	camera.limit_left = 0
@@ -24,6 +28,13 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	camera.global_position = camera.global_position.lerp(player.global_position, CAMERA_LERP * get_process_delta_time())
+
+func _on_shop_entered(body: Node) -> void:
+	if body == player and not _shop_open:
+		_shop_open = true
+		var shop := _shop_scene.instantiate()
+		shop.tree_exited.connect(func(): _shop_open = false)
+		get_tree().root.add_child(shop)
 
 func _on_dungeon_entrance(body: Node) -> void:
 	if body == player:

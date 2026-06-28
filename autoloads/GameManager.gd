@@ -7,6 +7,7 @@ var current_scene: Node = null
 var player_unit: CombatUnit = null
 var gold: int = 0
 var spells: Array[Spell] = []
+var inventory: Dictionary = {}
 var return_after_battle: String = "res://scenes/world/WorldMap.tscn"
 
 signal gold_changed(new_amount: int)
@@ -27,10 +28,48 @@ func set_state(new_state: GameState) -> void:
 func new_game() -> void:
 	player_unit = load("res://resources/units/hero.tres").duplicate()
 	gold = 0
+	inventory = {}
 	spells.clear()
 	spells.append(load("res://resources/spells/fire.tres"))
 	spells.append(load("res://resources/spells/cure.tres"))
 	spells.append(load("res://resources/spells/haste.tres"))
+
+func add_item(item: Item, qty: int = 1) -> void:
+	var key := item.resource_path
+	inventory[key] = min(item.max_stack, inventory.get(key, 0) + qty)
+
+func use_item(item: Item) -> bool:
+	var key := item.resource_path
+	if inventory.get(key, 0) <= 0 or player_unit == null:
+		return false
+	match item.effect_type:
+		Item.EffectType.HEAL_HP:
+			if player_unit.hp >= player_unit.max_hp:
+				return false
+			player_unit.hp = min(player_unit.max_hp, player_unit.hp + item.effect_value)
+		Item.EffectType.HEAL_MP:
+			if player_unit.mp >= player_unit.max_mp:
+				return false
+			player_unit.mp = min(player_unit.max_mp, player_unit.mp + item.effect_value)
+		Item.EffectType.REVIVE:
+			if player_unit.is_alive():
+				return false
+			player_unit.hp = item.effect_value
+	inventory[key] -= 1
+	if inventory[key] <= 0:
+		inventory.erase(key)
+	return true
+
+func buy_item(item: Item) -> bool:
+	if gold < item.price:
+		return false
+	var key := item.resource_path
+	if inventory.get(key, 0) >= item.max_stack:
+		return false
+	gold -= item.price
+	gold_changed.emit(gold)
+	add_item(item)
+	return true
 
 func add_gold(amount: int) -> void:
 	gold += amount

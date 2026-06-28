@@ -148,16 +148,16 @@
 
 ---
 
-## Sprint 11 — Item System [STATUS: TODO]
+## Sprint 11 — Item System [STATUS: DONE]
 **Goal:** Consumable items usable in and out of battle
 **Tasks:**
-- [ ] Create Item resource: name, description, effect_type, effect_value, max_stack
-- [ ] 4 items: Potion (+50 HP), Hi-Potion (+150 HP), Ether (+30 MP), Phoenix Down (revive at 1HP)
-- [ ] Inventory: Dictionary[item_resource] = quantity, max 9 per item
-- [ ] Item menu in battle (use item on turn)
-- [ ] Item shop NPC on WorldMap (buy items with gold)
-- [ ] Shop UI: item list with price, gold balance, buy button
-**Review notes:**
+- [x] Item resource: name, description, effect_type, effect_value, price, max_stack
+- [x] 4 items: Potion (+50HP/30G), Hi-Potion (+150HP/80G), Ether (+30MP/60G), Phoenix Down (revive/150G)
+- [x] Inventory: Dictionary[resource_path]=quantity, max 9 par item dans GameManager
+- [x] Item menu dynamique en battle (use item → consomme le tour)
+- [x] Shop NPC Area2D sur WorldMap (position 1200,1600) — jaune visible
+- [x] Shop UI: liste items avec prix, gold balance, bouton Buy, status label
+**Review notes:** use_item dans GameManager valide l'état avant usage (pas de soin si HP full). buy_item vérifie gold ET stack max. Shop ouvert via queue_free (pas de changement de scène).
 
 ---
 
