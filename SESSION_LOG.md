@@ -4,3 +4,4 @@
 <!-- Claude: ajoute tes lignes ici après chaque sprint -->
 [2026-06-28 10:00] Sprint 1 (Project Bootstrap) — DONE — ~3500 tokens
 [2026-06-28 10:10] Sprint 2 (Player & World Map) — DONE — ~5000 tokens
+[2026-06-28 10:25] Sprint 3 (Battle System Core) — DONE — ~7500 tokens

@@ -50,18 +50,18 @@
 
 ---
 
-## Sprint 4 — Battle UI & Feedback [STATUS: TODO]
+## Sprint 4 — Battle UI & Feedback [STATUS: DONE]
 **Goal:** Proper battle UI with menus, HP bars, damage numbers
 **Tasks:**
-- [ ] Create ActionMenu.tscn (Fight / Magic / Item / Run buttons)
-- [ ] HP bar component (custom ProgressBar with animated fill)
-- [ ] Damage number popup (label that floats up and fades)
-- [ ] Status text log (scrollable panel showing last 3 actions)
-- [ ] Player turn: show action menu → wait for input → execute
-- [ ] Enemy turn: show "Enemy attacks!" → animate → deal damage
-- [ ] Victory screen: "Victory! +XP +Gold" with continue button
-- [ ] Game Over screen with "Return to Menu" button
-**Review notes:**
+- [x] Create ActionMenu (Fight / Magic / Item / Run buttons dans Battle.tscn)
+- [x] HP bar component (HPBar.gd + HPBar.tscn avec tween animé et rouge si <25%)
+- [x] Damage number popup (Label flottant avec tween position+alpha)
+- [x] Status text log (3 lignes max, LogLabel dans LogPanel)
+- [x] Player turn: action buttons visibles → input → execute
+- [x] Enemy turn: BattleManager attend 1s → attaque → signaux mis à jour
+- [x] Victory screen: overlay "Victory!" avec ContinueButton
+- [x] Game Over screen: overlay "Game Over" avec MenuButton
+**Review notes:** PopupLayer sur layer=10 pour que les floats passent devant tout. Magic/Item greyés fonctionnellement (log message). HPBar réutilisable instanciée dynamiquement par code pour les ennemis.
 
 ---
 
