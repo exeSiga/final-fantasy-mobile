@@ -26,6 +26,8 @@ func _run_all() -> void:
 	_test_battle_setup()
 	_test_elements()
 	_test_spells_per_class()
+	_test_status_effects()
+	_test_enemy_ai_types()
 
 func _test_new_game() -> void:
 	GameManager.new_game()
@@ -119,6 +121,46 @@ func _test_elements() -> void:
 	if fire.element != "fire":
 		_ko("elements", "fire spell has no element"); return
 	_ok("elements: weaknesses set (slime→fire, goblin→lightning) and spells tagged")
+
+func _test_status_effects() -> void:
+	GameManager.new_game()
+	var warrior = GameManager.party[0]
+	# Test inflict + clear
+	if not warrior.inflict_status("poison"):
+		_ko("status_effects", "inflict_status failed"); return
+	if warrior.status != "poison":
+		_ko("status_effects", "status not set"); return
+	if warrior.inflict_status("sleep"):
+		_ko("status_effects", "should reject second status"); return
+	warrior.clear_status()
+	if warrior.status != "":
+		_ko("status_effects", "clear_status failed"); return
+	# Test poison tick deals damage
+	warrior.hp = warrior.max_hp
+	warrior.inflict_status("poison")
+	var hp_before: int = warrior.hp
+	var dmg: int = warrior.tick_status()
+	if dmg <= 0:
+		_ko("status_effects", "poison tick should deal damage, got %d" % dmg); return
+	if warrior.hp >= hp_before:
+		_ko("status_effects", "hp didn't drop after poison tick"); return
+	# Test sleep skips turn (BattleManager._tick_status returns true)
+	var dummy = GameManager.party[1]
+	dummy.inflict_status("sleep")
+	var skip := BattleManager._tick_status(dummy)
+	if not skip:
+		_ko("status_effects", "sleep should cause skip=true"); return
+	dummy.clear_status()
+	_ok("status_effects: inflict/clear/tick/sleep-skip all OK")
+
+func _test_enemy_ai_types() -> void:
+	for path in [BattleManager.ENEMY_POOL[0], BattleManager.DUNGEON_POOL[0], BattleManager.BOSS_PATH]:
+		var e = load(path)
+		if e == null:
+			_ko("enemy_ai_types", "cannot load " + path); return
+		if e.atk <= 0:
+			_ko("enemy_ai_types", path + " has atk=0"); return
+	_ok("enemy_ai_types: slime/skeleton/dark_knight have valid stats")
 
 func _test_spells_per_class() -> void:
 	GameManager.new_game()

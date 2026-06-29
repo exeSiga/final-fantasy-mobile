@@ -27,10 +27,11 @@ var dungeon_mode: bool = false
 signal battle_started(party, enemies)
 signal turn_changed(unit)
 signal action_result(attacker: String, target: String, damage: int, is_crit: bool)
+signal battle_log(message: String)
 signal battle_ended(victory: bool)
 
 var party: Array = []
-var player_unit = null    # current active party member this turn
+var player_unit = null
 var enemies: Array = []
 var turn_queue: Array = []
 var state: BattleState = BattleState.IDLE
@@ -55,7 +56,7 @@ func start_battle(dungeon: bool = false, boss: bool = false) -> void:
 	_build_turn_queue()
 	state = BattleState.IDLE
 	battle_started.emit(party, enemies)
-	_next_turn()
+	_advance_turn()
 
 func _build_turn_queue() -> void:
 	turn_queue.clear()
@@ -66,24 +67,73 @@ func _build_turn_queue() -> void:
 		turn_queue.append(e)
 	turn_queue.sort_custom(func(a, b) -> bool: return a.spd > b.spd)
 
-func _next_turn() -> void:
-	turn_queue = turn_queue.filter(func(u) -> bool: return u.is_alive())
-	if turn_queue.is_empty():
+func _rebuild_queue() -> void:
+	var all: Array = []
+	for m in party:
+		if m.is_alive():
+			all.append(m)
+	for e in enemies:
+		if e.is_alive():
+			all.append(e)
+	turn_queue = all
+	turn_queue.sort_custom(func(a, b) -> bool: return a.spd > b.spd)
+
+# Central turn dispatcher — applies status ticks and routes to player or enemy
+func _advance_turn() -> void:
+	# Try to find the next acting unit (skip dead, handle status)
+	while true:
+		turn_queue = turn_queue.filter(func(u) -> bool: return u.is_alive())
+		if turn_queue.is_empty():
+			_check_battle_end()
+			return
+		var current = turn_queue.pop_front()
+		if not current.is_alive():
+			continue
+		# Apply status tick and check if turn is skipped
+		var skip := _tick_status(current)
+		if state == BattleState.VICTORY or state == BattleState.GAME_OVER:
+			return
+		if skip:
+			continue  # loop to next unit
+		# Unit acts
+		if current.is_player:
+			player_unit = current
+			state = BattleState.PLAYER_TURN
+			turn_changed.emit(current)
+			return
+		else:
+			state = BattleState.ENEMY_TURN
+			turn_changed.emit(current)
+			await get_tree().create_timer(1.0).timeout
+			await _enemy_act(current)
+			return
+
+# Returns true if the unit's turn should be skipped (sleep, or died from poison)
+func _tick_status(unit) -> bool:
+	if unit.status == "":
+		return false
+	if unit.status == "sleep":
+		battle_log.emit("%s is asleep!" % unit.unit_name)
+		unit.status_turns -= 1
+		if unit.status_turns <= 0:
+			unit.clear_status()
+			battle_log.emit("%s woke up!" % unit.unit_name)
+		return true  # skip turn
+	if unit.status == "poison":
+		var dmg: int = unit.tick_status()
+		if dmg > 0:
+			action_result.emit("Poison", unit.unit_name, dmg, false)
+		if unit.status == "":
+			battle_log.emit("%s recovered from poison!" % unit.unit_name)
 		_check_battle_end()
-		return
-	var current = turn_queue.pop_front()
-	if not current.is_alive():
-		_next_turn()
-		return
-	if current.is_player:
-		player_unit = current
-		state = BattleState.PLAYER_TURN
-		turn_changed.emit(current)
-	else:
-		state = BattleState.ENEMY_TURN
-		turn_changed.emit(current)
-		await get_tree().create_timer(1.0).timeout
-		_enemy_act(current)
+		return not unit.is_alive()  # skip if died
+	if unit.status == "silence":
+		battle_log.emit("%s is silenced!" % unit.unit_name)
+		unit.status_turns -= 1
+		if unit.status_turns <= 0:
+			unit.clear_status()
+		return false  # silence only blocks spells, not physical
+	return false
 
 func _compute_phys_damage(atk: int, target) -> Dictionary:
 	var variance: float = randf_range(0.85, 1.15)
@@ -106,6 +156,9 @@ func player_attack() -> void:
 func player_cast_spell(spell) -> void:
 	if state != BattleState.PLAYER_TURN or player_unit == null:
 		return
+	if player_unit.status == "silence":
+		battle_log.emit("%s is silenced — can't cast!" % player_unit.unit_name)
+		return
 	if player_unit.mp < spell.mp_cost:
 		action_result.emit(player_unit.unit_name, "—", -1, false)
 		return
@@ -119,9 +172,9 @@ func player_cast_spell(spell) -> void:
 			var target = alive[randi() % alive.size()]
 			var variance: float = randf_range(0.90, 1.10)
 			var dmg: int = int(player_unit.atk * spell.damage_multiplier * variance)
-			# Element weakness: 1.5x bonus
 			if spell.element != "" and target.element_weakness == spell.element:
 				dmg = int(dmg * 1.5)
+				battle_log.emit("Weakness! %s takes extra damage!" % target.unit_name)
 			target.hp = max(0, target.hp - dmg)
 			action_result.emit(player_unit.unit_name, target.unit_name, dmg, false)
 		SPELL_HEAL:
@@ -140,10 +193,12 @@ func player_cast_spell(spell) -> void:
 		SPELL_REVIVE:
 			var dead = _first_dead_ally()
 			if dead == null:
-				player_unit.mp += spell.mp_cost  # refund
+				player_unit.mp += spell.mp_cost
 				action_result.emit(player_unit.unit_name, "—", -1, false)
 				return
 			dead.hp = int(dead.max_hp * 0.25)
+			dead.clear_status()
+			battle_log.emit("%s revived!" % dead.unit_name)
 			action_result.emit(player_unit.unit_name, dead.unit_name, 0, false)
 	_after_player_turn()
 
@@ -173,7 +228,8 @@ func _after_player_turn() -> void:
 		if player_unit.haste_turns_left == 0 and player_unit.base_spd > 0:
 			player_unit.spd = player_unit.base_spd
 			player_unit.base_spd = 0
-	rebuild_and_next()
+	_rebuild_queue()
+	_advance_turn()
 
 func player_run() -> void:
 	if state != BattleState.PLAYER_TURN:
@@ -181,54 +237,113 @@ func player_run() -> void:
 	state = BattleState.IDLE
 	battle_ended.emit(false)
 
+# ── Enemy AI ────────────────────────────────────────────────────────────────
+
 func _enemy_act(enemy) -> void:
-	# Target a random alive party member
-	var alive_allies: Array = party.filter(func(m) -> bool: return m.is_alive())
-	if alive_allies.is_empty():
-		_check_battle_end()
-		return
-	var target = alive_allies[randi() % alive_allies.size()]
-	var result: Dictionary = _compute_phys_damage(enemy.atk, target)
-	action_result.emit(enemy.unit_name, target.unit_name, result.dmg, result.crit)
+	match enemy.unit_name:
+		"Slime":       _ai_slime(enemy)
+		"Goblin":      await _ai_goblin(enemy)
+		"Skeleton":    _ai_skeleton(enemy)
+		"Bat":         _ai_bat(enemy)
+		"Dark Knight": await _ai_dark_knight(enemy)
+		_:             _ai_basic_attack(enemy)
 	_check_battle_end()
 	if state != BattleState.ENEMY_TURN:
 		return
-	# Boss double attack
-	if is_boss_battle and enemy.unit_name == "Dark Knight":
-		await get_tree().create_timer(0.6).timeout
-		alive_allies = party.filter(func(m) -> bool: return m.is_alive())
-		if not alive_allies.is_empty():
-			var target2 = alive_allies[randi() % alive_allies.size()]
-			var result2: Dictionary = _compute_phys_damage(enemy.atk, target2)
-			action_result.emit(enemy.unit_name, target2.unit_name, result2.dmg, result2.crit)
-			_check_battle_end()
-			if state != BattleState.ENEMY_TURN:
-				return
-	rebuild_and_next()
+	_rebuild_queue()
+	_advance_turn()
 
-func rebuild_and_next() -> void:
-	var all: Array = []
-	for m in party:
-		if m.is_alive():
-			all.append(m)
-	for e in enemies:
-		if e.is_alive():
-			all.append(e)
-	turn_queue = all
-	turn_queue.sort_custom(func(a, b) -> bool: return a.spd > b.spd)
-	if turn_queue.is_empty():
-		_check_battle_end()
+func _random_alive_ally():
+	var alive: Array = party.filter(func(m) -> bool: return m.is_alive())
+	if alive.is_empty():
+		return null
+	return alive[randi() % alive.size()]
+
+func _ai_basic_attack(enemy) -> void:
+	var target = _random_alive_ally()
+	if target == null:
 		return
-	var next = turn_queue.pop_front()
-	if next.is_player:
-		player_unit = next
-		state = BattleState.PLAYER_TURN
-		turn_changed.emit(next)
+	var result: Dictionary = _compute_phys_damage(enemy.atk, target)
+	action_result.emit(enemy.unit_name, target.unit_name, result.dmg, result.crit)
+
+func _ai_slime(enemy) -> void:
+	if randf() < 0.40:
+		var target = _random_alive_ally()
+		if target == null:
+			return
+		if target.inflict_status("poison"):
+			battle_log.emit("Poison Spit! %s is poisoned!" % target.unit_name)
+			action_result.emit(enemy.unit_name, target.unit_name, 0, false)
+			return
+	_ai_basic_attack(enemy)
+
+func _ai_goblin(enemy) -> void:
+	if randf() < 0.35:
+		var target = _random_alive_ally()
+		if target == null:
+			return
+		var raw: int = int(enemy.atk * 1.5 * randf_range(0.85, 1.15))
+		var dmg: int = target.take_damage(raw)
+		battle_log.emit("Headbutt!")
+		action_result.emit(enemy.unit_name, target.unit_name, dmg, false)
+		if randf() < 0.30 and target.is_alive():
+			if target.inflict_status("sleep"):
+				battle_log.emit("%s fell asleep!" % target.unit_name)
 	else:
-		state = BattleState.ENEMY_TURN
-		turn_changed.emit(next)
-		await get_tree().create_timer(1.0).timeout
-		_enemy_act(next)
+		_ai_basic_attack(enemy)
+
+func _ai_skeleton(enemy) -> void:
+	if randf() < 0.40:
+		var target = _random_alive_ally()
+		if target == null:
+			return
+		var dmg: int = int(enemy.atk * 1.2 * randf_range(0.90, 1.10))
+		target.take_damage_ignore_def(dmg)
+		battle_log.emit("Dark Blast!")
+		action_result.emit(enemy.unit_name, target.unit_name, dmg, false)
+	else:
+		_ai_basic_attack(enemy)
+
+func _ai_bat(enemy) -> void:
+	if randf() < 0.40:
+		var mage = _find_alive_mage()
+		var target = mage if mage != null else _random_alive_ally()
+		if target == null:
+			return
+		if target.inflict_status("silence"):
+			battle_log.emit("Ultrasonic! %s is silenced!" % target.unit_name)
+			action_result.emit(enemy.unit_name, target.unit_name, 0, false)
+			return
+	_ai_basic_attack(enemy)
+
+func _find_alive_mage():
+	for m in party:
+		if m.is_alive() and m.spell_paths.size() > 0 and m.status != "silence":
+			return m
+	return null
+
+func _ai_dark_knight(enemy) -> void:
+	if randf() < 0.35:
+		battle_log.emit("Dark Wave!")
+		var alive: Array = party.filter(func(m) -> bool: return m.is_alive())
+		for target in alive:
+			var dmg: int = int(enemy.atk * 0.60 * randf_range(0.85, 1.15))
+			var actual: int = target.take_damage(dmg)
+			action_result.emit(enemy.unit_name, target.unit_name, actual, false)
+			await get_tree().create_timer(0.25).timeout
+	else:
+		# Double physical attack
+		_ai_basic_attack(enemy)
+		_check_battle_end()
+		if state != BattleState.ENEMY_TURN:
+			return
+		await get_tree().create_timer(0.6).timeout
+		_ai_basic_attack(enemy)
+
+# Called by Battle.gd after item use
+func rebuild_and_next() -> void:
+	_rebuild_queue()
+	_advance_turn()
 
 func _check_battle_end() -> void:
 	var all_enemies_dead: bool = enemies.all(func(e) -> bool: return not e.is_alive())

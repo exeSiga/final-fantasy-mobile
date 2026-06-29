@@ -298,3 +298,55 @@
 - Déferments: Sélection manuelle de cible (auto-target actuel), animations de sorts
 
 **Review notes:** Changement architectural majeur — party remplace player_unit comme concept central. GameManager.player_unit conservé comme alias de party[0] pour compatibilité WorldHUD. BattleManager.party est une référence directe (pas de copy) vers GameManager.party.
+
+---
+
+## Sprint 16 — Effets de statut + IA ennemie avancée [STATUS: DONE]
+**Goal:** Ajouter la couche tactique classique de Final Fantasy : états altérés et IA ennemie différenciée par type
+
+**Acceptance Criteria:**
+- [x] AC1: 3 états altérés — Poison (7% MaxHP/tour), Sleep (skip tour, 3 tours), Silence (pas de magie, 3 tours)
+- [x] AC2: Un personnage ne peut pas être affecté par 2 états simultanément
+- [x] AC3: Affichage [PSN]/[SLP]/[SIL] à côté du nom dans le panneau party
+- [x] AC4: Chaque ennemi a une capacité spéciale — Slime (Poison Spit), Goblin (Headbutt+sleep), Skeleton (Dark Blast), Bat (Ultrasonic+silence), DarkKnight (Dark Wave AoE)
+- [x] AC5: Le log de combat affiche les messages de statut (poisoned, asleep, silenced, etc.)
+
+**Tasks:**
+- [x] CombatUnit.gd: +status, +status_turns, +inflict_status(), +clear_status(), +tick_status(), +take_damage_ignore_def()
+- [x] BattleManager.gd: signal battle_log, _tick_status(), _advance_turn() avec while loop (remplace récursion), _ai_slime/goblin/skeleton/bat/dark_knight
+- [x] Battle.gd: connect battle_log signal, _refresh_party_ui() affiche tag statut
+- [x] TestHeadless.gd: tests status_effects (10 tests, 10/10 passent)
+
+**Verification Notes:**
+- Contrôle A (static): ✅ check_compat.sh — All clear
+- Contrôle B (godot parse): ✅ 10/10 tests headless
+- Contrôle C (logic trace):
+  - AC1: CombatUnit.tick_status() décrémente status_turns, clear si <=0; poison dmg=max_hp×7% ✅
+  - AC2: inflict_status() return false si status!="" ✅
+  - AC3: _refresh_party_ui() match m.status → status_tag → _party_name_labels[i].text ✅
+  - AC4: _enemy_act() dispatch match enemy.unit_name → _ai_* avec probabilités ✅
+  - AC5: battle_log.emit() dans _tick_status, AI methods → connecté à Battle._log() ✅
+- Contrôle D (regression): _advance_turn() while loop gère les units mortes et sleeping sans récursion infinie. Flow MainMenu→Battle intact via tests.
+- Déferments: Animations visuelles d'état (particules poison, zzz sommeil), sélection manuelle de cible
+
+**Review notes:** Architecture BattleManager refactorisée — _advance_turn() boucle while au lieu d'appels récursifs async, évite les race conditions GDScript. La distinction _rebuild_queue() vs _build_turn_queue() sépare init et refresh. rebuild_and_next() public pour items en combat.
+
+---
+
+## Sprint 17 — Équipement : Armes et Armures [STATUS: TODO]
+**Goal:** Système d'équipement Final Fantasy style — armes augmentent ATK, armures augmentent DEF, achetables en shop
+
+**Acceptance Criteria:**
+- [ ] AC1: Resource Equipment.gd avec slot (WEAPON/ARMOR), stat_bonus, price, équipable par classe
+- [ ] AC2: GameManager.equipment = {0: {weapon, armor}, 1: {...}, 2: {...}} par index de party
+- [ ] AC3: Le Shop propose 4 items d'équipement en plus des potions
+- [ ] AC4: equip(member_idx, item) met à jour les stats du membre immédiatement
+- [ ] AC5: WorldHUD ou menu équipement affiche l'équipement actuel de chaque membre
+
+**Tasks:**
+- [ ] resources/Equipment.gd (Resource: slot, name, stat_bonus, price, allowed_classes: Array)
+- [ ] resources/equipment/*.tres (short_sword, long_sword, leather_armor, chain_mail, staff, robe)
+- [ ] GameManager.gd: +equipment dict, +equip(idx, item), +unequip(idx, slot)
+- [ ] Shop.gd: ajouter section équipement, filtrer par classe active
+- [ ] EquipMenu.tscn + EquipMenu.gd (accessible depuis PauseMenu)
+- [ ] PauseMenu.gd: ajouter bouton "Equipment" → EquipMenu

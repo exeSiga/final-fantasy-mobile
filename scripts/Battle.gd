@@ -40,6 +40,7 @@ func _ready() -> void:
 	BattleManager.action_result.connect(_on_action_result)
 	BattleManager.turn_changed.connect(_on_turn_changed)
 	BattleManager.battle_ended.connect(_on_battle_ended)
+	BattleManager.battle_log.connect(_log)
 	BattleManager.start_battle(BattleManager.dungeon_mode, BattleManager.is_boss_battle)
 
 func _on_battle_started(party: Array, enemies: Array) -> void:
@@ -192,6 +193,12 @@ func _refresh_party_ui() -> void:
 		_party_hp_texts[i].text = "%d/%d" % [m.hp, m.max_hp]
 		if m.max_mp > 0:
 			_party_mp_texts[i].text = "MP%d" % m.mp
+		var status_tag: String = ""
+		match m.status:
+			"poison":  status_tag = " [PSN]"
+			"sleep":   status_tag = " [SLP]"
+			"silence": status_tag = " [SIL]"
+		_party_name_labels[i].text = m.unit_name + status_tag
 		if not m.is_alive():
 			_party_name_labels[i].add_theme_color_override("font_color", Color(0.4, 0.4, 0.4, 1))
 			_party_sprites[i].modulate.a = 0.3
