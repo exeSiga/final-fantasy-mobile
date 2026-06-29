@@ -16,3 +16,4 @@
 [2026-06-28 13:50] Sprint 12 (Final Polish) — DONE — ~37000 tokens
 [2026-06-28 11:31] Sprint 13 (Bugfix & Quality Template) — DONE — ~3200 tokens used
 [2026-06-29 00:00] Sprint 14 (Visual & UX Polish) — DONE — ~6000 tokens used
+[2026-06-29 19:40] Sprint 14 (Visual & UX Polish) — DONE — sprites Node2D visibles, double-DEF fixé, theme_override fixé, 6/6 tests headless, screenshot Xvfb confirmé
