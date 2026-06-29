@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://worldmap"]
+[gd_scene load_steps=15 format=3 uid="uid://worldmap"]
 
 [ext_resource type="Script" path="res://scripts/WorldMap.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/characters/Player.tscn" id="2"]
@@ -23,6 +23,9 @@ size = Vector2(32, 3200)
 size = Vector2(120, 120)
 
 [sub_resource type="RectangleShape2D" id="Shop_Shape"]
+size = Vector2(120, 120)
+
+[sub_resource type="RectangleShape2D" id="Inn_Shape"]
 size = Vector2(120, 120)
 
 [node name="WorldMap" type="Node2D"]
@@ -103,6 +106,24 @@ color = Color(0.9, 0.7, 0.1, 1)
 [node name="ShopLabel" type="Label" parent="ShopNPC"]
 position = Vector2(-60, -90)
 text = "Shop"
+theme_override_font_sizes/font_size = 28
+
+[node name="InnNPC" type="Area2D" parent="."]
+position = Vector2(1400, 1600)
+
+[node name="InnShape" type="CollisionShape2D" parent="InnNPC"]
+shape = SubResource("Inn_Shape")
+
+[node name="InnSprite" type="ColorRect" parent="InnNPC"]
+offset_left = -40.0
+offset_top = -60.0
+offset_right = 40.0
+offset_bottom = 0.0
+color = Color(0.2, 0.4, 0.8, 1)
+
+[node name="InnLabel" type="Label" parent="InnNPC"]
+position = Vector2(-40, -90)
+text = "Inn 30G"
 theme_override_font_sizes/font_size = 28
 
 [node name="VirtualJoystick" parent="." instance=ExtResource("4")]

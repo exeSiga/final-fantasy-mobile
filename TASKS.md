@@ -333,6 +333,31 @@
 
 ---
 
+## Sprint 20 — Status Menu + Auberge + Récupération [STATUS: DONE]
+**Goal:** Accès aux infos complètes de la party + auberge pour récupérer HP/MP entre les combats
+
+**Acceptance Criteria:**
+- [x] AC1: PauseMenu → "Party Status" → StatusMenu avec stats complètes par membre (HP/MP/ATK/DEF/SPD/XP/Équipement)
+- [x] AC2: InnNPC sur la WorldMap — "Inn 30G" — entre dans la zone → popup Yes/No
+- [x] AC3: Rest (30G) → HP/MP à 100% pour tous les membres + statuts effacés + sauvegarde auto
+- [x] AC4: Si gold insuffisant → message d'erreur
+- [x] AC5: Feedback visuel après repos ("Party fully recovered")
+
+**Tasks:**
+- [x] StatusMenu.gd + StatusMenu.tscn (HP/MP/ATK/DEF/SPD/XP/Equipment par membre)
+- [x] PauseMenu.tscn: bouton "Party Status" → StatusMenu.instantiate() comme child
+- [x] WorldMap.tscn: InnNPC Area2D à (1400,1600) + Inn_Shape SubResource
+- [x] WorldMap.gd: _on_inn_entered, _show_inn_dialog, _on_inn_yes/no, _show_inn_feedback
+
+**Verification Notes:**
+- Contrôle A: ✅ All clear
+- Contrôle B: ✅ 13/13 tests
+- Contrôle C: StatusMenu._build_member_section() → tous stats + equipment[idx] ✅; _on_inn_yes() → hp/mp=max + clear_status() + save ✅
+- Contrôle D: InnNPC.body_entered connecté en _ready(); guard _inn_dialog!=null évite double-ouverture ✅
+- Déferments: Animation d'entrée dans l'inn, musique spéciale, dialogue NPC plus élaboré
+
+---
+
 ## Sprint 19 — Ennemis avancés + Progression par niveau [STATUS: DONE]
 **Goal:** 4 nouveaux ennemis (Orc/Shadow/Troll/Gargoyle) avec IA propre + sélection automatique du pool ennemi selon le niveau de la party
 
