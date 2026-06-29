@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="CombatUnit" load_steps=2 format=3 uid="uid://whitemage"]
+
+[ext_resource type="Script" path="res://resources/CombatUnit.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+unit_name = "White Mage"
+hp = 220
+max_hp = 220
+mp = 120
+max_mp = 120
+atk = 14
+def = 10
+spd = 25
+is_player = true
+sprite_color = Color(1.0, 0.9, 0.3, 1)
+level = 1
+xp = 0
+xp_to_next_level = 100
+character_class = "WhiteMage"
+element_weakness = ""
+spell_paths = ["res://resources/spells/cure.tres", "res://resources/spells/cure2.tres", "res://resources/spells/life.tres", "res://resources/spells/haste.tres"]

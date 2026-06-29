@@ -9,3 +9,5 @@ mp_cost = 10
 damage_multiplier = 2.2
 effect_type = 0
 description = "Burns an enemy for 2.2x damage"
+element = "fire"
+heal_value = 0

@@ -9,7 +9,9 @@ func _ready() -> void:
 	_refresh()
 
 func _refresh() -> void:
-	if GameManager.player_unit:
+	if not GameManager.party.is_empty():
+		level_label.text = "Lv.%d" % GameManager.party[0].level
+	elif GameManager.player_unit:
 		level_label.text = "Lv.%d" % GameManager.player_unit.level
 	gold_label.text = "Gold: %d" % GameManager.gold
 

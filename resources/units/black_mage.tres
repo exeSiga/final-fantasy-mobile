@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="CombatUnit" load_steps=2 format=3 uid="uid://blackmage"]
+
+[ext_resource type="Script" path="res://resources/CombatUnit.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+unit_name = "Black Mage"
+hp = 160
+max_hp = 160
+mp = 140
+max_mp = 140
+atk = 18
+def = 6
+spd = 32
+is_player = true
+sprite_color = Color(0.5, 0.1, 0.75, 1)
+level = 1
+xp = 0
+xp_to_next_level = 100
+character_class = "BlackMage"
+element_weakness = ""
+spell_paths = ["res://resources/spells/fire.tres", "res://resources/spells/blizzard.tres", "res://resources/spells/thunder.tres"]

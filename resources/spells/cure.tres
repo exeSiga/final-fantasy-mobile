@@ -8,4 +8,6 @@ spell_name = "Cure"
 mp_cost = 8
 damage_multiplier = 1.0
 effect_type = 1
-description = "Restores 60 HP"
+description = "Restores 60 HP to the most injured ally"
+element = ""
+heal_value = 60

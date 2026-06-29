@@ -4,13 +4,19 @@
 
 [resource]
 script = ExtResource("1")
-unit_name = "Hero"
-hp = 300
-max_hp = 300
-mp = 80
-max_mp = 80
-atk = 45
-def = 20
-spd = 30
+unit_name = "Warrior"
+hp = 320
+max_hp = 320
+mp = 0
+max_mp = 0
+atk = 48
+def = 22
+spd = 28
 is_player = true
 sprite_color = Color(0.2, 0.4, 1, 1)
+level = 1
+xp = 0
+xp_to_next_level = 100
+character_class = "Warrior"
+element_weakness = ""
+spell_paths = []

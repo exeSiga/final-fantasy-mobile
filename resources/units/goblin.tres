@@ -16,3 +16,4 @@ is_player = false
 sprite_color = Color(0.8, 0.5, 0.1, 1)
 xp_reward = 50
 gold_reward = 20
+element_weakness = "lightning"

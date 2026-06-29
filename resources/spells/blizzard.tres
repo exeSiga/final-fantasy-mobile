@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="Spell" load_steps=2 format=3 uid="uid://blizzard"]
+
+[ext_resource type="Script" path="res://resources/Spell.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+spell_name = "Blizzard"
+mp_cost = 8
+damage_multiplier = 1.8
+effect_type = 0
+description = "Freezes an enemy for 1.8x damage"
+element = "ice"
+heal_value = 0

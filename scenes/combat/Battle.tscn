@@ -12,8 +12,16 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 color = Color(0.05, 0.02, 0.12, 1)
 
-[node name="HeroSprite" type="Node2D" parent="."]
-position = Vector2(540, 900)
+[node name="PartySprite0" type="Node2D" parent="."]
+position = Vector2(810, 940)
+script = ExtResource("3")
+
+[node name="PartySprite1" type="Node2D" parent="."]
+position = Vector2(540, 960)
+script = ExtResource("3")
+
+[node name="PartySprite2" type="Node2D" parent="."]
+position = Vector2(270, 980)
 script = ExtResource("3")
 
 [node name="EnemySpriteRoot" type="Node2D" parent="."]
@@ -24,41 +32,26 @@ layer = 10
 [node name="UI" type="CanvasLayer" parent="."]
 
 [node name="EnemyPanel" type="VBoxContainer" parent="UI"]
-anchor_left = 0.05
-anchor_top = 0.08
-anchor_right = 0.95
-anchor_bottom = 0.42
+anchor_left = 0.04
+anchor_top = 0.06
+anchor_right = 0.96
+anchor_bottom = 0.38
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 10
 
 [node name="HeroPanel" type="VBoxContainer" parent="UI"]
-anchor_left = 0.04
-anchor_top = 0.55
-anchor_right = 0.96
-anchor_bottom = 0.7
+anchor_left = 0.02
+anchor_top = 0.60
+anchor_right = 0.98
+anchor_bottom = 0.80
 grow_horizontal = 2
 grow_vertical = 2
-
-[node name="HeroHPLabel" type="Label" parent="UI/HeroPanel"]
-layout_mode = 2
-text = "HP  --- / ---"
-theme_override_font_sizes/font_size = 32
-
-[node name="HeroHPBar" type="ProgressBar" parent="UI/HeroPanel"]
-layout_mode = 2
-custom_minimum_size = Vector2(0, 28)
-script = ExtResource("2")
-
-[node name="HeroMPLabel" type="Label" parent="UI/HeroPanel"]
-layout_mode = 2
-text = "MP  --- / ---"
-theme_override_font_sizes/font_size = 28
-theme_override_colors/font_color = Color(0.4, 0.6, 1, 1)
+theme_override_constants/separation = 6
 
 [node name="LogPanel" type="PanelContainer" parent="UI"]
 anchor_left = 0.0
-anchor_top = 0.72
+anchor_top = 0.81
 anchor_right = 1.0
 anchor_bottom = 0.88
 grow_horizontal = 2
@@ -68,7 +61,7 @@ grow_vertical = 2
 anchor_right = 1.0
 anchor_bottom = 1.0
 text = ""
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 26
 
 [node name="ActionButtons" type="HBoxContainer" parent="UI"]
 anchor_left = 0.0

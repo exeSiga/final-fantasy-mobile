@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="Spell" load_steps=2 format=3 uid="uid://thunder"]
+
+[ext_resource type="Script" path="res://resources/Spell.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+spell_name = "Thunder"
+mp_cost = 10
+damage_multiplier = 2.0
+effect_type = 0
+description = "Strikes with lightning for 2.0x damage"
+element = "lightning"
+heal_value = 0

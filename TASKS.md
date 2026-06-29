@@ -257,3 +257,44 @@
 - Story & dialogue system
 - Cloud save via Supabase
 - Leaderboard (fastest boss clear)
+
+## Sprint 15 — Système de Party 3 membres + Éléments + Critiques [STATUS: DONE]
+**Goal:** Transformer le combat solo en combat de groupe Final Fantasy style — 3 personnages, sorts par classe, faiblesses élémentaires, critiques
+
+**Acceptance Criteria:**
+- [x] AC1: 3 membres de la party (Warrior, Black Mage, White Mage) chacun avec stats et sorts distincts
+- [x] AC2: Chaque membre a un sprite géométrique unique (Warrior=bleu armure, BlackMage=chapeau violet+yeux jaunes, WhiteMage=robe jaune+croix+bâton)
+- [x] AC3: Les sorts d'un personnage dépendent de sa classe (Warrior=aucun, BM=Fire/Blizzard/Thunder, WM=Cure/Cure2/Life/Haste)
+- [x] AC4: Les ennemis ont des faiblesses élémentaires (Slime→fire, Goblin→lightning, Skeleton→fire, Bat→lightning, DarkKnight→fire)
+- [x] AC5: Les attaques physiques ont variance ±15% et critique 10% (×1.5) avec affichage "★CRIT!"
+- [x] AC6: Chaque membre de la party a sa barre HP/MP visible, avec surligné jaune pour le membre actif
+- [x] AC7: Save/Load gère les 3 membres; XP distribué à tous les membres vivants
+
+**Tasks:**
+- [x] Spell.gd: +element, +heal_value, +EffectType.REVIVE/BUFF
+- [x] CombatUnit.gd: +spell_paths, +element_weakness, +haste_turns_left, +base_spd, +character_class
+- [x] Nouveaux sorts: blizzard.tres, thunder.tres, cure2.tres, life.tres; update fire.tres, cure.tres, haste.tres
+- [x] Nouvelles unités: black_mage.tres, white_mage.tres; update hero.tres; faiblesses sur tous ennemis
+- [x] UnitSprite.gd: sprites BlackMage et WhiteMage + helper h(), set_active()
+- [x] GameManager.gd: party array, new_game() × 3 membres, use_item auto-target, grant_battle_rewards multi-membres
+- [x] BattleManager.gd: réécriture party — _compute_phys_damage (variance+crit), faiblesses élémentaires, enemy cible membre aléatoire
+- [x] SaveSystem.gd: save/load tous les membres via party array
+- [x] Battle.tscn: 3 PartySprite Node2D + EnemySpriteRoot + HeroPanel dynamique
+- [x] Battle.gd: _build_party_panel, _build_party_sprites, _highlight_active_member, _rebuild_magic_button par classe
+- [x] TestHeadless.gd: 8 tests (party, elements, spells_per_class)
+
+**Verification Notes:**
+- Contrôle A (static): ✅ check_compat.sh — All clear
+- Contrôle B (godot parse): ✅ 8/8 tests headless passent
+- Contrôle C (logic trace):
+  - AC1: new_game() → party=[warrior,bm,wm]; BattleManager.party=GameManager.party (ref directe) ✅
+  - AC2: UnitSprite._draw() match "Warrior"/"Black Mage"/"White Mage" avec sprites distincts ✅
+  - AC3: _rebuild_magic_button(unit) → unit.spell_paths; Magic button caché si vide ✅
+  - AC4: SPELL_DAMAGE → if spell.element==target.element_weakness → dmg×1.5 ✅
+  - AC5: _compute_phys_damage() → randf_range(0.85,1.15) × crit(randf<0.10 → ×1.5) ✅
+  - AC6: _build_party_panel() dynamic rows; _highlight_active_member() via color override ✅
+  - AC7: grant_battle_rewards() → alive_party().add_xp(total); SaveSystem._unit_to_dict() par membre ✅
+- Contrôle D (regression): Screenshot confirmé — Goblin HP bar, 3 sprites héros, 3 barres HP, "Black Mage's turn" surligné, boutons actifs ✅
+- Déferments: Sélection manuelle de cible (auto-target actuel), animations de sorts
+
+**Review notes:** Changement architectural majeur — party remplace player_unit comme concept central. GameManager.player_unit conservé comme alias de party[0] pour compatibilité WorldHUD. BattleManager.party est une référence directe (pas de copy) vers GameManager.party.

@@ -16,6 +16,11 @@ class_name CombatUnit
 @export var xp_to_next_level: int = 100
 @export var xp_reward: int = 0
 @export var gold_reward: int = 0
+@export var character_class: String = ""
+@export var element_weakness: String = ""
+@export var spell_paths: Array = []
+var haste_turns_left: int = 0
+var base_spd: int = 0
 
 func is_alive() -> bool:
 	return hp > 0
@@ -38,6 +43,8 @@ func add_xp(amount: int) -> bool:
 		atk += 3
 		def += 2
 		spd += 1
+		if base_spd > 0:
+			base_spd += 1
 		xp_to_next_level = int(xp_to_next_level * 1.4)
 		return true
 	return false

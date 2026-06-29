@@ -9,16 +9,24 @@ func _ready() -> void:
 func _slot_path(slot: int) -> String:
 	return SAVE_DIR + "slot_%d.json" % slot
 
+func _unit_to_dict(u) -> Dictionary:
+	return {
+		"unit_name": u.unit_name,
+		"hp": u.hp, "max_hp": u.max_hp,
+		"mp": u.mp, "max_mp": u.max_mp,
+		"atk": u.atk, "def": u.def, "spd": u.spd,
+		"level": u.level, "xp": u.xp,
+		"xp_to_next_level": u.xp_to_next_level,
+	}
+
 func save(slot: int) -> void:
-	var p = GameManager.player_unit
-	if p == null:
+	if GameManager.party.is_empty():
 		return
+	var members: Array = []
+	for m in GameManager.party:
+		members.append(_unit_to_dict(m))
 	var d: Dictionary = {
-		"unit_name": p.unit_name,
-		"hp": p.hp, "max_hp": p.max_hp,
-		"mp": p.mp, "max_mp": p.max_mp,
-		"atk": p.atk, "def": p.def, "spd": p.spd,
-		"level": p.level, "xp": p.xp, "xp_to_next_level": p.xp_to_next_level,
+		"party": members,
 		"gold": GameManager.gold,
 		"timestamp": Time.get_datetime_string_from_system(),
 		"playtime": Time.get_ticks_msec() / 1000,
@@ -39,18 +47,21 @@ func load_save(slot: int) -> bool:
 		return false
 	var d: Dictionary = parsed as Dictionary
 	GameManager.new_game()
-	var p = GameManager.player_unit
-	p.hp = d.get("hp", p.max_hp)
-	p.max_hp = d.get("max_hp", p.max_hp)
-	p.mp = d.get("mp", p.max_mp)
-	p.max_mp = d.get("max_mp", p.max_mp)
-	p.atk = d.get("atk", p.atk)
-	p.def = d.get("def", p.def)
-	p.spd = d.get("spd", p.spd)
-	p.level = d.get("level", 1)
-	p.xp = d.get("xp", 0)
-	p.xp_to_next_level = d.get("xp_to_next_level", 100)
 	GameManager.gold = d.get("gold", 0)
+	var members: Array = d.get("party", [])
+	for i in min(members.size(), GameManager.party.size()):
+		var md: Dictionary = members[i]
+		var m = GameManager.party[i]
+		m.hp = md.get("hp", m.max_hp)
+		m.max_hp = md.get("max_hp", m.max_hp)
+		m.mp = md.get("mp", m.max_mp)
+		m.max_mp = md.get("max_mp", m.max_mp)
+		m.atk = md.get("atk", m.atk)
+		m.def = md.get("def", m.def)
+		m.spd = md.get("spd", m.spd)
+		m.level = md.get("level", 1)
+		m.xp = md.get("xp", 0)
+		m.xp_to_next_level = md.get("xp_to_next_level", 100)
 	return true
 
 func get_slot_info(slot: int) -> Dictionary:
@@ -61,7 +72,17 @@ func get_slot_info(slot: int) -> Dictionary:
 	if not file:
 		return {}
 	var parsed: Variant = JSON.parse_string(file.get_as_text())
-	return parsed as Dictionary if parsed is Dictionary else {}
+	if not parsed is Dictionary:
+		return {}
+	var d: Dictionary = parsed as Dictionary
+	var party_data: Array = d.get("party", [])
+	var level: int = 1
+	if not party_data.is_empty():
+		level = party_data[0].get("level", 1)
+	return {
+		"level": level,
+		"timestamp": d.get("timestamp", ""),
+	}
 
 func delete_save(slot: int) -> void:
 	DirAccess.remove_absolute(_slot_path(slot))

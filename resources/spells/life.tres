@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="Spell" load_steps=2 format=3 uid="uid://life"]
+
+[ext_resource type="Script" path="res://resources/Spell.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+spell_name = "Life"
+mp_cost = 30
+damage_multiplier = 1.0
+effect_type = 3
+description = "Revives a fallen ally at 25% HP"
+element = ""
+heal_value = 0
