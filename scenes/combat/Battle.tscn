@@ -126,6 +126,34 @@ custom_minimum_size = Vector2(0, 60)
 text = "← Back"
 theme_override_font_sizes/font_size = 28
 
+[node name="TargetMenu" type="VBoxContainer" parent="UI"]
+anchor_left = 0.05
+anchor_top = 0.45
+anchor_right = 0.95
+anchor_bottom = 0.88
+grow_horizontal = 2
+grow_vertical = 2
+visible = false
+theme_override_constants/separation = 12
+
+[node name="TargetTitle" type="Label" parent="UI/TargetMenu"]
+layout_mode = 2
+text = "Select Target:"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 30
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+
+[node name="TargetList" type="VBoxContainer" parent="UI/TargetMenu"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="CancelTarget" type="Button" parent="UI/TargetMenu"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 70)
+text = "← Cancel"
+theme_override_font_sizes/font_size = 28
+
 [node name="VictoryOverlay" type="PanelContainer" parent="UI"]
 anchor_left = 0.1
 anchor_top = 0.2
@@ -180,6 +208,7 @@ custom_minimum_size = Vector2(300, 80)
 text = "Main Menu"
 theme_override_font_sizes/font_size = 36
 
+[connection signal="pressed" from="UI/TargetMenu/CancelTarget" to="." method="_on_target_cancel_pressed"]
 [connection signal="pressed" from="UI/ItemMenu/ItemCloseButton" to="." method="_on_item_close_pressed"]
 [connection signal="pressed" from="UI/MagicMenu/CloseButton" to="." method="_on_magic_close_pressed"]
 [connection signal="pressed" from="UI/ActionButtons/AttackButton" to="." method="_on_attack_pressed"]

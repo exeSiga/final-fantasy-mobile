@@ -15,6 +15,8 @@ extends Node2D
 @onready var _magic_btn: Button   = $UI/ActionButtons/MagicButton
 
 @onready var _party_sprites: Array = [$PartySprite0, $PartySprite1, $PartySprite2]
+@onready var _target_menu: VBoxContainer  = $UI/TargetMenu
+@onready var _target_list: VBoxContainer  = $UI/TargetMenu/TargetList
 
 const UnitSprite = preload("res://scripts/UnitSprite.gd")
 
@@ -257,7 +259,8 @@ func _spawn_popup(text: String, color: Color) -> void:
 	tween.tween_callback(lbl.queue_free)
 
 func _on_attack_pressed() -> void:
-	BattleManager.player_attack()
+	action_buttons.hide()
+	_show_target_select("enemy", func(t) -> void: BattleManager.player_attack(t))
 
 func _on_magic_pressed() -> void:
 	action_buttons.hide()
@@ -265,8 +268,18 @@ func _on_magic_pressed() -> void:
 
 func _on_spell_selected(spell) -> void:
 	magic_menu.hide()
-	action_buttons.show()
-	BattleManager.player_cast_spell(spell)
+	match spell.effect_type:
+		0:  # DAMAGE — pick enemy
+			_show_target_select("enemy", func(t) -> void: BattleManager.player_cast_spell(spell, t))
+		1:  # HEAL — pick alive ally
+			_show_target_select("ally_alive", func(t) -> void: BattleManager.player_cast_spell(spell, t))
+		2:  # HASTE — pick alive ally (any member can be hasted)
+			_show_target_select("ally_alive", func(t) -> void: BattleManager.player_cast_spell(spell, t))
+		3:  # REVIVE — pick dead ally
+			_show_target_select("ally_dead", func(t) -> void: BattleManager.player_cast_spell(spell, t))
+		_:
+			action_buttons.show()
+			BattleManager.player_cast_spell(spell, null)
 
 func _on_magic_close_pressed() -> void:
 	magic_menu.hide()
@@ -306,6 +319,44 @@ func _on_item_used(item) -> void:
 			BattleManager._after_player_turn()
 	else:
 		_log("Can't use that now.")
+
+func _show_target_select(mode: String, callback: Callable) -> void:
+	for c in _target_list.get_children():
+		c.queue_free()
+	var targets: Array = []
+	match mode:
+		"enemy":
+			targets = BattleManager.enemies.filter(func(e) -> bool: return e.is_alive())
+		"ally_alive":
+			targets = BattleManager.party.filter(func(m) -> bool: return m.is_alive())
+		"ally_dead":
+			targets = BattleManager.party.filter(func(m) -> bool: return not m.is_alive())
+	if targets.is_empty():
+		action_buttons.show()
+		return
+	for target in targets:
+		var btn := Button.new()
+		if mode == "enemy":
+			btn.text = target.unit_name
+		else:
+			btn.text = "%s  %d/%d HP" % [target.unit_name, target.hp, target.max_hp]
+		btn.add_theme_font_size_override("font_size", 30)
+		btn.custom_minimum_size = Vector2(0, 80)
+		btn.pressed.connect(_on_target_picked.bind(target, callback))
+		_target_list.add_child(btn)
+	_target_menu.show()
+
+func _on_target_picked(target, callback: Callable) -> void:
+	if BattleManager.state != BattleManager.BattleState.PLAYER_TURN:
+		_target_menu.hide()
+		return
+	_target_menu.hide()
+	action_buttons.show()
+	callback.call(target)
+
+func _on_target_cancel_pressed() -> void:
+	_target_menu.hide()
+	action_buttons.show()
 
 func _on_item_close_pressed() -> void:
 	item_menu.hide()

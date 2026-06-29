@@ -333,6 +333,36 @@
 
 ---
 
+## Sprint 18 — Sélection de cible en combat [STATUS: DONE]
+**Goal:** Le joueur choisit sa cible comme dans Final Fantasy — pas de ciblage aléatoire automatique
+
+**Acceptance Criteria:**
+- [x] AC1: Bouton "Fight" → sélecteur d'ennemi (boutons par ennemi vivant) → attaque CE cible
+- [x] AC2: Sort offensif (Fire/Blizzard/Thunder) → sélecteur d'ennemi
+- [x] AC3: Sort Cure/Cure2 → sélecteur de membre vivant de la party (avec HP affiché)
+- [x] AC4: Sort Life → sélecteur de membre mort de la party
+- [x] AC5: Sort Haste → sélecteur de membre vivant (tout membre peut être hasté)
+- [x] AC6: Bouton Cancel visible pour annuler la sélection
+
+**Tasks:**
+- [x] Battle.tscn: TargetMenu VBoxContainer (hidden, 0.45-0.88) + TargetList + CancelTarget button
+- [x] Battle.gd: _show_target_select(mode, callback), _on_target_picked, _on_target_cancel_pressed
+- [x] BattleManager.gd: player_attack(target=null), player_cast_spell(spell, target=null) — explicit target + fallback auto-target
+
+**Verification Notes:**
+- Contrôle A (static): ✅ All clear
+- Contrôle B (godot parse): ✅ 11/11 tests (player_attack() backward compat via default param)
+- Contrôle C (logic trace):
+  - AC1: _on_attack_pressed() → _show_target_select("enemy", lambda) → clicked → player_attack(t) ✅
+  - AC2-3: _on_spell_selected() matches effect_type → _show_target_select avec mode approprié ✅
+  - AC4: mode="ally_dead" filtre party non-vivants ✅
+  - AC5: mode="ally_alive" pour Haste, BattleManager.SPELL_HASTE → target param ✅
+  - AC6: CancelTarget button → _on_target_cancel_pressed() → hide+show action_buttons ✅
+- Contrôle D (regression): test battle_setup utilise player_attack() sans arg (auto-target) → PASS ✅
+- Déferments: Highlight visuel de la cible sélectionnée, confirmation de cible avec preview dégâts
+
+---
+
 ## Sprint 17 — Équipement : Armes et Armures [STATUS: DONE]
 **Goal:** Système d'équipement Final Fantasy style — armes augmentent ATK, armures augmentent DEF, achetables en shop
 

@@ -142,18 +142,19 @@ func _compute_phys_damage(atk: int, target) -> Dictionary:
 	var dmg: int = target.take_damage(raw)
 	return {dmg = dmg, crit = is_crit}
 
-func player_attack() -> void:
+func player_attack(target = null) -> void:
 	if state != BattleState.PLAYER_TURN or player_unit == null:
 		return
-	var alive: Array = enemies.filter(func(e) -> bool: return e.is_alive())
-	if alive.is_empty():
-		return
-	var target = alive[randi() % alive.size()]
+	if target == null or not target.is_alive():
+		var alive: Array = enemies.filter(func(e) -> bool: return e.is_alive())
+		if alive.is_empty():
+			return
+		target = alive[randi() % alive.size()]
 	var result: Dictionary = _compute_phys_damage(player_unit.atk, target)
 	action_result.emit(player_unit.unit_name, target.unit_name, result.dmg, result.crit)
 	_after_player_turn()
 
-func player_cast_spell(spell) -> void:
+func player_cast_spell(spell, target = null) -> void:
 	if state != BattleState.PLAYER_TURN or player_unit == null:
 		return
 	if player_unit.status == "silence":
@@ -165,11 +166,12 @@ func player_cast_spell(spell) -> void:
 	player_unit.mp -= spell.mp_cost
 	match spell.effect_type:
 		SPELL_DAMAGE:
-			var alive: Array = enemies.filter(func(e) -> bool: return e.is_alive())
-			if alive.is_empty():
-				_after_player_turn()
-				return
-			var target = alive[randi() % alive.size()]
+			if target == null or not target.is_alive():
+				var alive: Array = enemies.filter(func(e) -> bool: return e.is_alive())
+				if alive.is_empty():
+					_after_player_turn()
+					return
+				target = alive[randi() % alive.size()]
 			var variance: float = randf_range(0.90, 1.10)
 			var dmg: int = int(player_unit.atk * spell.damage_multiplier * variance)
 			if spell.element != "" and target.element_weakness == spell.element:
@@ -178,20 +180,22 @@ func player_cast_spell(spell) -> void:
 			target.hp = max(0, target.hp - dmg)
 			action_result.emit(player_unit.unit_name, target.unit_name, dmg, false)
 		SPELL_HEAL:
-			var tgt = _weakest_alive_ally()
+			var tgt = target if (target != null and target.is_alive()) else _weakest_alive_ally()
 			if tgt == null:
 				_after_player_turn()
 				return
-			var healed: int = spell.heal_value
-			tgt.hp = min(tgt.max_hp, tgt.hp + healed)
-			action_result.emit(player_unit.unit_name, tgt.unit_name, -healed, false)
+			tgt.hp = min(tgt.max_hp, tgt.hp + spell.heal_value)
+			action_result.emit(player_unit.unit_name, tgt.unit_name, -spell.heal_value, false)
 		SPELL_HASTE:
-			player_unit.base_spd = player_unit.spd
-			player_unit.spd = player_unit.spd * 2
-			player_unit.haste_turns_left = HASTE_TURNS
-			action_result.emit(player_unit.unit_name, player_unit.unit_name, 0, false)
+			var tgt = target if target != null else player_unit
+			if not tgt.is_alive():
+				tgt = player_unit
+			tgt.base_spd = tgt.spd
+			tgt.spd = tgt.spd * 2
+			tgt.haste_turns_left = HASTE_TURNS
+			action_result.emit(player_unit.unit_name, tgt.unit_name, 0, false)
 		SPELL_REVIVE:
-			var dead = _first_dead_ally()
+			var dead = target if (target != null and not target.is_alive()) else _first_dead_ally()
 			if dead == null:
 				player_unit.mp += spell.mp_cost
 				action_result.emit(player_unit.unit_name, "—", -1, false)
