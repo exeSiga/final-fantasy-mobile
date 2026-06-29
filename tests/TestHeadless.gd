@@ -28,6 +28,7 @@ func _run_all() -> void:
 	_test_spells_per_class()
 	_test_status_effects()
 	_test_enemy_ai_types()
+	_test_equipment()
 
 func _test_new_game() -> void:
 	GameManager.new_game()
@@ -152,6 +153,47 @@ func _test_status_effects() -> void:
 		_ko("status_effects", "sleep should cause skip=true"); return
 	dummy.clear_status()
 	_ok("status_effects: inflict/clear/tick/sleep-skip all OK")
+
+func _test_equipment() -> void:
+	GameManager.new_game()
+	var warrior = GameManager.party[0]
+	var atk_before: int = warrior.atk
+	var sword = load("res://resources/equipment/short_sword.tres")
+	if sword == null:
+		_ko("equipment", "short_sword.tres not found"); return
+	# Buy (add directly to equip_inventory for test)
+	var key: String = sword.resource_path
+	GameManager.equip_inventory[key] = 1
+	# Equip warrior with short sword
+	var ok: bool = GameManager.equip(0, sword)
+	if not ok:
+		_ko("equipment", "equip() returned false"); return
+	if warrior.atk != atk_before + sword.stat_bonus:
+		_ko("equipment", "ATK not increased (expected %d, got %d)" % [atk_before + sword.stat_bonus, warrior.atk]); return
+	if GameManager.equipment[0].get("weapon") != sword:
+		_ko("equipment", "equipment slot not set"); return
+	# Class restriction: Black Mage can't wear short_sword
+	var bm = GameManager.party[1]
+	GameManager.equip_inventory[key] = 1
+	var failed: bool = GameManager.equip(1, sword)
+	if failed:
+		_ko("equipment", "Black Mage should not be able to equip Short Sword"); return
+	# Unequip restores ATK
+	GameManager.unequip_slot(0, "weapon")
+	if warrior.atk != atk_before:
+		_ko("equipment", "ATK not restored after unequip"); return
+	# Mage staff for Black Mage
+	var staff = load("res://resources/equipment/mage_staff.tres")
+	if staff == null:
+		_ko("equipment", "mage_staff.tres not found"); return
+	GameManager.equip_inventory[staff.resource_path] = 1
+	var bm_atk_before: int = bm.atk
+	ok = GameManager.equip(1, staff)
+	if not ok:
+		_ko("equipment", "Black Mage equip staff failed"); return
+	if bm.atk != bm_atk_before + staff.stat_bonus:
+		_ko("equipment", "Black Mage ATK not increased"); return
+	_ok("equipment: buy/equip/unequip/class-restriction all OK (warrior ATK %d→%d→%d)" % [atk_before, warrior.atk + sword.stat_bonus, atk_before])
 
 func _test_enemy_ai_types() -> void:
 	for path in [BattleManager.ENEMY_POOL[0], BattleManager.DUNGEON_POOL[0], BattleManager.BOSS_PATH]:

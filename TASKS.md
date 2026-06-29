@@ -333,7 +333,7 @@
 
 ---
 
-## Sprint 17 — Équipement : Armes et Armures [STATUS: TODO]
+## Sprint 17 — Équipement : Armes et Armures [STATUS: DONE]
 **Goal:** Système d'équipement Final Fantasy style — armes augmentent ATK, armures augmentent DEF, achetables en shop
 
 **Acceptance Criteria:**
@@ -345,8 +345,21 @@
 
 **Tasks:**
 - [ ] resources/Equipment.gd (Resource: slot, name, stat_bonus, price, allowed_classes: Array)
-- [ ] resources/equipment/*.tres (short_sword, long_sword, leather_armor, chain_mail, staff, robe)
-- [ ] GameManager.gd: +equipment dict, +equip(idx, item), +unequip(idx, slot)
-- [ ] Shop.gd: ajouter section équipement, filtrer par classe active
-- [ ] EquipMenu.tscn + EquipMenu.gd (accessible depuis PauseMenu)
-- [ ] PauseMenu.gd: ajouter bouton "Equipment" → EquipMenu
+- [x] resources/equipment/*.tres (short_sword, long_sword, leather_armor, chain_mail, mage_staff, dark_staff, silk_robe)
+- [x] GameManager.gd: +equip_inventory, +equipment[], +equip(idx,item), +unequip_slot(idx,slot), +buy_equipment()
+- [x] SaveSystem.gd: save/load equip_inventory + equipment[] par paths
+- [x] Shop.gd: section Items + section Weapons & Armor, buy_equipment()
+- [x] EquipMenu.tscn + EquipMenu.gd (accessible depuis PauseMenu via "Equipment" button)
+- [x] PauseMenu.tscn + PauseMenu.gd: bouton "Equipment" → EquipMenu instancié comme child
+
+**Verification Notes:**
+- Contrôle A (static): ✅ check_compat.sh — All clear
+- Contrôle B (godot parse): ✅ 11/11 tests headless
+- Contrôle C (logic trace):
+  - AC1: Equipment.gd: slot/stat_bonus/@export; 7 items créés ✅
+  - AC2: GameManager.equipment[] Array avec dicts {weapon/armor}; equip() met à jour atk/def ✅
+  - AC3: Shop._build_shop() → _add_section_header + SHOP_EQUIP + _on_buy_equip() ✅
+  - AC4: equip() vérifie allowed_classes.has(member.character_class) ✅
+  - AC5: EquipMenu._build_member_section() affiche ATK/DEF avec bonus; "Equip"+"Remove" buttons ✅
+- Contrôle D (regression): Tests 11/11 passent; character_class="Black Mage"/"White Mage" avec espace (correction du bug "BlackMage" vs "Black Mage")
+- Déferments: ScrollContainer dans Shop (items_list peut déborder sur petits écrans), tri par stat dans EquipMenu

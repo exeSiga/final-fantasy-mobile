@@ -17,6 +17,6 @@ sprite_color = Color(0.5, 0.1, 0.75, 1)
 level = 1
 xp = 0
 xp_to_next_level = 100
-character_class = "BlackMage"
+character_class = "Black Mage"
 element_weakness = ""
 spell_paths = ["res://resources/spells/fire.tres", "res://resources/spells/blizzard.tres", "res://resources/spells/thunder.tres"]

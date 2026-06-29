@@ -8,6 +8,10 @@ func _on_resume_pressed() -> void:
 	get_tree().paused = false
 	visible = false
 
+func _on_equipment_pressed() -> void:
+	var equip_menu = load("res://scenes/ui/EquipMenu.tscn").instantiate()
+	add_child(equip_menu)
+
 func _on_save_quit_pressed() -> void:
 	get_tree().paused = false
 	SaveSystem.save(0)

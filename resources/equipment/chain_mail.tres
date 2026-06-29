@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="" load_steps=2 format=3 uid="uid://equip_chain_mail"]
+
+[ext_resource type="Script" path="res://resources/Equipment.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+equip_name = "Chain Mail"
+slot = 1
+stat_bonus = 15
+price = 350
+allowed_classes = ["Warrior"]
+description = "Interlocked rings of steel."

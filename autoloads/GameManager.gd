@@ -8,6 +8,12 @@ var party: Array = []          # 3 CombatUnit: [Warrior, BlackMage, WhiteMage]
 var player_unit = null         # alias for party[0] (Warrior) — kept for compatibility
 var gold: int = 0
 var inventory: Dictionary = {}
+var equip_inventory: Dictionary = {}   # resource_path → count (unequipped gear owned)
+var equipment: Array = [               # one dict per party member
+	{"weapon": null, "armor": null},
+	{"weapon": null, "armor": null},
+	{"weapon": null, "armor": null},
+]
 var return_after_battle: String = "res://scenes/world/WorldMap.tscn"
 var dungeon_boss_cleared = false
 var dungeon_return_room: int = -1
@@ -38,6 +44,12 @@ func new_game() -> void:
 	player_unit = warrior
 	gold = 0
 	inventory = {}
+	equip_inventory = {}
+	equipment = [
+		{"weapon": null, "armor": null},
+		{"weapon": null, "armor": null},
+		{"weapon": null, "armor": null},
+	]
 	dungeon_boss_cleared = false
 	dungeon_return_room = -1
 
@@ -105,6 +117,60 @@ func _first_dead():
 		if not m.is_alive():
 			return m
 	return null
+
+func buy_equipment(item: Resource) -> bool:
+	if gold < item.price:
+		return false
+	gold -= item.price
+	gold_changed.emit(gold)
+	var key: String = item.resource_path
+	equip_inventory[key] = equip_inventory.get(key, 0) + 1
+	return true
+
+func equip(member_idx: int, item: Resource) -> bool:
+	if member_idx < 0 or member_idx >= party.size():
+		return false
+	var member = party[member_idx]
+	var slot_name: String = "weapon" if item.slot == 0 else "armor"
+	if item.allowed_classes.size() > 0 and not item.allowed_classes.has(member.character_class):
+		return false
+	var key: String = item.resource_path
+	if equip_inventory.get(key, 0) <= 0:
+		return false
+	equip_inventory[key] -= 1
+	if equip_inventory[key] <= 0:
+		equip_inventory.erase(key)
+	var old_item = equipment[member_idx].get(slot_name)
+	if old_item != null:
+		_remove_equip_bonus(member, old_item)
+		var old_key: String = old_item.resource_path
+		equip_inventory[old_key] = equip_inventory.get(old_key, 0) + 1
+	equipment[member_idx][slot_name] = item
+	_apply_equip_bonus(member, item)
+	return true
+
+func unequip_slot(member_idx: int, slot_name: String) -> void:
+	if member_idx < 0 or member_idx >= party.size():
+		return
+	var old_item = equipment[member_idx].get(slot_name)
+	if old_item == null:
+		return
+	_remove_equip_bonus(party[member_idx], old_item)
+	var key: String = old_item.resource_path
+	equip_inventory[key] = equip_inventory.get(key, 0) + 1
+	equipment[member_idx][slot_name] = null
+
+func _apply_equip_bonus(member, item: Resource) -> void:
+	if item.slot == 0:
+		member.atk += item.stat_bonus
+	else:
+		member.def += item.stat_bonus
+
+func _remove_equip_bonus(member, item: Resource) -> void:
+	if item.slot == 0:
+		member.atk -= item.stat_bonus
+	else:
+		member.def -= item.stat_bonus
 
 func buy_item(item: Resource) -> bool:
 	if gold < item.price:

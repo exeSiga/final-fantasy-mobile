@@ -17,6 +17,6 @@ sprite_color = Color(1.0, 0.9, 0.3, 1)
 level = 1
 xp = 0
 xp_to_next_level = 100
-character_class = "WhiteMage"
+character_class = "White Mage"
 element_weakness = ""
 spell_paths = ["res://resources/spells/cure.tres", "res://resources/spells/cure2.tres", "res://resources/spells/life.tres", "res://resources/spells/haste.tres"]

@@ -18,3 +18,4 @@
 [2026-06-29 00:00] Sprint 14 (Visual & UX Polish) — DONE — ~6000 tokens used
 [2026-06-29 19:40] Sprint 14 (Visual & UX Polish) — DONE — sprites Node2D visibles, double-DEF fixé, theme_override fixé, 6/6 tests headless, screenshot Xvfb confirmé
 [2026-06-29 20:00] Sprint 15 (Party 3 membres + Éléments + Critiques) — DONE — Warrior/BlackMage/WhiteMage, faiblesses élémentaires, crits ×1.5, 8/8 tests, screenshot confirmé
+[2026-06-29 21:00] Sprint 16 (Status Effects + AI avancée) — DONE — Poison/Sleep/Silence, 5 AI ennemies spécialisées (Slime/Goblin/Skeleton/Bat/DarkKnight), _advance_turn() while loop, 10/10 tests headless

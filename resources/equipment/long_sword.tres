@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="" load_steps=2 format=3 uid="uid://equip_long_sword"]
+
+[ext_resource type="Script" path="res://resources/Equipment.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+equip_name = "Long Sword"
+slot = 0
+stat_bonus = 20
+price = 400
+allowed_classes = ["Warrior"]
+description = "A heavy blade with superior reach."

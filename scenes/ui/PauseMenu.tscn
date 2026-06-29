@@ -41,6 +41,12 @@ custom_minimum_size = Vector2(0, 90)
 text = "Resume"
 theme_override_font_sizes/font_size = 36
 
+[node name="EquipmentButton" type="Button" parent="Panel/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 90)
+text = "Equipment"
+theme_override_font_sizes/font_size = 36
+
 [node name="SaveQuitButton" type="Button" parent="Panel/VBox"]
 layout_mode = 2
 custom_minimum_size = Vector2(0, 90)
@@ -48,4 +54,5 @@ text = "Save & Quit"
 theme_override_font_sizes/font_size = 36
 
 [connection signal="pressed" from="Panel/VBox/ResumeButton" to="." method="_on_resume_pressed"]
+[connection signal="pressed" from="Panel/VBox/EquipmentButton" to="." method="_on_equipment_pressed"]
 [connection signal="pressed" from="Panel/VBox/SaveQuitButton" to="." method="_on_save_quit_pressed"]
