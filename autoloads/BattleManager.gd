@@ -580,6 +580,8 @@ func _check_battle_end() -> void:
 	var all_enemies_dead: bool = enemies.all(func(e) -> bool: return not e.is_alive())
 	if all_enemies_dead:
 		state = BattleState.VICTORY
+		for e in enemies:
+			QuestManager.notify_kill(e.unit_name)
 		GameManager.grant_battle_rewards()
 		battle_ended.emit(true)
 		return

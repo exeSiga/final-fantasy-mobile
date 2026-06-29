@@ -28,3 +28,4 @@
 [2026-06-30 00:49] Sprint 23 (Système Materia) — DONE — 6 materias, materia_slots sur équipements, MateriaMenu, Shop section, SaveSystem, _apply_spell_materias()
 [2026-06-30 00:58] Sprint 24 (boss multi-phases Guard Scorpion/Jenova + WorldMap boss buttons) — DONE — ~4000 tokens
 [2026-06-30 01:00] Sprint 25 (zones WorldMap Midgar/Kalm/Mt.Nibel + pools ennemis + save) — DONE — ~3000 tokens
+[2026-06-30 01:03] Sprint 26 (DialogueManager + DialogueBox + prologue + 3 PNJ) — DONE — ~3500 tokens

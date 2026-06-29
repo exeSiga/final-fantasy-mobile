@@ -567,27 +567,32 @@
   - AC4: _avg_hp_pct() < 0.5 → variant low_hp dans DIALOGUES dict
 - Contrôle D (regression): guard is_open() empêche double dialogue, encounters inchangés
 
-## Sprint 27 — Quêtes Secondaires [STATUS: TODO]
+## Sprint 27 — Quêtes Secondaires [STATUS: DONE]
 **Goal:** 3 quêtes kill-count avec récompenses, QuestMenu
 
 **Acceptance Criteria:**
-- [ ] AC1: QuestMenu sur WorldMap, liste quêtes actives/terminées
-- [ ] AC2: "Menace Gobelin" — 5 Goblins → 300G
-- [ ] AC3: "Lame Perdue" — 3 Orcs → Long Sword
-- [ ] AC4: "Protéger Kalm" — Guard Scorpion → XP 500
-- [ ] AC5: Kill counters persistants, auto-complétion
+- [x] AC1: QuestMenu sur WorldMap, liste quêtes actives/terminées
+- [x] AC2: "Menace Gobelin" — 5 Goblins → 300G
+- [x] AC3: "Lame Perdue" — 3 Orcs → Long Sword
+- [x] AC4: "Protéger Kalm" — Guard Scorpion → XP 500
+- [x] AC5: Kill counters persistants, auto-complétion
 
 **Tasks:**
-- [ ] Quest resource (scripts/Quest.gd)
-- [ ] QuestManager autoload
-- [ ] Kill notif dans BattleManager._check_battle_end() ou _enemy_act()
-- [ ] QuestMenu.tscn
+- [x] Quest resource (scripts/Quest.gd)
+- [x] QuestManager autoload
+- [x] Kill notif dans BattleManager._check_battle_end()
+- [x] QuestMenu.tscn
 
 **Verification Notes:**
-- Contrôle A (static):
-- Contrôle B (godot parse):
+- Contrôle A (static): ✅ check_compat.sh All clear
+- Contrôle B (godot parse): ✅ timeout sans SCRIPT ERROR
 - Contrôle C (logic trace):
-- Contrôle D (regression):
+  - AC1: QuestMenu._build() liste QUESTS avec statut progress/✅
+  - AC2: notify_kill("Goblin") count≥5 → add_gold(300)
+  - AC3: notify_kill("Orc") count≥3 → equip_inventory[long_sword]++
+  - AC4: notify_kill("Guard Scorpion") count≥1 → add_xp(500)
+  - AC5: SaveSystem persiste kill_counts + completed
+- Contrôle D (regression): notify_kill() appelé avant grant_battle_rewards(), guard _quest_open OK
 
 ## Sprint 28 — Effets Visuels Avancés [STATUS: TODO]
 **Goal:** Screen shake renforcé, particules pixel sur mort, fondu noir, animation attaque

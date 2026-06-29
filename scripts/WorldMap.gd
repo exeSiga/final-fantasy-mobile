@@ -12,6 +12,7 @@ const CAMERA_LERP := 5.0
 var _shop_scene: PackedScene = preload("res://scenes/ui/Shop.tscn")
 var _shop_open: bool = false
 var _inn_dialog = null
+var _quest_open: bool = false
 
 func _ready() -> void:
 	GameManager.set_state(GameManager.GameState.WORLD)
@@ -32,6 +33,7 @@ func _ready() -> void:
 	_add_zone_buttons()
 	_add_boss_buttons()
 	_add_npc_buttons()
+	_add_quest_button()
 	if not GameManager.story_intro_done:
 		GameManager.story_intro_done = true
 		DialogueManager.show_prologue(self)
@@ -60,6 +62,33 @@ func _add_npc_buttons() -> void:
 		btn.offset_bottom = z.bot
 		btn.pressed.connect(func(): DialogueManager.show_npc_dialogue(self, z.id))
 		layer.add_child(btn)
+
+func _add_quest_button() -> void:
+	var layer := CanvasLayer.new()
+	layer.layer = 7
+	add_child(layer)
+	var btn := Button.new()
+	btn.text = "📜 Quêtes"
+	btn.add_theme_font_size_override("font_size", 26)
+	btn.custom_minimum_size = Vector2(180, 70)
+	btn.anchor_left = 0.5
+	btn.anchor_right = 0.5
+	btn.anchor_top = 0.0
+	btn.anchor_bottom = 0.0
+	btn.offset_left = -90.0
+	btn.offset_right = 90.0
+	btn.offset_top = 10.0
+	btn.offset_bottom = 80.0
+	btn.pressed.connect(_on_quest_pressed)
+	layer.add_child(btn)
+
+func _on_quest_pressed() -> void:
+	if _quest_open:
+		return
+	_quest_open = true
+	var menu := load("res://scenes/ui/QuestMenu.tscn").instantiate()
+	add_child(menu)
+	menu.closed.connect(func(): _quest_open = false)
 
 func _add_zone_buttons() -> void:
 	var layer := CanvasLayer.new()
