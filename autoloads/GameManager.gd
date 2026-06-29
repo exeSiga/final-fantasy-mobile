@@ -255,6 +255,10 @@ func grant_battle_rewards() -> void:
 	for e in BattleManager.enemies:
 		total_xp += e.xp_reward
 		total_gold += e.gold_reward
+	var is_named_boss: bool = BattleManager.is_boss1_battle or BattleManager.is_boss2_battle
+	if is_named_boss:
+		total_xp *= 3
+		total_gold += 500
 	add_gold(total_gold)
 	var any_levelup := false
 	for m in alive_party():

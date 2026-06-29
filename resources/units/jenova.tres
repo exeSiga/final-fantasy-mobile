@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="CombatUnit" load_steps=2 format=3 uid="uid://jenova"]
+
+[ext_resource type="Script" path="res://resources/CombatUnit.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+unit_name = "Jenova"
+hp = 500
+max_hp = 500
+mp = 200
+max_mp = 200
+atk = 50
+def = 15
+spd = 14
+is_player = false
+sprite_color = Color(0.7, 0.1, 0.7, 1)
+xp_reward = 600
+gold_reward = 400
+element_weakness = "fire"

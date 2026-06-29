@@ -18,7 +18,9 @@ const HARD_POOL := [
 	"res://resources/units/troll.tres",
 	"res://resources/units/gargoyle.tres",
 ]
-const BOSS_PATH := "res://resources/units/dark_knight.tres"
+const BOSS_PATH  := "res://resources/units/dark_knight.tres"
+const BOSS1_PATH := "res://resources/units/guard_scorpion.tres"
+const BOSS2_PATH := "res://resources/units/jenova.tres"
 
 const SPELL_DAMAGE := 0
 const SPELL_HEAL   := 1
@@ -30,6 +32,8 @@ const CRIT_MULT    := 1.5
 const HASTE_TURNS  := 2
 
 var is_boss_battle: bool = false
+var is_boss1_battle: bool = false
+var is_boss2_battle: bool = false
 var dungeon_mode: bool = false
 
 signal battle_started(party, enemies)
@@ -94,7 +98,11 @@ func start_battle(dungeon: bool = false, boss: bool = false) -> void:
 	_apply_spell_materias()
 	player_unit = null
 	enemies.clear()
-	if is_boss_battle:
+	if is_boss1_battle:
+		enemies.append(load(BOSS1_PATH).duplicate())
+	elif is_boss2_battle:
+		enemies.append(load(BOSS2_PATH).duplicate())
+	elif is_boss_battle:
 		enemies.append(load(BOSS_PATH).duplicate())
 	else:
 		var pool: Array = _pick_enemy_pool()
@@ -251,11 +259,30 @@ func player_attack(target = null) -> void:
 	action_result.emit(player_unit.unit_name, target.unit_name, result.dmg, result.crit)
 	_after_player_turn()
 
+func _check_phase_transition(enemy) -> void:
+	if enemy == null or not enemy.is_alive():
+		return
+	var hp_pct: float = float(enemy.hp) / float(enemy.max_hp)
+	match enemy.unit_name:
+		"Guard Scorpion":
+			if enemy.current_phase == 0 and hp_pct <= 0.5:
+				enemy.current_phase = 1
+				enemy.atk = int(enemy.atk * 2.0)
+				enemy.spell_immune = true
+				battle_log.emit("Guard Scorpion raises its tail! Phase 2 — LASER MODE! Spells blocked!")
+		"Jenova":
+			if enemy.current_phase == 0 and hp_pct <= 0.3:
+				enemy.current_phase = 1
+				battle_log.emit("Jenova mutates! Phase 2 — life drain mode!")
+
 func player_cast_spell(spell, target = null) -> void:
 	if state != BattleState.PLAYER_TURN or player_unit == null:
 		return
 	if player_unit.status == "silence":
 		battle_log.emit("%s is silenced — can't cast!" % player_unit.unit_name)
+		return
+	if target != null and target.spell_immune:
+		battle_log.emit("%s is immune to magic!" % target.unit_name)
 		return
 	if player_unit.mp < spell.mp_cost:
 		action_result.emit(player_unit.unit_name, "—", -1, false)
@@ -342,16 +369,18 @@ func player_run() -> void:
 
 func _enemy_act(enemy) -> void:
 	match enemy.unit_name:
-		"Slime":       _ai_slime(enemy)
-		"Goblin":      await _ai_goblin(enemy)
-		"Skeleton":    _ai_skeleton(enemy)
-		"Bat":         _ai_bat(enemy)
-		"Orc":         _ai_orc(enemy)
-		"Shadow":      await _ai_shadow(enemy)
-		"Troll":       await _ai_troll(enemy)
-		"Gargoyle":    _ai_gargoyle(enemy)
-		"Dark Knight": await _ai_dark_knight(enemy)
-		_:             _ai_basic_attack(enemy)
+		"Slime":          _ai_slime(enemy)
+		"Goblin":         await _ai_goblin(enemy)
+		"Skeleton":       _ai_skeleton(enemy)
+		"Bat":            _ai_bat(enemy)
+		"Orc":            _ai_orc(enemy)
+		"Shadow":         await _ai_shadow(enemy)
+		"Troll":          await _ai_troll(enemy)
+		"Gargoyle":       _ai_gargoyle(enemy)
+		"Dark Knight":    await _ai_dark_knight(enemy)
+		"Guard Scorpion": await _ai_guard_scorpion(enemy)
+		"Jenova":         await _ai_jenova(enemy)
+		_:                _ai_basic_attack(enemy)
 	_check_battle_end()
 	if state != BattleState.ENEMY_TURN:
 		return
@@ -499,6 +528,46 @@ func _ai_dark_knight(enemy) -> void:
 			return
 		await get_tree().create_timer(0.6).timeout
 		_ai_basic_attack(enemy)
+
+func _ai_guard_scorpion(enemy) -> void:
+	if enemy.current_phase == 0:
+		_ai_basic_attack(enemy)
+	else:
+		# Phase 2: Tail Laser — hits all party members
+		battle_log.emit("Tail Laser!")
+		var alive: Array = party.filter(func(m) -> bool: return m.is_alive())
+		for target in alive:
+			var dmg: int = int(enemy.atk * 0.7 * randf_range(0.85, 1.15))
+			var actual: int = target.take_damage(dmg)
+			_fill_limit_gauge(target, 20)
+			action_result.emit(enemy.unit_name, target.unit_name, actual, false)
+			await get_tree().create_timer(0.2).timeout
+	_check_phase_transition(enemy)
+
+func _ai_jenova(enemy) -> void:
+	if enemy.current_phase == 0:
+		# Phase 1: Calamity — multi-target magic
+		battle_log.emit("Calamity from the Skies!")
+		var alive: Array = party.filter(func(m) -> bool: return m.is_alive())
+		for target in alive:
+			var dmg: int = int(enemy.atk * 0.65 * randf_range(0.85, 1.15))
+			var actual: int = target.take_damage(dmg)
+			_fill_limit_gauge(target, 20)
+			action_result.emit(enemy.unit_name, target.unit_name, actual, false)
+			await get_tree().create_timer(0.2).timeout
+	else:
+		# Phase 2: Life Drain — heals self from a random ally
+		var target = _random_alive_ally()
+		if target == null:
+			_ai_basic_attack(enemy)
+			return
+		battle_log.emit("Jenova drains life!")
+		var drain: int = int(target.max_hp * 0.3)
+		var actual: int = target.take_damage_ignore_def(drain)
+		_fill_limit_gauge(target, 20)
+		action_result.emit(enemy.unit_name, target.unit_name, actual, false)
+		enemy.hp = min(enemy.max_hp, enemy.hp + actual)
+	_check_phase_transition(enemy)
 
 # Called by Battle.gd after item use
 func rebuild_and_next() -> void:

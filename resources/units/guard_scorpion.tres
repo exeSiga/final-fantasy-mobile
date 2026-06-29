@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="CombatUnit" load_steps=2 format=3 uid="uid://guard_scorpion"]
+
+[ext_resource type="Script" path="res://resources/CombatUnit.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+unit_name = "Guard Scorpion"
+hp = 600
+max_hp = 600
+mp = 0
+max_mp = 0
+atk = 45
+def = 20
+spd = 10
+is_player = false
+sprite_color = Color(0.2, 0.6, 0.2, 1)
+xp_reward = 500
+gold_reward = 300
+element_weakness = "lightning"

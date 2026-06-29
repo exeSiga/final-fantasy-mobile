@@ -492,26 +492,30 @@
 - Contrôle C (logic trace):
 - Contrôle D (regression):
 
-## Sprint 24 — Boss Multi-Phases [STATUS: TODO]
+## Sprint 24 — Boss Multi-Phases [STATUS: DONE]
 **Goal:** 2 boss épiques avec transitions de phases, accessibles depuis WorldMap
 
 **Acceptance Criteria:**
-- [ ] AC1: Guard Scorpion — phase 1: attaque normale; à 50% HP → phase 2: queue laser (×2 ATK, immunité sorts)
-- [ ] AC2: Jenova — phase 1: magie multi-cibles; à 30% HP → absorbe HP d'un allié (soin 50% HP max)
-- [ ] AC3: Boutons "Boss 1" et "Boss 2" sur WorldMap (requis niv 5 et 10)
-- [ ] AC4: Victoire boss → XP ×3 + 500G bonus
+- [x] AC1: Guard Scorpion — phase 1: attaque normale; à 50% HP → phase 2: queue laser (×2 ATK, immunité sorts)
+- [x] AC2: Jenova — phase 1: magie multi-cibles; à 30% HP → absorbe HP d'un allié (soin 50% HP max)
+- [x] AC3: Boutons "Boss 1" et "Boss 2" sur WorldMap (requis niv 5 et 10)
+- [x] AC4: Victoire boss → XP ×3 + 500G bonus
 
 **Tasks:**
-- [ ] current_phase + phase_threshold dans CombatUnit (runtime vars)
-- [ ] _check_phase_transition() dans BattleManager._advance_turn()
-- [ ] guard_scorpion.tres + jenova.tres
-- [ ] Boutons Boss sur WorldMap avec condition niveau
+- [x] current_phase + phase_threshold dans CombatUnit (runtime vars)
+- [x] _check_phase_transition() dans BattleManager._advance_turn()
+- [x] guard_scorpion.tres + jenova.tres
+- [x] Boutons Boss sur WorldMap avec condition niveau
 
 **Verification Notes:**
-- Contrôle A (static):
-- Contrôle B (godot parse):
+- Contrôle A (static): ✅ check_compat.sh All clear
+- Contrôle B (godot parse): ✅ timeout sans SCRIPT ERROR
 - Contrôle C (logic trace):
-- Contrôle D (regression):
+  - AC1: _ai_guard_scorpion() phase 0=atk, phase 1=Tail Laser + _check_phase_transition() @50%HP
+  - AC2: _ai_jenova() phase 0=Calamity, phase 1=Life Drain @30%HP
+  - AC3: _add_boss_buttons() dans WorldMap._ready(), level check avg_level
+  - AC4: grant_battle_rewards() XP×3 + 500G si is_boss1_battle || is_boss2_battle
+- Contrôle D (regression): WorldMap charge sans crash, boutons boss visibles, encounters normaux inchangés
 
 ## Sprint 25 — Zones World Map [STATUS: TODO]
 **Goal:** 3 zones (Midgar/Kalm/Mt.Nibel), pools d'ennemis par zone, conditions de niveau

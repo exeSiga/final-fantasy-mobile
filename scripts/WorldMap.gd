@@ -29,6 +29,81 @@ func _ready() -> void:
 	camera.limit_bottom = int(MAP_HEIGHT)
 	camera.global_position = player.global_position
 	$PauseLayer/PauseButton.pressed.connect(_pause_menu.show_pause)
+	_add_boss_buttons()
+
+func _add_boss_buttons() -> void:
+	var layer := CanvasLayer.new()
+	layer.layer = 5
+	add_child(layer)
+	var boss1_btn := Button.new()
+	boss1_btn.text = "⚔ Guard Scorpion\n[Boss 1] (Lv.5+)"
+	boss1_btn.add_theme_font_size_override("font_size", 22)
+	boss1_btn.custom_minimum_size = Vector2(200, 90)
+	boss1_btn.anchor_left = 0.0
+	boss1_btn.anchor_top = 1.0
+	boss1_btn.anchor_right = 0.0
+	boss1_btn.anchor_bottom = 1.0
+	boss1_btn.offset_left = 10.0
+	boss1_btn.offset_top = -195.0
+	boss1_btn.offset_right = 215.0
+	boss1_btn.offset_bottom = -100.0
+	boss1_btn.pressed.connect(_on_boss1_pressed)
+	layer.add_child(boss1_btn)
+	var boss2_btn := Button.new()
+	boss2_btn.text = "⚔ Jenova\n[Boss 2] (Lv.10+)"
+	boss2_btn.add_theme_font_size_override("font_size", 22)
+	boss2_btn.custom_minimum_size = Vector2(200, 90)
+	boss2_btn.anchor_left = 0.0
+	boss2_btn.anchor_top = 1.0
+	boss2_btn.anchor_right = 0.0
+	boss2_btn.anchor_bottom = 1.0
+	boss2_btn.offset_left = 10.0
+	boss2_btn.offset_top = -100.0
+	boss2_btn.offset_right = 215.0
+	boss2_btn.offset_bottom = -5.0
+	boss2_btn.pressed.connect(_on_boss2_pressed)
+	layer.add_child(boss2_btn)
+
+func _on_boss1_pressed() -> void:
+	var avg_level: int = 0
+	for m in GameManager.party:
+		avg_level += m.level
+	avg_level = avg_level / max(1, GameManager.party.size())
+	if avg_level < 5:
+		_show_level_required(5)
+		return
+	GameManager.return_after_battle = "res://scenes/world/WorldMap.tscn"
+	BattleManager.is_boss1_battle = true
+	BattleManager.is_boss2_battle = false
+	BattleManager.dungeon_mode = false
+	GameManager.change_scene("res://scenes/combat/Battle.tscn")
+
+func _on_boss2_pressed() -> void:
+	var avg_level: int = 0
+	for m in GameManager.party:
+		avg_level += m.level
+	avg_level = avg_level / max(1, GameManager.party.size())
+	if avg_level < 10:
+		_show_level_required(10)
+		return
+	GameManager.return_after_battle = "res://scenes/world/WorldMap.tscn"
+	BattleManager.is_boss1_battle = false
+	BattleManager.is_boss2_battle = true
+	BattleManager.dungeon_mode = false
+	GameManager.change_scene("res://scenes/combat/Battle.tscn")
+
+func _show_level_required(req: int) -> void:
+	var layer := CanvasLayer.new()
+	layer.layer = 99
+	add_child(layer)
+	var lbl := Label.new()
+	lbl.text = "Niveau %d requis !" % req
+	lbl.add_theme_font_size_override("font_size", 40)
+	lbl.add_theme_color_override("font_color", Color(1, 0.3, 0.3, 1))
+	lbl.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	layer.add_child(lbl)
+	await get_tree().create_timer(2.0).timeout
+	layer.queue_free()
 
 func _process(_delta: float) -> void:
 	camera.global_position = camera.global_position.lerp(player.global_position, CAMERA_LERP * get_process_delta_time())

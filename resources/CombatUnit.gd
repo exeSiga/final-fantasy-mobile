@@ -26,6 +26,8 @@ var base_spd: int = 0
 var status: String = ""       # "" | "poison" | "sleep" | "silence"
 var status_turns: int = 0
 var limit_gauge: int = 0      # 0-100, fills when receiving damage
+var current_phase: int = 0   # boss phase tracker
+var spell_immune: bool = false  # blocks player spells (boss phase 2)
 
 const STATUS_MAX_TURNS := 3
 
