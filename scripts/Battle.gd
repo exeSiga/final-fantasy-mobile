@@ -1,7 +1,7 @@
 extends Node2D
 
 @onready var log_label: Label = $UI/LogPanel/LogLabel
-@onready var hero_hp_bar: HPBar = $UI/HeroPanel/HeroHPBar
+@onready var hero_hp_bar = $UI/HeroPanel/HeroHPBar
 @onready var hero_hp_label: Label = $UI/HeroPanel/HeroHPLabel
 @onready var hero_mp_label: Label = $UI/HeroPanel/HeroMPLabel
 @onready var enemy_panel: VBoxContainer = $UI/EnemyPanel
@@ -12,10 +12,10 @@ extends Node2D
 @onready var victory_overlay: PanelContainer = $UI/VictoryOverlay
 @onready var gameover_overlay: PanelContainer = $UI/GameOverOverlay
 @onready var _victory_title: Label = $UI/VictoryOverlay/VBox/TitleLabel
-@onready var hero_sprite = $ArenaContainer/HeroSprite
+@onready var hero_sprite = $HeroSprite
+@onready var _enemy_root: Node2D = $EnemySpriteRoot
 
 const UnitSprite = preload("res://scripts/UnitSprite.gd")
-@onready var _enemy_sprites_container: HBoxContainer = $ArenaContainer/EnemySprites
 
 var _log_lines: PackedStringArray = []
 var _enemy_hp_bars: Array = []
@@ -37,9 +37,7 @@ func _ready() -> void:
 	BattleManager.start_battle(BattleManager.dungeon_mode, BattleManager.is_boss_battle)
 
 func _on_battle_started(player, enemies) -> void:
-	hero_sprite.sprite_color = player.sprite_color
-	hero_sprite.unit_name_label = player.unit_name
-	hero_sprite.queue_redraw()
+	hero_sprite.setup(player.sprite_color, player.unit_name)
 	_build_enemy_sprites(enemies)
 	hero_hp_bar.set_unit(player)
 	_refresh_hero_label(player)
@@ -47,24 +45,25 @@ func _on_battle_started(player, enemies) -> void:
 	_log("Battle start!")
 
 func _build_enemy_sprites(enemies: Array) -> void:
-	for child in _enemy_sprites_container.get_children():
+	for child in _enemy_root.get_children():
 		child.queue_free()
 	_enemy_sprite_list.clear()
-	for e in enemies:
-		var container := VBoxContainer.new()
-		var rect := UnitSprite.new()
-		rect.custom_minimum_size = Vector2(160, 160)
-		rect.sprite_color = e.sprite_color
-		rect.unit_name_label = e.unit_name
-		var lbl := Label.new()
-		lbl.text = e.unit_name
-		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		lbl.theme_override_font_sizes = {"font_size": 22}
-		container.add_child(rect)
-		container.add_child(lbl)
-		_enemy_sprites_container.add_child(container)
-		rect.queue_redraw()
-		_enemy_sprite_list.append(container)
+	var count := enemies.size()
+	var xs: Array = []
+	if count <= 1:
+		xs = [540.0]
+	elif count == 2:
+		xs = [270.0, 810.0]
+	elif count == 3:
+		xs = [180.0, 540.0, 900.0]
+	else:
+		xs = [135.0, 405.0, 675.0, 945.0]
+	for i in count:
+		var spr := UnitSprite.new()
+		spr.position = Vector2(xs[i], 400.0)
+		spr.setup(enemies[i].sprite_color, enemies[i].unit_name)
+		_enemy_root.add_child(spr)
+		_enemy_sprite_list.append(spr)
 
 func _update_enemy_sprites() -> void:
 	for i in BattleManager.enemies.size():
@@ -79,7 +78,7 @@ func _build_magic_menu() -> void:
 	for spell in GameManager.spells:
 		var btn := Button.new()
 		btn.text = "%s  MP:%d" % [spell.spell_name, spell.mp_cost]
-		btn.theme_override_font_sizes = {"font_size": 28}
+		btn.add_theme_font_size_override("font_size", 28)
 		btn.pressed.connect(_on_spell_selected.bind(spell))
 		magic_menu.add_child(btn)
 
@@ -139,8 +138,8 @@ func _build_enemy_bars(enemies: Array) -> void:
 		var row := VBoxContainer.new()
 		var name_lbl := Label.new()
 		name_lbl.text = e.unit_name
-		name_lbl.theme_override_font_sizes = {"font_size": 30}
-		var bar: HPBar = preload("res://scenes/ui/HPBar.tscn").instantiate()
+		name_lbl.add_theme_font_size_override("font_size", 30)
+		var bar = preload("res://scenes/ui/HPBar.tscn").instantiate()
 		bar.set_unit(e)
 		row.add_child(name_lbl)
 		row.add_child(bar)
@@ -161,7 +160,7 @@ func _spawn_popup(text: String, color: Color) -> void:
 	var lbl := Label.new()
 	lbl.text = text
 	lbl.modulate = color
-	lbl.theme_override_font_sizes = {"font_size": 52}
+	lbl.add_theme_font_size_override("font_size", 52)
 	lbl.position = Vector2(randf_range(400, 700), 600)
 	popup_layer.add_child(lbl)
 	var tween := lbl.create_tween()
@@ -200,11 +199,11 @@ func _build_item_menu() -> void:
 		item_menu.add_child(lbl)
 		return
 	for key in GameManager.inventory:
-		var item: Item = load(key)
+		var item = load(key)
 		var qty: int = GameManager.inventory[key]
 		var btn := Button.new()
 		btn.text = "%s x%d" % [item.item_name, qty]
-		btn.theme_override_font_sizes = {"font_size": 28}
+		btn.add_theme_font_size_override("font_size", 28)
 		btn.pressed.connect(_on_item_used.bind(item))
 		item_menu.add_child(btn)
 

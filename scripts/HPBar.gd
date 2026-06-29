@@ -5,7 +5,7 @@ func _ready() -> void:
 	show_percentage = false
 	min_value = 0.0
 
-func set_unit(unit: CombatUnit) -> void:
+func set_unit(unit) -> void:
 	max_value = unit.max_hp
 	value = unit.hp
 

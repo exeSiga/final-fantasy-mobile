@@ -227,22 +227,26 @@
 - [x] PauseMenu.gd + PauseMenu.tscn: CanvasLayer layer=50, process_mode=WHEN_PAUSED
 - [x] WorldMap.tscn: PauseButton (CanvasLayer layer=20) + PauseMenu instance
 - [x] WorldMap.gd: connecter PauseButton → PauseMenu.show_pause()
-- [x] UnitSprite.gd: extends Control, _draw() avec match sur unit_name_label
-- [x] Battle.tscn: HeroSprite ColorRect → Control avec UnitSprite.gd
-- [x] Battle.gd: preload UnitSprite, set sprite_color+unit_name_label, queue_redraw()
+- [x] UnitSprite.gd: extends Node2D (pas Control), _draw() centré sur l'origine du node, positions monde absolues
+- [x] Battle.tscn: ArenaContainer (Control) supprimé → HeroSprite (Node2D pos 540,900) + EnemySpriteRoot (Node2D)
+- [x] Battle.gd: _build_enemy_sprites() place les Node2D à positions calculées (1→540, 2→270/810, 3→180/540/900)
+- [x] Battle.gd + Shop.gd + SaveMenu.gd: theme_override_font_sizes={} → add_theme_font_size_override() (fix Godot 4.6)
+- [x] BattleManager.gd: double-DEF bug corrigé (take_damage(atk) au lieu de take_damage(calc_damage_against))
+- [x] Dungeon.gd: BGM fix play_world_bgm() au lieu de play_battle_bgm()
+- [x] Infrastructure test: TestRunner.tscn + TestHeadless.gd (6 tests headless) + test_visual.sh (Xvfb + screenshot)
 
 **Verification Notes:**
 - Contrôle A (static): ✅ check_compat.sh — All clear
-- Contrôle B (godot parse): ✅ aucun SCRIPT ERROR (godot4 --headless --check-only)
+- Contrôle B (godot parse): ✅ aucun SCRIPT ERROR; headless tests 6/6 passed
 - Contrôle C (logic trace):
-  - AC1: _ready() → _add_room_walls(room, i) for i in 5 → _make_wall() crée StaticBody2D+CollisionShape2D+RectangleShape2D; left+right+bottom solid, top avec gap 220px centré ✅
-  - AC2: _on_boss_trigger() → guard dungeon_boss_cleared → set true + dungeon_return_room=4 + return_after_battle=Dungeon.tscn → battle → retour Dungeon._ready() → _go_to_room(4) → reset return_room=-1 ✅
-  - AC3: PauseButton.pressed → show_pause() → visible=true + paused=true; PauseMenu.process_mode=WHEN_PAUSED → boutons actifs; Resume → paused=false + visible=false ✅
-  - AC4: _on_battle_started() → hero_sprite.sprite_color+unit_name_label+queue_redraw(); _build_enemy_sprites() → UnitSprite.new() avec properties → queue_redraw(); _draw() match par nom ✅
-- Contrôle D (regression): Flow MainMenu→WorldMap→Battle→Victory intact; PauseMenu n'affecte pas la scène combat; enemy sprites toujours gérés via _enemy_sprite_list (containers VBox), modulate.a inchangé ✅
-- Déferments: Ciblage allié pour Cure, 3e membre d'équipe, Settings dans PauseMenu
+  - AC1: _ready() → _add_room_walls(room, i) for i in 5 → _make_wall() crée StaticBody2D+CollisionShape2D+RectangleShape2D ✅
+  - AC2: _on_boss_trigger() → guard dungeon_boss_cleared → set flags → battle → Dungeon._ready() → _go_to_room(r) ✅
+  - AC3: PauseButton.pressed → show_pause() → paused=true; WHEN_PAUSED → boutons actifs; Resume → paused=false ✅
+  - AC4: Node2D UnitSprite._draw() avec W=160/H=200 centré, positionné en coords monde absolues → visible confirmé par screenshot Xvfb ✅
+- Contrôle D (regression): Screenshot visuel confirme Slime vert + Goblin orange + Héros bleu + HP bars vertes + log + boutons. 6/6 tests headless OK.
+- Déferments: Ciblage allié pour Cure, Settings dans PauseMenu
 
-**Review notes:** 4 bugs connus résolus. Donjon entièrement fermé (one-way progression par walls dynamiques). Boss return utilise GameManager pour persister l'état entre scènes. PauseMenu WHEN_PAUSED garantit l'interactivité.
+**Review notes:** Cause racine des sprites invisibles : Control dans Node2D n'a pas de parent rect → size=(0,0). Solution : Node2D avec _draw() en coordonnées monde absolues. Fix theme_override_font_sizes corrige aussi les HP bars ennemies (étaient silencieusement ignorées).
 
 ---
 

@@ -54,6 +54,23 @@ while IFS= read -r gd_file; do
   fi
 done < <(find . -name "*.gd" -not -path "./.git/*")
 
+# ── Check 6: typed params/vars using EXTERNAL user class_names ───────────────
+# Flags: func foo(x: SomeClass) or var x: SomeClass = ...
+# Excludes self-references (a class referencing its own class_name is fine)
+while IFS= read -r gd_file; do
+  self_class=$(grep -m1 "^class_name " "$gd_file" 2>/dev/null | awk '{print $2}')
+  hits=$(grep -n -E "(func [a-z_]+\([^)]*: ($USER_CLASSES)[,)]|var [a-z_]+: ($USER_CLASSES) =)" "$gd_file" 2>/dev/null)
+  if [ -n "$hits" ] && [ -n "$self_class" ]; then
+    # Remove lines that only reference the file's own class_name
+    hits=$(echo "$hits" | grep -v ": $self_class[,)]" | grep -v ": $self_class =")
+  fi
+  if [ -n "$hits" ]; then
+    echo "❌ Typed param/var with external user class_name in $gd_file:"
+    echo "$hits"
+    FAIL=1
+  fi
+done < <(find . -name "*.gd" -not -path "./.git/*")
+
 # ── Result ───────────────────────────────────────────────────────────────────
 echo ""
 if [ $FAIL -eq 0 ]; then

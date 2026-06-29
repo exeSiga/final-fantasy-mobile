@@ -20,22 +20,22 @@ func _build_shop() -> void:
 	for child in item_list.get_children():
 		child.queue_free()
 	for path in SHOP_ITEMS:
-		var item: Item = load(path)
+		var item = load(path)
 		var row := HBoxContainer.new()
 		var lbl := Label.new()
 		lbl.text = "%s — %dG" % [item.item_name, item.price]
 		lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		lbl.theme_override_font_sizes = {"font_size": 28}
+		lbl.add_theme_font_size_override("font_size", 28)
 		var btn := Button.new()
 		btn.text = "Buy"
-		btn.theme_override_font_sizes = {"font_size": 28}
+		btn.add_theme_font_size_override("font_size", 28)
 		btn.custom_minimum_size = Vector2(120, 60)
 		btn.pressed.connect(_on_buy.bind(item))
 		row.add_child(lbl)
 		row.add_child(btn)
 		item_list.add_child(row)
 
-func _on_buy(item: Item) -> void:
+func _on_buy(item) -> void:
 	if GameManager.buy_item(item):
 		status_label.text = "Bought %s!" % item.item_name
 		gold_label.text = "Gold: %d" % GameManager.gold

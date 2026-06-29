@@ -18,7 +18,7 @@ var _chest_opened: Array[bool] = [false, false, false, false]
 
 func _ready() -> void:
 	GameManager.set_state(GameManager.GameState.WORLD)
-	AudioManager.play_battle_bgm()
+	AudioManager.play_world_bgm()
 	joystick.input_vector.connect(player.set_joystick_input)
 	chest_label.text = ""
 	camera.limit_left = 0

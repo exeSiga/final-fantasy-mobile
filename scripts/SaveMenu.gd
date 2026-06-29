@@ -25,7 +25,7 @@ func _build_slots() -> void:
 		else:
 			btn.text = "Slot %d  Lv.%d  %s" % [i + 1, info.get("level", 1), info.get("timestamp", "")]
 		btn.custom_minimum_size = Vector2(0, 100)
-		btn.theme_override_font_sizes = {"font_size": 30}
+		btn.add_theme_font_size_override("font_size", 30)
 		btn.pressed.connect(_on_slot_pressed.bind(i))
 		slot_container.add_child(btn)
 

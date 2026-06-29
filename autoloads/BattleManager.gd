@@ -87,8 +87,7 @@ func player_attack() -> void:
 	if alive_enemies.is_empty():
 		return
 	var target = alive_enemies[randi() % alive_enemies.size()]
-	var dmg: int = player_unit.calc_damage_against(target)
-	target.take_damage(dmg)
+	var dmg: int = target.take_damage(player_unit.atk)
 	action_result.emit(player_unit.unit_name, target.unit_name, dmg)
 	_after_player_turn()
 
@@ -139,16 +138,14 @@ func player_run() -> void:
 	battle_ended.emit(false)
 
 func _enemy_act(enemy) -> void:
-	var dmg: int = enemy.calc_damage_against(player_unit)
-	player_unit.take_damage(dmg)
+	var dmg: int = player_unit.take_damage(enemy.atk)
 	action_result.emit(enemy.unit_name, player_unit.unit_name, dmg)
 	_check_battle_end()
 	if state != BattleState.ENEMY_TURN:
 		return
 	if is_boss_battle and enemy.unit_name == "Dark Knight":
 		await get_tree().create_timer(0.6).timeout
-		var dmg2: int = enemy.calc_damage_against(player_unit)
-		player_unit.take_damage(dmg2)
+		var dmg2: int = player_unit.take_damage(enemy.atk)
 		action_result.emit(enemy.unit_name, player_unit.unit_name, dmg2)
 		_check_battle_end()
 		if state != BattleState.ENEMY_TURN:
