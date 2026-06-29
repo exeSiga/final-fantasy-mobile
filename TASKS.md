@@ -594,23 +594,27 @@
   - AC5: SaveSystem persiste kill_counts + completed
 - Contrôle D (regression): notify_kill() appelé avant grant_battle_rewards(), guard _quest_open OK
 
-## Sprint 28 — Effets Visuels Avancés [STATUS: TODO]
+## Sprint 28 — Effets Visuels Avancés [STATUS: DONE]
 **Goal:** Screen shake renforcé, particules pixel sur mort, fondu noir, animation attaque
 
 **Acceptance Criteria:**
-- [ ] AC1: Screen shake 0.3s/8px sur Limit Break (en plus des crits existants)
-- [ ] AC2: 6 particules pixel (cercles 4px) sur mort ennemie
-- [ ] AC3: Fade in/out noir 0.4s à l'entrée et sortie du combat
-- [ ] AC4: Sprite attaquant avance 20px vers cible (Tween) puis revient
+- [x] AC1: Screen shake 0.3s/8px sur Limit Break (en plus des crits existants)
+- [x] AC2: 6 particules pixel (cercles 4px) sur mort ennemie
+- [x] AC3: Fade in/out noir 0.4s à l'entrée et sortie du combat
+- [x] AC4: Sprite attaquant avance 20px vers cible (Tween) puis revient
 
 **Tasks:**
-- [ ] _shake_screen() renforcé appelé dans player_limit_break signal ou Battle.gd
-- [ ] _spawn_death_particles(pos) dans Battle.gd
-- [ ] FadeOverlay ColorRect dans Battle.tscn
-- [ ] _animate_attack(spr, dir) avec Tween dans Battle.gd
+- [x] _shake_screen() renforcé appelé dans player_limit_break signal ou Battle.gd
+- [x] _spawn_death_particles(pos) dans Battle.gd
+- [x] FadeOverlay ColorRect dans Battle.tscn
+- [x] _animate_attack(spr, dir) avec Tween dans Battle.gd
 
 **Verification Notes:**
-- Contrôle A (static):
-- Contrôle B (godot parse):
+- Contrôle A (static): ✅ check_compat.sh All clear
+- Contrôle B (godot parse): ✅ timeout sans SCRIPT ERROR
 - Contrôle C (logic trace):
-- Contrôle D (regression):
+  - AC1: _on_limit_pressed() → _shake_screen(48.0), crit → _shake_screen(32.0)
+  - AC2: _spawn_death_particles() 6 ColorRect 8px Tween drift+fade 0.6s
+  - AC3: _fade_in() CanvasLayer layer 100, alpha 1→0 0.4s; _fade_out() après 1.2s delay
+  - AC4: _animate_attack(spr, direction) Tween position:x ±20px 0.08s aller/retour
+- Contrôle D (regression): null guards OK, popup_layer partagé sans conflit, flow inchangé

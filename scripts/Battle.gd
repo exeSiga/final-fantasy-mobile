@@ -42,6 +42,7 @@ func _ready() -> void:
 	magic_menu.hide()
 	item_menu.hide()
 	_create_limit_button()
+	_fade_in()
 	AudioManager.play_battle_bgm()
 	BattleManager.battle_started.connect(_on_battle_started)
 	BattleManager.action_result.connect(_on_action_result)
@@ -51,6 +52,18 @@ func _ready() -> void:
 	BattleManager.limit_gauge_updated.connect(_on_limit_gauge_updated)
 	GameManager.level_up.connect(_on_level_up)
 	BattleManager.start_battle(BattleManager.dungeon_mode, BattleManager.is_boss_battle)
+
+func _fade_in() -> void:
+	var overlay := ColorRect.new()
+	overlay.color = Color(0, 0, 0, 1)
+	overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	var canvas := CanvasLayer.new()
+	canvas.layer = 100
+	add_child(canvas)
+	canvas.add_child(overlay)
+	var tw := overlay.create_tween()
+	tw.tween_property(overlay, "color:a", 0.0, 0.4)
+	tw.tween_callback(canvas.queue_free)
 
 func _create_limit_button() -> void:
 	_limit_btn = Button.new()
@@ -234,15 +247,20 @@ func _on_action_result(attacker: String, target: String, damage: int, is_crit: b
 		var pop_txt: String = "★%d" % damage if is_crit else "-%d" % damage
 		_spawn_popup(pop_txt, pop_color)
 		AudioManager.play_sfx_attack()
-		_shake_screen()
-		# Flash the hit target
+		_shake_screen(18.0 if not is_crit else 32.0)
 		var flash_color := Color(1.0, 0.9, 0.1) if is_crit else Color(1, 1, 1)
 		var enemy_spr = _find_enemy_sprite(target)
 		if enemy_spr:
 			enemy_spr.flash(flash_color)
+			_animate_attack(enemy_spr, -1.0)
+			if not BattleManager.enemies.any(func(e) -> bool: return e.unit_name == target and e.is_alive()):
+				_spawn_death_particles(enemy_spr.global_position)
 		var party_spr = _find_party_sprite(target)
 		if party_spr:
 			party_spr.flash(Color(1.0, 0.3, 0.3))
+			var attacker_spr = _find_party_sprite(attacker)
+			if attacker_spr:
+				_animate_attack(attacker_spr, 1.0)
 	_refresh_party_ui()
 	_update_enemy_sprites()
 	for i in BattleManager.enemies.size():
@@ -275,12 +293,33 @@ func _refresh_party_ui() -> void:
 			_party_name_labels[i].add_theme_color_override("font_color", Color(0.4, 0.4, 0.4, 1))
 			_party_sprites[i].modulate.a = 0.3
 
-func _shake_screen() -> void:
+func _shake_screen(intensity: float = 18.0) -> void:
 	var t := create_tween()
-	t.tween_property(_bg, "position:x", 18.0, 0.04)
-	t.tween_property(_bg, "position:x", -18.0, 0.04)
-	t.tween_property(_bg, "position:x", 8.0, 0.04)
+	t.tween_property(_bg, "position:x", intensity, 0.04)
+	t.tween_property(_bg, "position:x", -intensity, 0.04)
+	t.tween_property(_bg, "position:x", intensity * 0.5, 0.04)
 	t.tween_property(_bg, "position:x", 0.0, 0.04)
+
+func _spawn_death_particles(pos: Vector2) -> void:
+	for i in 6:
+		var dot := ColorRect.new()
+		dot.size = Vector2(8, 8)
+		dot.color = Color(randf_range(0.8, 1.0), randf_range(0.2, 0.6), 0.1, 1)
+		dot.position = pos + Vector2(randf_range(-40, 40), randf_range(-40, 40))
+		popup_layer.add_child(dot)
+		var tw := dot.create_tween()
+		var drift := Vector2(randf_range(-80, 80), randf_range(-120, -20))
+		tw.tween_property(dot, "position", dot.position + drift, 0.6).set_ease(Tween.EASE_OUT)
+		tw.parallel().tween_property(dot, "modulate:a", 0.0, 0.6).set_ease(Tween.EASE_IN)
+		tw.tween_callback(dot.queue_free)
+
+func _animate_attack(spr: Node2D, direction: float) -> void:
+	if spr == null:
+		return
+	var origin: Vector2 = spr.position
+	var tw := create_tween()
+	tw.tween_property(spr, "position:x", origin.x + direction * 20.0, 0.08)
+	tw.tween_property(spr, "position:x", origin.x, 0.08)
 
 func _on_battle_ended(victory: bool) -> void:
 	action_buttons.hide()
@@ -293,6 +332,19 @@ func _on_battle_ended(victory: bool) -> void:
 		victory_overlay.show()
 	else:
 		gameover_overlay.show()
+	_fade_out()
+
+func _fade_out() -> void:
+	await get_tree().create_timer(1.2).timeout
+	var overlay := ColorRect.new()
+	overlay.color = Color(0, 0, 0, 0)
+	overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	var canvas := CanvasLayer.new()
+	canvas.layer = 100
+	add_child(canvas)
+	canvas.add_child(overlay)
+	var tw := overlay.create_tween()
+	tw.tween_property(overlay, "color:a", 1.0, 0.4)
 
 func _build_enemy_bars(enemies: Array) -> void:
 	for child in enemy_panel.get_children():
@@ -330,6 +382,7 @@ func _spawn_popup(text: String, color: Color) -> void:
 
 func _on_limit_pressed() -> void:
 	action_buttons.hide()
+	_shake_screen(48.0)
 	BattleManager.player_limit_break()
 
 func _on_attack_pressed() -> void:
