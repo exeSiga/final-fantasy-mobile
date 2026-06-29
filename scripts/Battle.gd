@@ -43,6 +43,7 @@ func _ready() -> void:
 	BattleManager.turn_changed.connect(_on_turn_changed)
 	BattleManager.battle_ended.connect(_on_battle_ended)
 	BattleManager.battle_log.connect(_log)
+	GameManager.level_up.connect(_on_level_up)
 	BattleManager.start_battle(BattleManager.dungeon_mode, BattleManager.is_boss_battle)
 
 func _on_battle_started(party: Array, enemies: Array) -> void:
@@ -162,6 +163,18 @@ func _build_magic_menu(unit) -> void:
 		btn.pressed.connect(_on_spell_selected.bind(spell))
 		magic_menu.add_child(btn)
 
+func _find_enemy_sprite(name: String):
+	for i in BattleManager.enemies.size():
+		if BattleManager.enemies[i].unit_name == name and i < _enemy_sprite_list.size():
+			return _enemy_sprite_list[i]
+	return null
+
+func _find_party_sprite(name: String):
+	for i in BattleManager.party.size():
+		if BattleManager.party[i].unit_name == name and i < _party_sprites.size():
+			return _party_sprites[i]
+	return null
+
 func _on_action_result(attacker: String, target: String, damage: int, is_crit: bool) -> void:
 	if damage == -1:
 		_log("Not enough MP!")
@@ -169,6 +182,9 @@ func _on_action_result(attacker: String, target: String, damage: int, is_crit: b
 		_log("%s heals %s  +%d HP" % [attacker, target, -damage])
 		_spawn_popup("+%d HP" % (-damage), Color(0.3, 1, 0.3, 1))
 		AudioManager.play_sfx_spell()
+		var spr = _find_party_sprite(target)
+		if spr:
+			spr.flash(Color(0.1, 1.0, 0.3))
 	elif damage == 0:
 		_log("%s → %s" % [attacker, target])
 		_spawn_popup("Buff!", Color(0.3, 0.8, 1, 1))
@@ -181,11 +197,22 @@ func _on_action_result(attacker: String, target: String, damage: int, is_crit: b
 		_spawn_popup(pop_txt, pop_color)
 		AudioManager.play_sfx_attack()
 		_shake_screen()
+		# Flash the hit target
+		var flash_color := Color(1.0, 0.9, 0.1) if is_crit else Color(1, 1, 1)
+		var enemy_spr = _find_enemy_sprite(target)
+		if enemy_spr:
+			enemy_spr.flash(flash_color)
+		var party_spr = _find_party_sprite(target)
+		if party_spr:
+			party_spr.flash(Color(1.0, 0.3, 0.3))
 	_refresh_party_ui()
 	_update_enemy_sprites()
 	for i in BattleManager.enemies.size():
 		if i < _enemy_hp_bars.size():
 			_enemy_hp_bars[i].animate_to(BattleManager.enemies[i].hp)
+
+func _on_level_up(new_level: int) -> void:
+	_spawn_popup("★ LEVEL UP! Lv.%d ★" % new_level, Color(1.0, 0.9, 0.1, 1))
 
 func _refresh_party_ui() -> void:
 	var party = BattleManager.party

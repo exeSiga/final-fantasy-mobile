@@ -22,3 +22,4 @@
 [2026-06-29 22:00] Sprint 17 (Équipement: Armes et Armures) — DONE — 7 items (short_sword/long_sword/mage_staff/dark_staff/leather_armor/chain_mail/silk_robe), GameManager.equip/unequip, Shop section, EquipMenu, SaveSystem persistance, 11/11 tests
 [2026-06-29 23:00] Sprint 18 (Sélection de cible) — DONE — Fight/spells/heal/revive/haste avec sélection explicite, BattleManager.player_attack/player_cast_spell(target=null), 11/11 tests
 [2026-06-29 23:30] Sprint 19 (Ennemis avancés + Progression) — DONE — Orc/Shadow/Troll/Gargoyle avec AI spécialisée, pools MID/HARD par niveau, _pick_enemy_pool(), 13/13 tests
+[2026-06-29 23:45] Sprint 20 (Status Menu + Auberge) — DONE — StatusMenu complet (HP/MP/ATK/DEF/SPD/XP/Equipment), InnNPC 30G sur WorldMap, 13/13 tests
