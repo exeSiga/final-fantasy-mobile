@@ -14,3 +14,5 @@
 [2026-06-28 12:55] Sprint 10 (First Dungeon) — DONE — ~29000 tokens
 [2026-06-28 13:25] Sprint 11 (Item System) — DONE — ~33500 tokens
 [2026-06-28 13:50] Sprint 12 (Final Polish) — DONE — ~37000 tokens
+[2026-06-28 11:31] Sprint 13 (Bugfix & Quality Template) — DONE — ~3200 tokens used
+[2026-06-29 00:00] Sprint 14 (Visual & UX Polish) — DONE — ~6000 tokens used

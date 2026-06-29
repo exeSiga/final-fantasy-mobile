@@ -9,6 +9,8 @@ var gold: int = 0
 var spells: Array = []
 var inventory: Dictionary = {}
 var return_after_battle: String = "res://scenes/world/WorldMap.tscn"
+var dungeon_boss_cleared = false
+var dungeon_return_room: int = -1
 
 signal gold_changed(new_amount: int)
 signal level_up(new_level: int)
@@ -29,6 +31,8 @@ func new_game() -> void:
 	player_unit = load("res://resources/units/hero.tres").duplicate()
 	gold = 0
 	inventory = {}
+	dungeon_boss_cleared = false
+	dungeon_return_room = -1
 	spells.clear()
 	spells.append(load("res://resources/spells/fire.tres"))
 	spells.append(load("res://resources/spells/cure.tres"))

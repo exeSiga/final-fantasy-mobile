@@ -7,6 +7,7 @@ const CAMERA_LERP := 5.0
 @onready var player: CharacterBody2D = $Player
 @onready var camera: Camera2D = $Camera2D
 @onready var joystick: Control = $VirtualJoystick
+@onready var _pause_menu = $PauseMenu
 
 var _shop_scene: PackedScene = preload("res://scenes/ui/Shop.tscn")
 var _shop_open: bool = false
@@ -25,6 +26,7 @@ func _ready() -> void:
 	camera.limit_right = int(MAP_WIDTH)
 	camera.limit_bottom = int(MAP_HEIGHT)
 	camera.global_position = player.global_position
+	$PauseLayer/PauseButton.pressed.connect(_pause_menu.show_pause)
 
 func _process(_delta: float) -> void:
 	camera.global_position = camera.global_position.lerp(player.global_position, CAMERA_LERP * get_process_delta_time())

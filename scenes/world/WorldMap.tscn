@@ -1,10 +1,11 @@
-[gd_scene load_steps=13 format=3 uid="uid://worldmap"]
+[gd_scene load_steps=14 format=3 uid="uid://worldmap"]
 
 [ext_resource type="Script" path="res://scripts/WorldMap.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/characters/Player.tscn" id="2"]
 [ext_resource type="PackedScene" path="res://scenes/ui/WorldHUD.tscn" id="3"]
 [ext_resource type="PackedScene" path="res://scenes/ui/VirtualJoystick.tscn" id="4"]
 [ext_resource type="PackedScene" path="res://scenes/ui/Shop.tscn" id="5"]
+[ext_resource type="PackedScene" path="res://scenes/ui/PauseMenu.tscn" id="6"]
 
 [sub_resource type="RectangleShape2D" id="Wall_Top"]
 size = Vector2(3200, 32)
@@ -105,3 +106,20 @@ text = "Shop"
 theme_override_font_sizes/font_size = 28
 
 [node name="VirtualJoystick" parent="." instance=ExtResource("4")]
+
+[node name="PauseLayer" type="CanvasLayer" parent="."]
+layer = 20
+
+[node name="PauseButton" type="Button" parent="PauseLayer"]
+anchor_left = 1.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 0.0
+offset_left = -140.0
+offset_right = -10.0
+offset_top = 20.0
+offset_bottom = 90.0
+text = "| |"
+theme_override_font_sizes/font_size = 30
+
+[node name="PauseMenu" parent="." instance=ExtResource("6")]

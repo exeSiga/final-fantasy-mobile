@@ -12,7 +12,9 @@ extends Node2D
 @onready var victory_overlay: PanelContainer = $UI/VictoryOverlay
 @onready var gameover_overlay: PanelContainer = $UI/GameOverOverlay
 @onready var _victory_title: Label = $UI/VictoryOverlay/VBox/TitleLabel
-@onready var hero_sprite: ColorRect = $ArenaContainer/HeroSprite
+@onready var hero_sprite = $ArenaContainer/HeroSprite
+
+const UnitSprite = preload("res://scripts/UnitSprite.gd")
 @onready var _enemy_sprites_container: HBoxContainer = $ArenaContainer/EnemySprites
 
 var _log_lines: PackedStringArray = []
@@ -35,7 +37,9 @@ func _ready() -> void:
 	BattleManager.start_battle(BattleManager.dungeon_mode, BattleManager.is_boss_battle)
 
 func _on_battle_started(player, enemies) -> void:
-	hero_sprite.color = player.sprite_color
+	hero_sprite.sprite_color = player.sprite_color
+	hero_sprite.unit_name_label = player.unit_name
+	hero_sprite.queue_redraw()
 	_build_enemy_sprites(enemies)
 	hero_hp_bar.set_unit(player)
 	_refresh_hero_label(player)
@@ -48,9 +52,10 @@ func _build_enemy_sprites(enemies: Array) -> void:
 	_enemy_sprite_list.clear()
 	for e in enemies:
 		var container := VBoxContainer.new()
-		var rect := ColorRect.new()
+		var rect := UnitSprite.new()
 		rect.custom_minimum_size = Vector2(160, 160)
-		rect.color = e.sprite_color
+		rect.sprite_color = e.sprite_color
+		rect.unit_name_label = e.unit_name
 		var lbl := Label.new()
 		lbl.text = e.unit_name
 		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -58,6 +63,7 @@ func _build_enemy_sprites(enemies: Array) -> void:
 		container.add_child(rect)
 		container.add_child(lbl)
 		_enemy_sprites_container.add_child(container)
+		rect.queue_redraw()
 		_enemy_sprite_list.append(container)
 
 func _update_enemy_sprites() -> void:

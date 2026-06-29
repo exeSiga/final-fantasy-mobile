@@ -212,6 +212,40 @@
 
 ---
 
+## Sprint 14 — Visual & UX Polish [STATUS: DONE]
+**Goal:** Corriger 4 problèmes connus : collision donjon, retour boss, menu pause, sprites distinctifs
+
+**Acceptance Criteria:**
+- [x] AC1: Le joueur ne peut pas traverser les murs du donjon (StaticBody2D sur les 4 bords, gap de porte centré)
+- [x] AC2: Après le boss (Room 4), retour dans le donjon à la room 4 ; le boss ne se redéclenche pas
+- [x] AC3: Bouton Pause dans WorldMap ouvre un overlay Resume / Save & Quit
+- [x] AC4: Chaque unité a un sprite géométrique distinct (Hero/Slime/Goblin/Skeleton/Bat/DarkKnight)
+
+**Tasks:**
+- [x] GameManager.gd: ajouter dungeon_boss_cleared + dungeon_return_room
+- [x] Dungeon.gd: _add_room_walls() + _make_wall() + _go_to_room() + fix _on_boss_trigger()
+- [x] PauseMenu.gd + PauseMenu.tscn: CanvasLayer layer=50, process_mode=WHEN_PAUSED
+- [x] WorldMap.tscn: PauseButton (CanvasLayer layer=20) + PauseMenu instance
+- [x] WorldMap.gd: connecter PauseButton → PauseMenu.show_pause()
+- [x] UnitSprite.gd: extends Control, _draw() avec match sur unit_name_label
+- [x] Battle.tscn: HeroSprite ColorRect → Control avec UnitSprite.gd
+- [x] Battle.gd: preload UnitSprite, set sprite_color+unit_name_label, queue_redraw()
+
+**Verification Notes:**
+- Contrôle A (static): ✅ check_compat.sh — All clear
+- Contrôle B (godot parse): ✅ aucun SCRIPT ERROR (godot4 --headless --check-only)
+- Contrôle C (logic trace):
+  - AC1: _ready() → _add_room_walls(room, i) for i in 5 → _make_wall() crée StaticBody2D+CollisionShape2D+RectangleShape2D; left+right+bottom solid, top avec gap 220px centré ✅
+  - AC2: _on_boss_trigger() → guard dungeon_boss_cleared → set true + dungeon_return_room=4 + return_after_battle=Dungeon.tscn → battle → retour Dungeon._ready() → _go_to_room(4) → reset return_room=-1 ✅
+  - AC3: PauseButton.pressed → show_pause() → visible=true + paused=true; PauseMenu.process_mode=WHEN_PAUSED → boutons actifs; Resume → paused=false + visible=false ✅
+  - AC4: _on_battle_started() → hero_sprite.sprite_color+unit_name_label+queue_redraw(); _build_enemy_sprites() → UnitSprite.new() avec properties → queue_redraw(); _draw() match par nom ✅
+- Contrôle D (regression): Flow MainMenu→WorldMap→Battle→Victory intact; PauseMenu n'affecte pas la scène combat; enemy sprites toujours gérés via _enemy_sprite_list (containers VBox), modulate.a inchangé ✅
+- Déferments: Ciblage allié pour Cure, 3e membre d'équipe, Settings dans PauseMenu
+
+**Review notes:** 4 bugs connus résolus. Donjon entièrement fermé (one-way progression par walls dynamiques). Boss return utilise GameManager pour persister l'état entre scènes. PauseMenu WHEN_PAUSED garantit l'interactivité.
+
+---
+
 ## Backlog (Not Scheduled)
 - Multiple party members
 - Equipment system

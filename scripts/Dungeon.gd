@@ -3,6 +3,8 @@ extends Node2D
 const ROOM_H := 1600.0
 const ROOM_W := 1080.0
 const STEPS_PER_ENCOUNTER := 50
+const WALL_THICK := 32.0
+const DOOR_GAP := 220.0
 
 @onready var player: CharacterBody2D = $Player
 @onready var camera: Camera2D = $Camera2D
@@ -36,6 +38,47 @@ func _ready() -> void:
 	var boss_trigger := get_node_or_null("Rooms/Room4/BossTrigger") as Area2D
 	if boss_trigger:
 		boss_trigger.body_entered.connect(_on_boss_trigger)
+	for i in 5:
+		var room := get_node_or_null("Rooms/Room%d" % i)
+		if room:
+			_add_room_walls(room, i)
+	if GameManager.dungeon_return_room >= 0:
+		var r := GameManager.dungeon_return_room
+		GameManager.dungeon_return_room = -1
+		_go_to_room(r)
+
+func _go_to_room(room_idx: int) -> void:
+	player.position = Vector2(ROOM_W / 2.0, -room_idx * ROOM_H - 150.0)
+	camera.position = player.position
+
+func _add_room_walls(room: Node2D, idx: int) -> void:
+	var room_top := -(idx + 1) * ROOM_H
+	var room_bot := -idx * ROOM_H
+	var mid_y := (room_top + room_bot) / 2.0
+	# Left wall
+	_make_wall(room, Vector2(WALL_THICK / 2.0, mid_y), Vector2(WALL_THICK, ROOM_H))
+	# Right wall
+	_make_wall(room, Vector2(ROOM_W - WALL_THICK / 2.0, mid_y), Vector2(WALL_THICK, ROOM_H))
+	# Bottom wall (closed — one-way progression)
+	_make_wall(room, Vector2(ROOM_W / 2.0, room_bot - WALL_THICK / 2.0), Vector2(ROOM_W, WALL_THICK))
+	# Top wall: two segments with door gap (rooms 0-3 lead upward; room 4 has solid top)
+	var gap_half := DOOR_GAP / 2.0
+	var seg_w := ROOM_W / 2.0 - gap_half
+	if idx < 4:
+		_make_wall(room, Vector2(seg_w / 2.0, room_top + WALL_THICK / 2.0), Vector2(seg_w, WALL_THICK))
+		_make_wall(room, Vector2(ROOM_W - seg_w / 2.0, room_top + WALL_THICK / 2.0), Vector2(seg_w, WALL_THICK))
+	else:
+		_make_wall(room, Vector2(ROOM_W / 2.0, room_top + WALL_THICK / 2.0), Vector2(ROOM_W, WALL_THICK))
+
+func _make_wall(parent: Node2D, pos: Vector2, sz: Vector2) -> void:
+	var sb := StaticBody2D.new()
+	sb.position = pos
+	var cs := CollisionShape2D.new()
+	var rs := RectangleShape2D.new()
+	rs.size = sz
+	cs.shape = rs
+	sb.add_child(cs)
+	parent.add_child(sb)
 
 func _process(_delta: float) -> void:
 	camera.global_position = camera.global_position.lerp(player.global_position, 5.0 * get_process_delta_time())
@@ -73,9 +116,11 @@ func _on_chest(_body: Node, idx: int) -> void:
 	chest_label.text = ""
 
 func _on_boss_trigger(_body: Node) -> void:
-	if _body == player and not _boss_done:
-		_boss_done = true
-		GameManager.return_after_battle = "res://scenes/world/WorldMap.tscn"
-		BattleManager.is_boss_battle = true
-		BattleManager.dungeon_mode = true
-		GameManager.change_scene("res://scenes/combat/Battle.tscn")
+	if _body != player or GameManager.dungeon_boss_cleared:
+		return
+	GameManager.dungeon_boss_cleared = true
+	GameManager.dungeon_return_room = _current_room
+	GameManager.return_after_battle = "res://scenes/world/Dungeon.tscn"
+	BattleManager.is_boss_battle = true
+	BattleManager.dungeon_mode = true
+	GameManager.change_scene("res://scenes/combat/Battle.tscn")
