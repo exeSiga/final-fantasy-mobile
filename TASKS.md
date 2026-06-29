@@ -542,26 +542,30 @@
   - AC4: SaveSystem save/load active_zone champ
 - Contrôle D (regression): dungeon_mode préservé, boss buttons inchangés
 
-## Sprint 26 — Dialogues & Histoire [STATUS: TODO]
+## Sprint 26 — Dialogues & Histoire [STATUS: DONE]
 **Goal:** Système dialogue NPC, prologue d'intro, drapeaux histoire
 
 **Acceptance Criteria:**
-- [ ] AC1: DialogueBox (portrait ColorRect + Label + bouton Next) en overlay WorldMap
-- [ ] AC2: 3 PNJ cliquables sur WorldMap avec dialogues selon niveau
-- [ ] AC3: Prologue 4 lignes au 1er démarrage (flag story_intro_done)
-- [ ] AC4: PNJ Aubergiste → dialogue contextuel si HP party < 50%
+- [x] AC1: DialogueBox (portrait ColorRect + Label + bouton Next) en overlay WorldMap
+- [x] AC2: 3 PNJ cliquables sur WorldMap avec dialogues selon niveau
+- [x] AC3: Prologue 4 lignes au 1er démarrage (flag story_intro_done)
+- [x] AC4: PNJ Aubergiste → dialogue contextuel si HP party < 50%
 
 **Tasks:**
-- [ ] DialogueManager autoload
-- [ ] DialogueBox.tscn
-- [ ] Dialogues PNJ en dictionnaire
-- [ ] Flag story_intro_done dans SaveSystem
+- [x] DialogueManager autoload
+- [x] DialogueBox.tscn
+- [x] Dialogues PNJ en dictionnaire
+- [x] Flag story_intro_done dans SaveSystem
 
 **Verification Notes:**
-- Contrôle A (static):
-- Contrôle B (godot parse):
+- Contrôle A (static): ✅ check_compat.sh All clear
+- Contrôle B (godot parse): ✅ timeout sans SCRIPT ERROR
 - Contrôle C (logic trace):
-- Contrôle D (regression):
+  - AC1: DialogueBox.tscn CanvasLayer layer 50, Label + ColorRect + NextButton
+  - AC2: _add_npc_buttons() 3 boutons → DialogueManager.show_npc_dialogue()
+  - AC3: _ready() vérifie story_intro_done, show_prologue() 4 lignes
+  - AC4: _avg_hp_pct() < 0.5 → variant low_hp dans DIALOGUES dict
+- Contrôle D (regression): guard is_open() empêche double dialogue, encounters inchangés
 
 ## Sprint 27 — Quêtes Secondaires [STATUS: TODO]
 **Goal:** 3 quêtes kill-count avec récompenses, QuestMenu

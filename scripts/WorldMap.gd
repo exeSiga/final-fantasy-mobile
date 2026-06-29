@@ -31,6 +31,35 @@ func _ready() -> void:
 	$PauseLayer/PauseButton.pressed.connect(_pause_menu.show_pause)
 	_add_zone_buttons()
 	_add_boss_buttons()
+	_add_npc_buttons()
+	if not GameManager.story_intro_done:
+		GameManager.story_intro_done = true
+		DialogueManager.show_prologue(self)
+
+func _add_npc_buttons() -> void:
+	var layer := CanvasLayer.new()
+	layer.layer = 6
+	add_child(layer)
+	var npcs := [
+		{"id": "npc_guide",     "label": "💬 Guide",      "x": 220.0, "top": -300.0, "bot": -210.0},
+		{"id": "npc_soldier",   "label": "💬 Soldat",     "x": 220.0, "top": -205.0, "bot": -115.0},
+		{"id": "npc_innkeeper", "label": "💬 Aubergiste", "x": 220.0, "top": -110.0, "bot": -20.0},
+	]
+	for z in npcs:
+		var btn := Button.new()
+		btn.text = z.label
+		btn.add_theme_font_size_override("font_size", 22)
+		btn.custom_minimum_size = Vector2(170, 80)
+		btn.anchor_left = 0.5
+		btn.anchor_right = 0.5
+		btn.anchor_top = 1.0
+		btn.anchor_bottom = 1.0
+		btn.offset_left = -85.0
+		btn.offset_right = 85.0
+		btn.offset_top = z.top
+		btn.offset_bottom = z.bot
+		btn.pressed.connect(func(): DialogueManager.show_npc_dialogue(self, z.id))
+		layer.add_child(btn)
 
 func _add_zone_buttons() -> void:
 	var layer := CanvasLayer.new()

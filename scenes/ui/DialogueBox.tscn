@@ -1,0 +1,43 @@
+[gd_scene load_steps=2 format=3 uid="uid://dialoguebox"]
+
+[ext_resource type="Script" path="res://scripts/DialogueBox.gd" id="1"]
+
+[node name="DialogueBox" type="CanvasLayer"]
+script = ExtResource("1")
+layer = 50
+
+[node name="Panel" type="PanelContainer" parent="."]
+anchor_left = 0.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 0.0
+offset_top = -320.0
+offset_right = 0.0
+offset_bottom = 0.0
+
+[node name="HBox" type="HBoxContainer" parent="Panel"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Portrait" type="ColorRect" parent="Panel/HBox"]
+custom_minimum_size = Vector2(160, 220)
+color = Color(0.3, 0.3, 0.6, 1)
+
+[node name="VBox" type="VBoxContainer" parent="Panel/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 16
+
+[node name="DialogueLabel" type="Label" parent="Panel/HBox/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 32
+autowrap_mode = 3
+text = ""
+
+[node name="NextButton" type="Button" parent="Panel/HBox/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 80)
+theme_override_font_sizes/font_size = 32
+text = "Suivant ▶"

@@ -48,6 +48,7 @@ AudioManager="*res://autoloads/AudioManager.gd"
 SaveSystem="*res://autoloads/SaveSystem.gd"
 BattleManager="*res://autoloads/BattleManager.gd"
 TransitionManager="*res://autoloads/TransitionManager.gd"
+DialogueManager="*res://autoloads/DialogueManager.gd"
 
 [rendering]
 
