@@ -13,6 +13,7 @@ extends Node2D
 @onready var _bg: ColorRect       = $Background
 @onready var _enemy_root: Node2D  = $EnemySpriteRoot
 @onready var _magic_btn: Button   = $UI/ActionButtons/MagicButton
+@onready var _attack_btn: Button  = $UI/ActionButtons/AttackButton
 
 @onready var _party_sprites: Array = [$PartySprite0, $PartySprite1, $PartySprite2]
 @onready var _target_menu: VBoxContainer  = $UI/TargetMenu
@@ -29,6 +30,9 @@ var _party_hp_bars: Array = []
 var _party_hp_texts: Array = []
 var _party_mp_texts: Array = []
 var _party_name_labels: Array = []
+var _party_limit_labels: Array = []
+
+var _limit_btn: Button = null
 
 var _active_party_idx: int = -1
 
@@ -37,14 +41,27 @@ func _ready() -> void:
 	gameover_overlay.hide()
 	magic_menu.hide()
 	item_menu.hide()
+	_create_limit_button()
 	AudioManager.play_battle_bgm()
 	BattleManager.battle_started.connect(_on_battle_started)
 	BattleManager.action_result.connect(_on_action_result)
 	BattleManager.turn_changed.connect(_on_turn_changed)
 	BattleManager.battle_ended.connect(_on_battle_ended)
 	BattleManager.battle_log.connect(_log)
+	BattleManager.limit_gauge_updated.connect(_on_limit_gauge_updated)
 	GameManager.level_up.connect(_on_level_up)
 	BattleManager.start_battle(BattleManager.dungeon_mode, BattleManager.is_boss_battle)
+
+func _create_limit_button() -> void:
+	_limit_btn = Button.new()
+	_limit_btn.text = "⚡ LIMIT"
+	_limit_btn.add_theme_font_size_override("font_size", 28)
+	_limit_btn.add_theme_color_override("font_color", Color(1.0, 0.85, 0.0, 1.0))
+	_limit_btn.custom_minimum_size = Vector2(160, 0)
+	_limit_btn.visible = false
+	_limit_btn.pressed.connect(_on_limit_pressed)
+	action_buttons.add_child(_limit_btn)
+	action_buttons.move_child(_limit_btn, 0)
 
 func _on_battle_started(party: Array, enemies: Array) -> void:
 	_build_party_panel(party)
@@ -60,6 +77,7 @@ func _build_party_panel(party: Array) -> void:
 	_party_hp_texts.clear()
 	_party_mp_texts.clear()
 	_party_name_labels.clear()
+	_party_limit_labels.clear()
 	for m in party:
 		var row := HBoxContainer.new()
 		var name_lbl := Label.new()
@@ -81,15 +99,22 @@ func _build_party_panel(party: Array) -> void:
 		mp_txt.custom_minimum_size = Vector2(90, 0)
 		mp_txt.add_theme_font_size_override("font_size", 22)
 		mp_txt.add_theme_color_override("font_color", Color(0.4, 0.6, 1, 1))
+		var lmt_txt := Label.new()
+		lmt_txt.text = "⚡%d" % m.limit_gauge
+		lmt_txt.custom_minimum_size = Vector2(75, 0)
+		lmt_txt.add_theme_font_size_override("font_size", 20)
+		lmt_txt.add_theme_color_override("font_color", Color(1.0, 0.85, 0.0, 1.0))
 		row.add_child(name_lbl)
 		row.add_child(hp_bar)
 		row.add_child(hp_txt)
 		row.add_child(mp_txt)
+		row.add_child(lmt_txt)
 		hero_panel.add_child(row)
 		_party_hp_bars.append(hp_bar)
 		_party_hp_texts.append(hp_txt)
 		_party_mp_texts.append(mp_txt)
 		_party_name_labels.append(name_lbl)
+		_party_limit_labels.append(lmt_txt)
 
 func _build_party_sprites(party: Array) -> void:
 	for i in min(party.size(), _party_sprites.size()):
@@ -127,7 +152,20 @@ func _on_turn_changed(unit) -> void:
 		_active_party_idx = _party_index_of(unit)
 		_highlight_active_member()
 		_rebuild_magic_button(unit)
+		_update_limit_button(unit)
 	_log("%s's turn" % unit.unit_name)
+
+func _update_limit_button(unit) -> void:
+	if _limit_btn == null:
+		return
+	var ready: bool = unit.limit_gauge >= 100
+	_limit_btn.visible = ready
+	_attack_btn.visible = not ready
+
+func _on_limit_gauge_updated(unit) -> void:
+	_refresh_party_ui()
+	if BattleManager.player_unit != null and BattleManager.player_unit == unit:
+		_update_limit_button(unit)
 
 func _party_index_of(unit) -> int:
 	for i in BattleManager.party.size():
@@ -222,6 +260,11 @@ func _refresh_party_ui() -> void:
 		_party_hp_texts[i].text = "%d/%d" % [m.hp, m.max_hp]
 		if m.max_mp > 0:
 			_party_mp_texts[i].text = "MP%d" % m.mp
+		if i < _party_limit_labels.size():
+			var lmt = _party_limit_labels[i]
+			lmt.text = "⚡%d" % m.limit_gauge
+			var full_color := Color(1.0, 0.85, 0.0, 1.0) if m.limit_gauge >= 100 else Color(0.7, 0.6, 0.2, 1.0)
+			lmt.add_theme_color_override("font_color", full_color)
 		var status_tag: String = ""
 		match m.status:
 			"poison":  status_tag = " [PSN]"
@@ -284,6 +327,10 @@ func _spawn_popup(text: String, color: Color) -> void:
 	tween.tween_property(lbl, "position:y", lbl.position.y - 200, 0.8).set_ease(Tween.EASE_OUT)
 	tween.parallel().tween_property(lbl, "modulate:a", 0.0, 0.8).set_ease(Tween.EASE_IN)
 	tween.tween_callback(lbl.queue_free)
+
+func _on_limit_pressed() -> void:
+	action_buttons.hide()
+	BattleManager.player_limit_break()
 
 func _on_attack_pressed() -> void:
 	action_buttons.hide()

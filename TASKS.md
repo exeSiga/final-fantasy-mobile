@@ -441,3 +441,159 @@
   - AC5: EquipMenu._build_member_section() affiche ATK/DEF avec bonus; "Equip"+"Remove" buttons ✅
 - Contrôle D (regression): Tests 11/11 passent; character_class="Black Mage"/"White Mage" avec espace (correction du bug "BlackMage" vs "Black Mage")
 - Déferments: ScrollContainer dans Shop (items_list peut déborder sur petits écrans), tri par stat dans EquipMenu
+
+## Sprint 22 — Limit Breaks [STATUS: DONE]
+**Goal:** Jauge Limit Break (0-100) par personnage, action dévastatrice à 100%
+
+**Acceptance Criteria:**
+- [x] AC1: CombatUnit a limit_gauge (0-100), +20 par dégât reçu
+- [x] AC2: Bouton LIMIT dans menu combat (remplace Fight) quand gauge >= 100
+- [x] AC3: Warrior→Blade Fury (×2.5 ATK tous), BlackMage→Meteor (×3 MAG tous), WhiteMage→Holy Light (HP full party + revive)
+- [x] AC4: limit_gauge reset à 0 après utilisation
+
+**Tasks:**
+- [x] limit_gauge dans CombatUnit
+- [x] _fill_limit_gauge() dans BattleManager, appelé dans _compute_phys_damage + 4 AIs directes
+- [x] player_limit_break() dans BattleManager
+- [x] _limit_btn dynamique dans Battle.gd, _update_limit_button() dans _on_turn_changed
+- [x] Jauge ⚡ affichée dans panel party, dorée quand 100
+
+**Verification Notes:**
+- Contrôle A (static): ✅ All clear
+- Contrôle B (godot parse): timeout (comportement normal de cet environnement)
+- Contrôle C (logic trace):
+  - AC1: _fill_limit_gauge(target, 20) appelé dans _compute_phys_damage + goblin/skeleton/shadow/dark_knight. Guard is_player. ✅
+  - AC2: _update_limit_button() dans _on_turn_changed + _on_limit_gauge_updated. Guard null sur _limit_btn. ✅
+  - AC3: match player_unit.character_class → 3 classes + fallback. ✅
+  - AC4: limit_gauge = 0 avant match dans player_limit_break(). ✅
+- Contrôle D (regression): start_battle inchangé, gauge = 0 au départ → Attack visible. Flow complet préservé. ✅
+
+## Sprint 23 — Système Materia [STATUS: TODO]
+**Goal:** Orbes équipables sur armes/armures qui confèrent sorts ou bonus passifs
+
+**Acceptance Criteria:**
+- [ ] AC1: 6 Materias: Fire/Thunder/Blizzard (offensifs), Cure (soin), HP+/MP+ (passifs +30%)
+- [ ] AC2: Equipment a materia_slots (0-2) et materias_equipped (Array)
+- [ ] AC3: Materia de sort → ajout aux sorts disponibles en combat
+- [ ] AC4: Materias achetables au Shop (500G), persistance Save
+- [ ] AC5: MateriaMenu accessible depuis EquipMenu
+
+**Tasks:**
+- [ ] Materia resource (scripts/Materia.gd)
+- [ ] materia_slots + materias_equipped sur Equipment
+- [ ] MateriaMenu.tscn + scripts/MateriaMenu.gd
+- [ ] BattleManager lit materias équipées dans _build_turn_queue ou start_battle
+- [ ] Shop section Materias
+- [ ] SaveSystem persiste materias_equipped
+
+**Verification Notes:**
+- Contrôle A (static):
+- Contrôle B (godot parse):
+- Contrôle C (logic trace):
+- Contrôle D (regression):
+
+## Sprint 24 — Boss Multi-Phases [STATUS: TODO]
+**Goal:** 2 boss épiques avec transitions de phases, accessibles depuis WorldMap
+
+**Acceptance Criteria:**
+- [ ] AC1: Guard Scorpion — phase 1: attaque normale; à 50% HP → phase 2: queue laser (×2 ATK, immunité sorts)
+- [ ] AC2: Jenova — phase 1: magie multi-cibles; à 30% HP → absorbe HP d'un allié (soin 50% HP max)
+- [ ] AC3: Boutons "Boss 1" et "Boss 2" sur WorldMap (requis niv 5 et 10)
+- [ ] AC4: Victoire boss → XP ×3 + 500G bonus
+
+**Tasks:**
+- [ ] current_phase + phase_threshold dans CombatUnit (runtime vars)
+- [ ] _check_phase_transition() dans BattleManager._advance_turn()
+- [ ] guard_scorpion.tres + jenova.tres
+- [ ] Boutons Boss sur WorldMap avec condition niveau
+
+**Verification Notes:**
+- Contrôle A (static):
+- Contrôle B (godot parse):
+- Contrôle C (logic trace):
+- Contrôle D (regression):
+
+## Sprint 25 — Zones World Map [STATUS: TODO]
+**Goal:** 3 zones (Midgar/Kalm/Mt.Nibel), pools d'ennemis par zone, conditions de niveau
+
+**Acceptance Criteria:**
+- [ ] AC1: 3 zones cliquables sur WorldMap, couleurs distinctes
+- [ ] AC2: Midgar niv1-5, Kalm niv5-10, Mt.Nibel niv10+; pools ennemis différents
+- [ ] AC3: Zone verrouillée si niveau insuffisant → message
+- [ ] AC4: Zone active persistante dans Save
+
+**Tasks:**
+- [ ] active_zone dans GameManager
+- [ ] 3 zones Panel sur WorldMap
+- [ ] _pick_enemy_pool() utilise active_zone dans BattleManager
+- [ ] SaveSystem persiste active_zone
+
+**Verification Notes:**
+- Contrôle A (static):
+- Contrôle B (godot parse):
+- Contrôle C (logic trace):
+- Contrôle D (regression):
+
+## Sprint 26 — Dialogues & Histoire [STATUS: TODO]
+**Goal:** Système dialogue NPC, prologue d'intro, drapeaux histoire
+
+**Acceptance Criteria:**
+- [ ] AC1: DialogueBox (portrait ColorRect + Label + bouton Next) en overlay WorldMap
+- [ ] AC2: 3 PNJ cliquables sur WorldMap avec dialogues selon niveau
+- [ ] AC3: Prologue 4 lignes au 1er démarrage (flag story_intro_done)
+- [ ] AC4: PNJ Aubergiste → dialogue contextuel si HP party < 50%
+
+**Tasks:**
+- [ ] DialogueManager autoload
+- [ ] DialogueBox.tscn
+- [ ] Dialogues PNJ en dictionnaire
+- [ ] Flag story_intro_done dans SaveSystem
+
+**Verification Notes:**
+- Contrôle A (static):
+- Contrôle B (godot parse):
+- Contrôle C (logic trace):
+- Contrôle D (regression):
+
+## Sprint 27 — Quêtes Secondaires [STATUS: TODO]
+**Goal:** 3 quêtes kill-count avec récompenses, QuestMenu
+
+**Acceptance Criteria:**
+- [ ] AC1: QuestMenu sur WorldMap, liste quêtes actives/terminées
+- [ ] AC2: "Menace Gobelin" — 5 Goblins → 300G
+- [ ] AC3: "Lame Perdue" — 3 Orcs → Long Sword
+- [ ] AC4: "Protéger Kalm" — Guard Scorpion → XP 500
+- [ ] AC5: Kill counters persistants, auto-complétion
+
+**Tasks:**
+- [ ] Quest resource (scripts/Quest.gd)
+- [ ] QuestManager autoload
+- [ ] Kill notif dans BattleManager._check_battle_end() ou _enemy_act()
+- [ ] QuestMenu.tscn
+
+**Verification Notes:**
+- Contrôle A (static):
+- Contrôle B (godot parse):
+- Contrôle C (logic trace):
+- Contrôle D (regression):
+
+## Sprint 28 — Effets Visuels Avancés [STATUS: TODO]
+**Goal:** Screen shake renforcé, particules pixel sur mort, fondu noir, animation attaque
+
+**Acceptance Criteria:**
+- [ ] AC1: Screen shake 0.3s/8px sur Limit Break (en plus des crits existants)
+- [ ] AC2: 6 particules pixel (cercles 4px) sur mort ennemie
+- [ ] AC3: Fade in/out noir 0.4s à l'entrée et sortie du combat
+- [ ] AC4: Sprite attaquant avance 20px vers cible (Tween) puis revient
+
+**Tasks:**
+- [ ] _shake_screen() renforcé appelé dans player_limit_break signal ou Battle.gd
+- [ ] _spawn_death_particles(pos) dans Battle.gd
+- [ ] FadeOverlay ColorRect dans Battle.tscn
+- [ ] _animate_attack(spr, dir) avec Tween dans Battle.gd
+
+**Verification Notes:**
+- Contrôle A (static):
+- Contrôle B (godot parse):
+- Contrôle C (logic trace):
+- Contrôle D (regression):

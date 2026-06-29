@@ -25,6 +25,7 @@ var haste_turns_left: int = 0
 var base_spd: int = 0
 var status: String = ""       # "" | "poison" | "sleep" | "silence"
 var status_turns: int = 0
+var limit_gauge: int = 0      # 0-100, fills when receiving damage
 
 const STATUS_MAX_TURNS := 3
 

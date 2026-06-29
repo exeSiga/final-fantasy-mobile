@@ -37,6 +37,7 @@ signal turn_changed(unit)
 signal action_result(attacker: String, target: String, damage: int, is_crit: bool)
 signal battle_log(message: String)
 signal battle_ended(victory: bool)
+signal limit_gauge_updated(unit)
 
 var party: Array = []
 var player_unit = null
@@ -160,12 +161,61 @@ func _tick_status(unit) -> bool:
 		return false  # silence only blocks spells, not physical
 	return false
 
+func _fill_limit_gauge(unit, amount: int) -> void:
+	if not unit.is_player:
+		return
+	unit.limit_gauge = min(100, unit.limit_gauge + amount)
+	limit_gauge_updated.emit(unit)
+
 func _compute_phys_damage(atk: int, target) -> Dictionary:
 	var variance: float = randf_range(0.85, 1.15)
 	var is_crit: bool = randf() < CRIT_CHANCE
 	var raw: int = int(atk * variance * (CRIT_MULT if is_crit else 1.0))
 	var dmg: int = target.take_damage(raw)
+	_fill_limit_gauge(target, 20)
 	return {dmg = dmg, crit = is_crit}
+
+func player_limit_break() -> void:
+	if state != BattleState.PLAYER_TURN or player_unit == null:
+		return
+	if player_unit.limit_gauge < 100:
+		return
+	player_unit.limit_gauge = 0
+	limit_gauge_updated.emit(player_unit)
+	match player_unit.character_class:
+		"Warrior":
+			battle_log.emit("⚡ BLADE FURY!")
+			var alive: Array = enemies.filter(func(e) -> bool: return e.is_alive())
+			for e in alive:
+				var dmg: int = int(player_unit.atk * 2.5 * randf_range(0.90, 1.10))
+				e.take_damage_ignore_def(dmg)
+				action_result.emit(player_unit.unit_name, e.unit_name, dmg, true)
+		"Black Mage":
+			battle_log.emit("⚡ METEOR!")
+			var alive: Array = enemies.filter(func(e) -> bool: return e.is_alive())
+			for e in alive:
+				var dmg: int = int(player_unit.atk * 3.0 * randf_range(0.90, 1.10))
+				e.hp = max(0, e.hp - dmg)
+				action_result.emit(player_unit.unit_name, e.unit_name, dmg, true)
+		"White Mage":
+			battle_log.emit("⚡ HOLY LIGHT!")
+			for m in party:
+				if m.is_alive():
+					m.hp = m.max_hp
+					action_result.emit(player_unit.unit_name, m.unit_name, -m.max_hp, false)
+				else:
+					m.hp = int(m.max_hp * 0.5)
+					m.clear_status()
+					battle_log.emit("%s revived!" % m.unit_name)
+					action_result.emit(player_unit.unit_name, m.unit_name, 0, false)
+		_:
+			battle_log.emit("⚡ LIMIT BREAK!")
+			var alive: Array = enemies.filter(func(e) -> bool: return e.is_alive())
+			for e in alive:
+				var dmg: int = int(player_unit.atk * 2.0 * randf_range(0.90, 1.10))
+				e.take_damage_ignore_def(dmg)
+				action_result.emit(player_unit.unit_name, e.unit_name, dmg, true)
+	_after_player_turn()
 
 func player_attack(target = null) -> void:
 	if state != BattleState.PLAYER_TURN or player_unit == null:
@@ -317,6 +367,7 @@ func _ai_goblin(enemy) -> void:
 			return
 		var raw: int = int(enemy.atk * 1.5 * randf_range(0.85, 1.15))
 		var dmg: int = target.take_damage(raw)
+		_fill_limit_gauge(target, 20)
 		battle_log.emit("Headbutt!")
 		action_result.emit(enemy.unit_name, target.unit_name, dmg, false)
 		if randf() < 0.30 and target.is_alive():
@@ -332,6 +383,7 @@ func _ai_skeleton(enemy) -> void:
 			return
 		var dmg: int = int(enemy.atk * 1.2 * randf_range(0.90, 1.10))
 		target.take_damage_ignore_def(dmg)
+		_fill_limit_gauge(target, 20)
 		battle_log.emit("Dark Blast!")
 		action_result.emit(enemy.unit_name, target.unit_name, dmg, false)
 	else:
@@ -374,6 +426,7 @@ func _ai_shadow(enemy) -> void:
 		battle_log.emit("Soul Drain!")
 		var dmg: int = int(enemy.atk * 0.7 * randf_range(0.85, 1.15))
 		var actual: int = target.take_damage(dmg)
+		_fill_limit_gauge(target, 20)
 		action_result.emit(enemy.unit_name, target.unit_name, actual, false)
 		if target.max_mp > 0 and target.is_alive():
 			var mp_drain: int = min(target.mp, 15)
@@ -413,6 +466,7 @@ func _ai_dark_knight(enemy) -> void:
 		for target in alive:
 			var dmg: int = int(enemy.atk * 0.60 * randf_range(0.85, 1.15))
 			var actual: int = target.take_damage(dmg)
+			_fill_limit_gauge(target, 20)
 			action_result.emit(enemy.unit_name, target.unit_name, actual, false)
 			await get_tree().create_timer(0.25).timeout
 	else:
