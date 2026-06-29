@@ -20,6 +20,7 @@ var base_party_spell_paths: Array = [[], [], []]
 var return_after_battle: String = "res://scenes/world/WorldMap.tscn"
 var dungeon_boss_cleared = false
 var dungeon_return_room: int = -1
+var active_zone: String = "midgar"
 
 signal gold_changed(new_amount: int)
 signal level_up(new_level: int)
@@ -56,6 +57,7 @@ func new_game() -> void:
 	materia_inventory = {}
 	materia_equipped = {}
 	base_party_spell_paths = []
+	active_zone = "midgar"
 	for m in party:
 		base_party_spell_paths.append(m.spell_paths.duplicate())
 	dungeon_boss_cleared = false

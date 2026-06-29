@@ -43,6 +43,7 @@ func save(slot: int) -> void:
 		"equipment": _equipment_to_array(),
 		"materia_inventory": GameManager.materia_inventory,
 		"materia_equipped": GameManager.materia_equipped,
+		"active_zone": GameManager.active_zone,
 		"timestamp": Time.get_datetime_string_from_system(),
 		"playtime": Time.get_ticks_msec() / 1000,
 	}
@@ -80,6 +81,7 @@ func load_save(slot: int) -> bool:
 	GameManager.equip_inventory = d.get("equip_inventory", {})
 	GameManager.materia_inventory = d.get("materia_inventory", {})
 	GameManager.materia_equipped = d.get("materia_equipped", {})
+	GameManager.active_zone = d.get("active_zone", "midgar")
 	var equip_data: Array = d.get("equipment", [])
 	for i in min(equip_data.size(), 3):
 		var ed: Dictionary = equip_data[i]

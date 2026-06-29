@@ -60,13 +60,15 @@ func _avg_party_level() -> int:
 	return total / party.size()
 
 func _pick_enemy_pool() -> Array:
-	var avg: int = _avg_party_level()
-	if avg >= 9:
-		return HARD_POOL
-	elif avg >= 5:
-		return MID_POOL if dungeon_mode else MID_POOL
-	else:
-		return DUNGEON_POOL if dungeon_mode else ENEMY_POOL
+	if dungeon_mode:
+		return DUNGEON_POOL
+	match GameManager.active_zone:
+		"kalm":
+			return MID_POOL
+		"mt_nibel":
+			return HARD_POOL
+		_:
+			return ENEMY_POOL
 
 func _apply_spell_materias() -> void:
 	for i in party.size():

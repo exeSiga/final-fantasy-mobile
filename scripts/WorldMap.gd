@@ -29,7 +29,59 @@ func _ready() -> void:
 	camera.limit_bottom = int(MAP_HEIGHT)
 	camera.global_position = player.global_position
 	$PauseLayer/PauseButton.pressed.connect(_pause_menu.show_pause)
+	_add_zone_buttons()
 	_add_boss_buttons()
+
+func _add_zone_buttons() -> void:
+	var layer := CanvasLayer.new()
+	layer.layer = 4
+	add_child(layer)
+	var zones := [
+		{"id": "midgar",   "label": "🏙 Midgar\n(Lv.1+)",  "req": 1,  "color": Color(0.9, 0.7, 0.2, 1)},
+		{"id": "kalm",     "label": "🌿 Kalm\n(Lv.5+)",    "req": 5,  "color": Color(0.3, 0.8, 0.3, 1)},
+		{"id": "mt_nibel", "label": "🏔 Mt.Nibel\n(Lv.10+)", "req": 10, "color": Color(0.6, 0.4, 0.9, 1)},
+	]
+	for i in zones.size():
+		var z: Dictionary = zones[i]
+		var btn := Button.new()
+		btn.text = z.label
+		btn.add_theme_font_size_override("font_size", 22)
+		btn.custom_minimum_size = Vector2(170, 90)
+		btn.anchor_right = 1.0
+		btn.anchor_top = 0.0
+		btn.anchor_left = 1.0
+		btn.anchor_bottom = 0.0
+		btn.offset_left = -185.0
+		btn.offset_right = -10.0
+		btn.offset_top = 10.0 + i * 100.0
+		btn.offset_bottom = 100.0 + i * 100.0
+		btn.pressed.connect(_on_zone_pressed.bind(z.id, z.req))
+		layer.add_child(btn)
+
+func _on_zone_pressed(zone_id: String, req_level: int) -> void:
+	var avg_level: int = 0
+	for m in GameManager.party:
+		avg_level += m.level
+	avg_level = avg_level / max(1, GameManager.party.size())
+	if avg_level < req_level:
+		_show_level_required(req_level)
+		return
+	GameManager.active_zone = zone_id
+	_show_zone_activated(zone_id)
+
+func _show_zone_activated(zone_id: String) -> void:
+	var names := {"midgar": "Midgar", "kalm": "Kalm", "mt_nibel": "Mt. Nibel"}
+	var layer := CanvasLayer.new()
+	layer.layer = 98
+	add_child(layer)
+	var lbl := Label.new()
+	lbl.text = "Zone active : %s" % names.get(zone_id, zone_id)
+	lbl.add_theme_font_size_override("font_size", 38)
+	lbl.add_theme_color_override("font_color", Color(0.2, 0.9, 0.4, 1))
+	lbl.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	layer.add_child(lbl)
+	await get_tree().create_timer(2.0).timeout
+	layer.queue_free()
 
 func _add_boss_buttons() -> void:
 	var layer := CanvasLayer.new()

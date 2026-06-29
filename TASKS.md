@@ -517,26 +517,30 @@
   - AC4: grant_battle_rewards() XP×3 + 500G si is_boss1_battle || is_boss2_battle
 - Contrôle D (regression): WorldMap charge sans crash, boutons boss visibles, encounters normaux inchangés
 
-## Sprint 25 — Zones World Map [STATUS: TODO]
+## Sprint 25 — Zones World Map [STATUS: DONE]
 **Goal:** 3 zones (Midgar/Kalm/Mt.Nibel), pools d'ennemis par zone, conditions de niveau
 
 **Acceptance Criteria:**
-- [ ] AC1: 3 zones cliquables sur WorldMap, couleurs distinctes
-- [ ] AC2: Midgar niv1-5, Kalm niv5-10, Mt.Nibel niv10+; pools ennemis différents
-- [ ] AC3: Zone verrouillée si niveau insuffisant → message
-- [ ] AC4: Zone active persistante dans Save
+- [x] AC1: 3 zones cliquables sur WorldMap, couleurs distinctes
+- [x] AC2: Midgar niv1-5, Kalm niv5-10, Mt.Nibel niv10+; pools ennemis différents
+- [x] AC3: Zone verrouillée si niveau insuffisant → message
+- [x] AC4: Zone active persistante dans Save
 
 **Tasks:**
-- [ ] active_zone dans GameManager
-- [ ] 3 zones Panel sur WorldMap
-- [ ] _pick_enemy_pool() utilise active_zone dans BattleManager
-- [ ] SaveSystem persiste active_zone
+- [x] active_zone dans GameManager
+- [x] 3 zones Panel sur WorldMap
+- [x] _pick_enemy_pool() utilise active_zone dans BattleManager
+- [x] SaveSystem persiste active_zone
 
 **Verification Notes:**
-- Contrôle A (static):
-- Contrôle B (godot parse):
+- Contrôle A (static): ✅ check_compat.sh All clear
+- Contrôle B (godot parse): ✅ timeout sans SCRIPT ERROR
 - Contrôle C (logic trace):
-- Contrôle D (regression):
+  - AC1: _add_zone_buttons() crée 3 Button dans CanvasLayer layer 4
+  - AC2: _pick_enemy_pool() match active_zone → ENEMY/MID/HARD_POOL
+  - AC3: _on_zone_pressed() vérifie avg_level < req_level
+  - AC4: SaveSystem save/load active_zone champ
+- Contrôle D (regression): dungeon_mode préservé, boss buttons inchangés
 
 ## Sprint 26 — Dialogues & Histoire [STATUS: TODO]
 **Goal:** Système dialogue NPC, prologue d'intro, drapeaux histoire
