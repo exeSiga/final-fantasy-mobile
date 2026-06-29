@@ -10,3 +10,4 @@ stat_bonus = 10
 price = 150
 allowed_classes = ["Warrior"]
 description = "A basic blade for warriors."
+materia_slots = 2

@@ -10,3 +10,4 @@ stat_bonus = 5
 price = 150
 allowed_classes = ["Black Mage", "White Mage"]
 description = "A light robe with woven protection spells."
+materia_slots = 1

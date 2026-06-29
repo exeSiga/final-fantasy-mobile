@@ -11,3 +11,4 @@ price = 120
 allowed_classes = ["Warrior", "White Mage"]
 
 description = "Flexible protection."
+materia_slots = 1

@@ -24,3 +24,4 @@
 [2026-06-29 23:30] Sprint 19 (Ennemis avancés + Progression) — DONE — Orc/Shadow/Troll/Gargoyle avec AI spécialisée, pools MID/HARD par niveau, _pick_enemy_pool(), 13/13 tests
 [2026-06-29 23:45] Sprint 20 (Status Menu + Auberge) — DONE — StatusMenu complet (HP/MP/ATK/DEF/SPD/XP/Equipment), InnNPC 30G sur WorldMap, 13/13 tests
 [2026-06-29 23:55] Sprint 21 (Animations visuelles) — DONE — Hit flash blanc/rouge/vert sur sprites, LEVEL UP popup, sprites Orc/Shadow/Troll/Gargoyle, 13/13 tests
+[2026-06-30 00:44] Sprint 22 (Limit Breaks) — DONE — jauge 0-100, _fill_limit_gauge(), player_limit_break(), Blade Fury/Meteor/Holy Light, ⚡ panel party

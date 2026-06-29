@@ -6,3 +6,4 @@ extends Resource
 @export var price: int = 0
 @export var allowed_classes: Array = []   # e.g. ["Warrior"] — empty = all
 @export var description: String = ""
+@export var materia_slots: int = 0

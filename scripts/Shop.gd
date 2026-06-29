@@ -7,6 +7,15 @@ const SHOP_ITEMS: Array[String] = [
 	"res://resources/items/phoenix_down.tres",
 ]
 
+const SHOP_MATERIAS: Array[String] = [
+	"res://resources/materias/fire_materia.tres",
+	"res://resources/materias/thunder_materia.tres",
+	"res://resources/materias/blizzard_materia.tres",
+	"res://resources/materias/cure_materia.tres",
+	"res://resources/materias/hp_plus_materia.tres",
+	"res://resources/materias/mp_plus_materia.tres",
+]
+
 const SHOP_EQUIP: Array[String] = [
 	"res://resources/equipment/short_sword.tres",
 	"res://resources/equipment/long_sword.tres",
@@ -41,6 +50,11 @@ func _build_shop() -> void:
 		var bonus_stat: String = "ATK" if item.slot == 0 else "DEF"
 		var lbl_extra: String = " [+%d %s]" % [item.stat_bonus, bonus_stat]
 		_add_item_row(item.equip_name + lbl_extra, item.price, _on_buy_equip.bind(item))
+	# --- Materia section ---
+	_add_section_header("⚡ Materia")
+	for path in SHOP_MATERIAS:
+		var mat = load(path)
+		_add_item_row(mat.materia_name + " — " + mat.description, mat.price, _on_buy_materia.bind(mat))
 
 func _add_section_header(title: String) -> void:
 	var lbl := Label.new()
@@ -80,6 +94,17 @@ func _on_buy_equip(item) -> void:
 		gold_label.text = "Gold: %d" % GameManager.gold
 	else:
 		status_label.text = "Not enough gold!"
+	await get_tree().create_timer(1.2).timeout
+	status_label.text = ""
+
+func _on_buy_materia(mat) -> void:
+	if GameManager.buy_materia(mat):
+		status_label.text = "Bought %s!" % mat.materia_name
+		gold_label.text = "Gold: %d" % GameManager.gold
+	else:
+		status_label.text = "Not enough gold!"
+	await get_tree().create_timer(1.2).timeout
+	status_label.text = ""
 	await get_tree().create_timer(1.5).timeout
 	status_label.text = ""
 

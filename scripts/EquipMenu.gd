@@ -28,10 +28,20 @@ func _build_member_section(idx: int) -> void:
 	sec.add_child(header)
 	_add_slot_row(sec, idx, "weapon", "[W]")
 	_add_slot_row(sec, idx, "armor",  "[A]")
+	var mat_btn := Button.new()
+	mat_btn.text = "⚡ Manage Materia"
+	mat_btn.add_theme_font_size_override("font_size", 22)
+	mat_btn.add_theme_color_override("font_color", Color(1.0, 0.85, 0.0, 1.0))
+	mat_btn.pressed.connect(_on_open_materia)
+	sec.add_child(mat_btn)
 	var sep := HSeparator.new()
 	sep.custom_minimum_size = Vector2(0, 10)
 	sec.add_child(sep)
 	_content.add_child(sec)
+
+func _on_open_materia() -> void:
+	var menu = load("res://scenes/ui/MateriaMenu.tscn").instantiate()
+	get_tree().root.add_child(menu)
 
 func _add_slot_row(parent: Node, member_idx: int, slot_name: String, prefix: String) -> void:
 	var row := HBoxContainer.new()

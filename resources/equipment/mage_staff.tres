@@ -10,3 +10,4 @@ stat_bonus = 8
 price = 200
 allowed_classes = ["Black Mage", "White Mage"]
 description = "Amplifies magical power."
+materia_slots = 2

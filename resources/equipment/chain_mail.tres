@@ -10,3 +10,4 @@ stat_bonus = 15
 price = 350
 allowed_classes = ["Warrior"]
 description = "Interlocked rings of steel."
+materia_slots = 1

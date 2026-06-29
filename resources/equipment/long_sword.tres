@@ -10,3 +10,4 @@ stat_bonus = 20
 price = 400
 allowed_classes = ["Warrior"]
 description = "A heavy blade with superior reach."
+materia_slots = 2

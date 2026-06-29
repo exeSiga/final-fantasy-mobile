@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="Materia" load_steps=2 format=3 uid="uid://mat_mp_plus"]
+
+[ext_resource type="Script" path="res://scripts/Materia.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+materia_name = "MP+ Materia"
+materia_type = "passive"
+spell_path = ""
+passive_stat = "mp"
+passive_pct = 0.3
+price = 500
+description = "Increases max MP by 30%."

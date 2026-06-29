@@ -64,12 +64,34 @@ func _pick_enemy_pool() -> Array:
 	else:
 		return DUNGEON_POOL if dungeon_mode else ENEMY_POOL
 
+func _apply_spell_materias() -> void:
+	for i in party.size():
+		var member = party[i]
+		if i < GameManager.base_party_spell_paths.size():
+			member.spell_paths = GameManager.base_party_spell_paths[i].duplicate()
+		for slot_name in ["weapon", "armor"]:
+			var item = GameManager.equipment[i].get(slot_name)
+			if item == null:
+				continue
+			var slots: int = item.materia_slots if "materia_slots" in item else 0
+			for s in range(slots):
+				var mkey: String = "%d_%s_%d" % [i, slot_name, s]
+				var mat_path: String = GameManager.materia_equipped.get(mkey, "")
+				if mat_path == "":
+					continue
+				var mat = load(mat_path)
+				if mat == null or mat.materia_type != "spell" or mat.spell_path == "":
+					continue
+				if not mat.spell_path in member.spell_paths:
+					member.spell_paths.append(mat.spell_path)
+
 func start_battle(dungeon: bool = false, boss: bool = false) -> void:
 	is_boss_battle = boss
 	dungeon_mode = dungeon
 	if GameManager.party.is_empty():
 		GameManager.new_game()
 	party = GameManager.party
+	_apply_spell_materias()
 	player_unit = null
 	enemies.clear()
 	if is_boss_battle:

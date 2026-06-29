@@ -10,3 +10,4 @@ stat_bonus = 15
 price = 500
 allowed_classes = ["Black Mage"]
 description = "A staff crackling with dark energy."
+materia_slots = 2

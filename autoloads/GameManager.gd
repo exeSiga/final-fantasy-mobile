@@ -14,6 +14,9 @@ var equipment: Array = [               # one dict per party member
 	{"weapon": null, "armor": null},
 	{"weapon": null, "armor": null},
 ]
+var materia_inventory: Dictionary = {} # resource_path → count
+var materia_equipped: Dictionary = {}  # "member_weapon_0" → resource_path
+var base_party_spell_paths: Array = [[], [], []]
 var return_after_battle: String = "res://scenes/world/WorldMap.tscn"
 var dungeon_boss_cleared = false
 var dungeon_return_room: int = -1
@@ -50,6 +53,11 @@ func new_game() -> void:
 		{"weapon": null, "armor": null},
 		{"weapon": null, "armor": null},
 	]
+	materia_inventory = {}
+	materia_equipped = {}
+	base_party_spell_paths = []
+	for m in party:
+		base_party_spell_paths.append(m.spell_paths.duplicate())
 	dungeon_boss_cleared = false
 	dungeon_return_room = -1
 
@@ -171,6 +179,60 @@ func _remove_equip_bonus(member, item: Resource) -> void:
 		member.atk -= item.stat_bonus
 	else:
 		member.def -= item.stat_bonus
+
+func buy_materia(mat: Resource) -> bool:
+	if gold < mat.price:
+		return false
+	gold -= mat.price
+	gold_changed.emit(gold)
+	var key: String = mat.resource_path
+	materia_inventory[key] = materia_inventory.get(key, 0) + 1
+	return true
+
+func equip_materia(member_idx: int, slot_name: String, slot_idx: int, mat_path: String) -> bool:
+	if member_idx < 0 or member_idx >= party.size():
+		return false
+	if materia_inventory.get(mat_path, 0) <= 0:
+		return false
+	var key: String = "%d_%s_%d" % [member_idx, slot_name, slot_idx]
+	var old_path: String = materia_equipped.get(key, "")
+	if old_path != "":
+		unequip_materia(member_idx, slot_name, slot_idx)
+	materia_inventory[mat_path] -= 1
+	if materia_inventory[mat_path] <= 0:
+		materia_inventory.erase(mat_path)
+	materia_equipped[key] = mat_path
+	var mat = load(mat_path)
+	if mat != null and mat.materia_type == "passive":
+		var member = party[member_idx]
+		if mat.passive_stat == "hp":
+			var bonus: int = int(member.max_hp * mat.passive_pct)
+			member.max_hp += bonus
+			member.hp = min(member.hp + bonus, member.max_hp)
+		elif mat.passive_stat == "mp":
+			var bonus: int = int(member.max_mp * mat.passive_pct)
+			member.max_mp += bonus
+			member.mp = min(member.mp + bonus, member.max_mp)
+	return true
+
+func unequip_materia(member_idx: int, slot_name: String, slot_idx: int) -> void:
+	var key: String = "%d_%s_%d" % [member_idx, slot_name, slot_idx]
+	var mat_path: String = materia_equipped.get(key, "")
+	if mat_path == "":
+		return
+	materia_equipped.erase(key)
+	materia_inventory[mat_path] = materia_inventory.get(mat_path, 0) + 1
+	var mat = load(mat_path)
+	if mat != null and mat.materia_type == "passive":
+		var member = party[member_idx]
+		if mat.passive_stat == "hp":
+			var bonus: int = int(member.max_hp * mat.passive_pct / (1.0 + mat.passive_pct))
+			member.max_hp = max(1, member.max_hp - bonus)
+			member.hp = min(member.hp, member.max_hp)
+		elif mat.passive_stat == "mp":
+			var bonus: int = int(member.max_mp * mat.passive_pct / (1.0 + mat.passive_pct))
+			member.max_mp = max(0, member.max_mp - bonus)
+			member.mp = min(member.mp, member.max_mp)
 
 func buy_item(item: Resource) -> bool:
 	if gold < item.price:

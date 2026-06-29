@@ -468,7 +468,7 @@
   - AC4: limit_gauge = 0 avant match dans player_limit_break(). ✅
 - Contrôle D (regression): start_battle inchangé, gauge = 0 au départ → Attack visible. Flow complet préservé. ✅
 
-## Sprint 23 — Système Materia [STATUS: TODO]
+## Sprint 23 — Système Materia [STATUS: DONE]
 **Goal:** Orbes équipables sur armes/armures qui confèrent sorts ou bonus passifs
 
 **Acceptance Criteria:**

@@ -41,6 +41,8 @@ func save(slot: int) -> void:
 		"gold": GameManager.gold,
 		"equip_inventory": GameManager.equip_inventory,
 		"equipment": _equipment_to_array(),
+		"materia_inventory": GameManager.materia_inventory,
+		"materia_equipped": GameManager.materia_equipped,
 		"timestamp": Time.get_datetime_string_from_system(),
 		"playtime": Time.get_ticks_msec() / 1000,
 	}
@@ -75,8 +77,9 @@ func load_save(slot: int) -> bool:
 		m.level = md.get("level", 1)
 		m.xp = md.get("xp", 0)
 		m.xp_to_next_level = md.get("xp_to_next_level", 100)
-	# Restore equipment inventory
 	GameManager.equip_inventory = d.get("equip_inventory", {})
+	GameManager.materia_inventory = d.get("materia_inventory", {})
+	GameManager.materia_equipped = d.get("materia_equipped", {})
 	var equip_data: Array = d.get("equipment", [])
 	for i in min(equip_data.size(), 3):
 		var ed: Dictionary = equip_data[i]
