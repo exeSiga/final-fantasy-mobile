@@ -29,6 +29,8 @@ func _run_all() -> void:
 	_test_status_effects()
 	_test_enemy_ai_types()
 	_test_equipment()
+	_test_new_enemies()
+	_test_level_pool_scaling()
 
 func _test_new_game() -> void:
 	GameManager.new_game()
@@ -194,6 +196,39 @@ func _test_equipment() -> void:
 	if bm.atk != bm_atk_before + staff.stat_bonus:
 		_ko("equipment", "Black Mage ATK not increased"); return
 	_ok("equipment: buy/equip/unequip/class-restriction all OK (warrior ATK %d→%d→%d)" % [atk_before, warrior.atk + sword.stat_bonus, atk_before])
+
+func _test_new_enemies() -> void:
+	for path in BattleManager.MID_POOL + BattleManager.HARD_POOL:
+		var e = load(path)
+		if e == null:
+			_ko("new_enemies", "cannot load " + path); return
+		if e.atk <= 0:
+			_ko("new_enemies", path + " has atk=0"); return
+		if e.xp_reward <= 0:
+			_ko("new_enemies", path + " has xp_reward=0"); return
+	_ok("new_enemies: Orc/Shadow/Troll/Gargoyle all load with valid stats")
+
+func _test_level_pool_scaling() -> void:
+	GameManager.new_game()
+	BattleManager.party = GameManager.party
+	BattleManager.dungeon_mode = false
+	# At level 1 → ENEMY_POOL
+	var pool1: Array = BattleManager._pick_enemy_pool()
+	if not (pool1.has("res://resources/units/slime.tres") or pool1.has("res://resources/units/goblin.tres")):
+		_ko("level_pool_scaling", "level 1 should use ENEMY_POOL"); return
+	# Artificially raise level to 5 → MID_POOL
+	for m in GameManager.party:
+		m.level = 5
+	var pool5: Array = BattleManager._pick_enemy_pool()
+	if not (pool5.has("res://resources/units/orc.tres") or pool5.has("res://resources/units/shadow.tres")):
+		_ko("level_pool_scaling", "level 5 should use MID_POOL"); return
+	# Level 9 → HARD_POOL
+	for m in GameManager.party:
+		m.level = 9
+	var pool9: Array = BattleManager._pick_enemy_pool()
+	if not (pool9.has("res://resources/units/troll.tres") or pool9.has("res://resources/units/gargoyle.tres")):
+		_ko("level_pool_scaling", "level 9 should use HARD_POOL"); return
+	_ok("level_pool_scaling: lv1→ENEMY, lv5→MID, lv9→HARD")
 
 func _test_enemy_ai_types() -> void:
 	for path in [BattleManager.ENEMY_POOL[0], BattleManager.DUNGEON_POOL[0], BattleManager.BOSS_PATH]:

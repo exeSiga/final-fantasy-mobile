@@ -333,6 +333,29 @@
 
 ---
 
+## Sprint 19 — Ennemis avancés + Progression par niveau [STATUS: DONE]
+**Goal:** 4 nouveaux ennemis (Orc/Shadow/Troll/Gargoyle) avec IA propre + sélection automatique du pool ennemi selon le niveau de la party
+
+**Acceptance Criteria:**
+- [x] AC1: 4 nouveaux ennemis créés avec stats, sprites_color, faiblesses, xp_reward
+- [x] AC2: Chaque nouvel ennemi a une capacité spéciale (War Cry, Soul Drain, Regenerate, Stone Gaze)
+- [x] AC3: Le pool ennemi s'adapte : lv1-4=EASY, lv5-8=MID, lv9+=HARD
+- [x] AC4: MID_POOL et HARD_POOL exposés comme constantes (testables)
+
+**Tasks:**
+- [x] orc.tres, shadow.tres, troll.tres, gargoyle.tres (new enemy resources)
+- [x] BattleManager: MID_POOL, HARD_POOL, _avg_party_level(), _pick_enemy_pool()
+- [x] BattleManager: _ai_orc, _ai_shadow, _ai_troll, _ai_gargoyle
+- [x] TestHeadless: test_new_enemies, test_level_pool_scaling (13/13 pass)
+
+**Verification Notes:**
+- Contrôle A: ✅ All clear
+- Contrôle B: ✅ 13/13 tests
+- Contrôle C: _pick_enemy_pool() avg par niveau → sélection correcte validée par test ✅
+- Contrôle D: start_battle() utilise _pick_enemy_pool() — regression OK ✅
+
+---
+
 ## Sprint 18 — Sélection de cible en combat [STATUS: DONE]
 **Goal:** Le joueur choisit sa cible comme dans Final Fantasy — pas de ciblage aléatoire automatique
 

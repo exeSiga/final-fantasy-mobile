@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="CombatUnit" load_steps=2 format=3 uid="uid://troll"]
+
+[ext_resource type="Script" path="res://resources/CombatUnit.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+unit_name = "Troll"
+hp = 400
+max_hp = 400
+mp = 0
+max_mp = 0
+atk = 52
+def = 22
+spd = 14
+is_player = false
+sprite_color = Color(0.35, 0.55, 0.2, 1)
+level = 1
+xp = 0
+xp_to_next_level = 0
+xp_reward = 90
+gold_reward = 50
+character_class = ""
+element_weakness = "fire"
+spell_paths = []

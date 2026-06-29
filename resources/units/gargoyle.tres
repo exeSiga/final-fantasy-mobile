@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="CombatUnit" load_steps=2 format=3 uid="uid://gargoyle"]
+
+[ext_resource type="Script" path="res://resources/CombatUnit.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+unit_name = "Gargoyle"
+hp = 320
+max_hp = 320
+mp = 40
+max_mp = 40
+atk = 44
+def = 20
+spd = 38
+is_player = false
+sprite_color = Color(0.45, 0.4, 0.5, 1)
+level = 1
+xp = 0
+xp_to_next_level = 0
+xp_reward = 80
+gold_reward = 45
+character_class = ""
+element_weakness = "lightning"
+spell_paths = []

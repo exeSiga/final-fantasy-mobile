@@ -10,6 +10,14 @@ const DUNGEON_POOL := [
 	"res://resources/units/skeleton.tres",
 	"res://resources/units/bat.tres",
 ]
+const MID_POOL := [
+	"res://resources/units/orc.tres",
+	"res://resources/units/shadow.tres",
+]
+const HARD_POOL := [
+	"res://resources/units/troll.tres",
+	"res://resources/units/gargoyle.tres",
+]
 const BOSS_PATH := "res://resources/units/dark_knight.tres"
 
 const SPELL_DAMAGE := 0
@@ -38,6 +46,23 @@ var state: BattleState = BattleState.IDLE
 var last_xp: int = 0
 var last_gold: int = 0
 
+func _avg_party_level() -> int:
+	if party.is_empty():
+		return 1
+	var total: int = 0
+	for m in party:
+		total += m.level
+	return total / party.size()
+
+func _pick_enemy_pool() -> Array:
+	var avg: int = _avg_party_level()
+	if avg >= 9:
+		return HARD_POOL
+	elif avg >= 5:
+		return MID_POOL if dungeon_mode else MID_POOL
+	else:
+		return DUNGEON_POOL if dungeon_mode else ENEMY_POOL
+
 func start_battle(dungeon: bool = false, boss: bool = false) -> void:
 	is_boss_battle = boss
 	dungeon_mode = dungeon
@@ -49,7 +74,7 @@ func start_battle(dungeon: bool = false, boss: bool = false) -> void:
 	if is_boss_battle:
 		enemies.append(load(BOSS_PATH).duplicate())
 	else:
-		var pool: Array = DUNGEON_POOL if dungeon_mode else ENEMY_POOL
+		var pool: Array = _pick_enemy_pool()
 		enemies.append(load(pool[randi() % pool.size()]).duplicate())
 		if randi() % 2 == 0:
 			enemies.append(load(pool[randi() % pool.size()]).duplicate())
@@ -249,6 +274,10 @@ func _enemy_act(enemy) -> void:
 		"Goblin":      await _ai_goblin(enemy)
 		"Skeleton":    _ai_skeleton(enemy)
 		"Bat":         _ai_bat(enemy)
+		"Orc":         _ai_orc(enemy)
+		"Shadow":      await _ai_shadow(enemy)
+		"Troll":       await _ai_troll(enemy)
+		"Gargoyle":    _ai_gargoyle(enemy)
 		"Dark Knight": await _ai_dark_knight(enemy)
 		_:             _ai_basic_attack(enemy)
 	_check_battle_end()
@@ -325,6 +354,57 @@ func _find_alive_mage():
 		if m.is_alive() and m.spell_paths.size() > 0 and m.status != "silence":
 			return m
 	return null
+
+func _ai_orc(enemy) -> void:
+	if randf() < 0.30:
+		# War Cry: ATK buff for 1 turn
+		enemy.atk = int(enemy.atk * 1.3)
+		battle_log.emit("War Cry! %s rages!" % enemy.unit_name)
+		action_result.emit(enemy.unit_name, enemy.unit_name, 0, false)
+	else:
+		_ai_basic_attack(enemy)
+
+func _ai_shadow(enemy) -> void:
+	if randf() < 0.40:
+		# Soul Drain: attack + drain MP from a mage
+		var mage = _find_alive_mage()
+		var target = mage if mage != null else _random_alive_ally()
+		if target == null:
+			return
+		battle_log.emit("Soul Drain!")
+		var dmg: int = int(enemy.atk * 0.7 * randf_range(0.85, 1.15))
+		var actual: int = target.take_damage(dmg)
+		action_result.emit(enemy.unit_name, target.unit_name, actual, false)
+		if target.max_mp > 0 and target.is_alive():
+			var mp_drain: int = min(target.mp, 15)
+			target.mp -= mp_drain
+			battle_log.emit("%s lost %d MP!" % [target.unit_name, mp_drain])
+	else:
+		_ai_basic_attack(enemy)
+
+func _ai_troll(enemy) -> void:
+	if randf() < 0.25:
+		# Regenerate: heal 10% max HP
+		var regen: int = int(enemy.max_hp * 0.10)
+		enemy.hp = min(enemy.max_hp, enemy.hp + regen)
+		battle_log.emit("Troll regenerates!")
+		action_result.emit(enemy.unit_name, enemy.unit_name, -regen, false)
+		await get_tree().create_timer(0.4).timeout
+	_ai_basic_attack(enemy)
+
+func _ai_gargoyle(enemy) -> void:
+	if randf() < 0.35:
+		# Stone Gaze: 40% petrify chance — simplified as sleep for 2 turns
+		var target = _random_alive_ally()
+		if target == null:
+			return
+		battle_log.emit("Stone Gaze!")
+		if target.inflict_status("sleep"):
+			target.status_turns = 2
+			battle_log.emit("%s is petrified!" % target.unit_name)
+			action_result.emit(enemy.unit_name, target.unit_name, 0, false)
+			return
+	_ai_basic_attack(enemy)
 
 func _ai_dark_knight(enemy) -> void:
 	if randf() < 0.35:
