@@ -7,6 +7,13 @@ const SHOP_ITEMS: Array[String] = [
 	"res://resources/items/phoenix_down.tres",
 ]
 
+const SHOP_SUMMONS: Array[String] = [
+	"res://resources/materias/summon_ifrit.tres",
+	"res://resources/materias/summon_shiva.tres",
+	"res://resources/materias/summon_ramuh.tres",
+	"res://resources/materias/summon_bahamut.tres",
+]
+
 const SHOP_MATERIAS: Array[String] = [
 	"res://resources/materias/fire_materia.tres",
 	"res://resources/materias/thunder_materia.tres",
@@ -53,6 +60,11 @@ func _build_shop() -> void:
 	# --- Materia section ---
 	_add_section_header("⚡ Materia")
 	for path in SHOP_MATERIAS:
+		var mat = load(path)
+		_add_item_row(mat.materia_name + " — " + mat.description, mat.price, _on_buy_materia.bind(mat))
+	# --- Summon Materia section ---
+	_add_section_header("★ Summon Materia")
+	for path in SHOP_SUMMONS:
 		var mat = load(path)
 		_add_item_row(mat.materia_name + " — " + mat.description, mat.price, _on_buy_materia.bind(mat))
 

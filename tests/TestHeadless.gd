@@ -31,6 +31,9 @@ func _run_all() -> void:
 	_test_equipment()
 	_test_new_enemies()
 	_test_level_pool_scaling()
+	_test_summon_materia_load()
+	_test_summon_charges_reset()
+	_test_summon_aoe_damage()
 
 func _test_new_game() -> void:
 	GameManager.new_game()
@@ -212,23 +215,23 @@ func _test_level_pool_scaling() -> void:
 	GameManager.new_game()
 	BattleManager.party = GameManager.party
 	BattleManager.dungeon_mode = false
-	# At level 1 → ENEMY_POOL
+	# midgar zone → ENEMY_POOL
+	GameManager.active_zone = "midgar"
 	var pool1: Array = BattleManager._pick_enemy_pool()
 	if not (pool1.has("res://resources/units/slime.tres") or pool1.has("res://resources/units/goblin.tres")):
-		_ko("level_pool_scaling", "level 1 should use ENEMY_POOL"); return
-	# Artificially raise level to 5 → MID_POOL
-	for m in GameManager.party:
-		m.level = 5
+		_ko("level_pool_scaling", "midgar should use ENEMY_POOL"); return
+	# kalm zone → MID_POOL
+	GameManager.active_zone = "kalm"
 	var pool5: Array = BattleManager._pick_enemy_pool()
 	if not (pool5.has("res://resources/units/orc.tres") or pool5.has("res://resources/units/shadow.tres")):
-		_ko("level_pool_scaling", "level 5 should use MID_POOL"); return
-	# Level 9 → HARD_POOL
-	for m in GameManager.party:
-		m.level = 9
+		_ko("level_pool_scaling", "kalm should use MID_POOL"); return
+	# mt_nibel zone → HARD_POOL
+	GameManager.active_zone = "mt_nibel"
 	var pool9: Array = BattleManager._pick_enemy_pool()
 	if not (pool9.has("res://resources/units/troll.tres") or pool9.has("res://resources/units/gargoyle.tres")):
-		_ko("level_pool_scaling", "level 9 should use HARD_POOL"); return
-	_ok("level_pool_scaling: lv1→ENEMY, lv5→MID, lv9→HARD")
+		_ko("level_pool_scaling", "mt_nibel should use HARD_POOL"); return
+	GameManager.active_zone = "midgar"
+	_ok("level_pool_scaling: midgar→ENEMY, kalm→MID, mt_nibel→HARD")
 
 func _test_enemy_ai_types() -> void:
 	for path in [BattleManager.ENEMY_POOL[0], BattleManager.DUNGEON_POOL[0], BattleManager.BOSS_PATH]:
@@ -251,3 +254,62 @@ func _test_spells_per_class() -> void:
 	if white_mage.spell_paths.size() != 4:
 		_ko("spells_per_class", "white_mage should have 4 spells, has %d" % white_mage.spell_paths.size()); return
 	_ok("spells_per_class: Warrior=0, BlackMage=3, WhiteMage=4")
+
+func _test_summon_materia_load() -> void:
+	var paths: Array[String] = [
+		"res://resources/materias/summon_ifrit.tres",
+		"res://resources/materias/summon_shiva.tres",
+		"res://resources/materias/summon_ramuh.tres",
+		"res://resources/materias/summon_bahamut.tres",
+	]
+	for path in paths:
+		var mat = load(path)
+		if mat == null:
+			_ko("summon_materia_load", "cannot load " + path); return
+		if mat.materia_type != "summon":
+			_ko("summon_materia_load", path + " type=" + mat.materia_type + " (expected summon)"); return
+		if mat.passive_pct <= 0.0:
+			_ko("summon_materia_load", path + " passive_pct=0"); return
+	_ok("summon_materia_load: 4 summon materias load with correct type/multiplier")
+
+func _test_summon_charges_reset() -> void:
+	GameManager.new_game()
+	# Manually set a summon materia as equipped
+	var mat_path: String = "res://resources/materias/summon_ifrit.tres"
+	GameManager.materia_equipped["0_weapon_0"] = mat_path
+	GameManager.reset_summon_charges()
+	var charges: int = GameManager.summon_charges.get(mat_path, -1)
+	if charges != 1:
+		_ko("summon_charges_reset", "expected 1 charge, got %d" % charges); return
+	# After using, charges should be 0
+	GameManager.summon_charges[mat_path] = 0
+	var available: Array = BattleManager._get_available_summons()
+	if available.has(mat_path):
+		_ko("summon_charges_reset", "spent summon should not appear in available list"); return
+	_ok("summon_charges_reset: reset gives 1 charge, spent summon excluded from available")
+
+func _test_summon_aoe_damage() -> void:
+	GameManager.new_game()
+	BattleManager.party = GameManager.party
+	BattleManager.dungeon_mode = false
+	BattleManager.is_boss_battle = false
+	BattleManager.is_boss1_battle = false
+	BattleManager.is_boss2_battle = false
+	var slime = load("res://resources/units/slime.tres").duplicate()
+	var goblin = load("res://resources/units/goblin.tres").duplicate()
+	BattleManager.enemies = [slime, goblin]
+	BattleManager.state = BattleManager.BattleState.PLAYER_TURN
+	BattleManager.player_unit = GameManager.party[0]
+	var mat_path: String = "res://resources/materias/summon_bahamut.tres"
+	GameManager.materia_equipped["0_weapon_0"] = mat_path
+	GameManager.reset_summon_charges()
+	var hp_before_slime: int = slime.hp
+	var hp_before_goblin: int = goblin.hp
+	BattleManager.player_summon(mat_path)
+	if slime.hp >= hp_before_slime:
+		_ko("summon_aoe_damage", "Bahamut should damage slime"); return
+	if goblin.hp >= hp_before_goblin:
+		_ko("summon_aoe_damage", "Bahamut should damage goblin"); return
+	if GameManager.summon_charges.get(mat_path, 1) != 0:
+		_ko("summon_aoe_damage", "summon charge should be 0 after use"); return
+	_ok("summon_aoe_damage: Bahamut AoE hits both enemies, charge consumed")

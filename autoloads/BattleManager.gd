@@ -42,6 +42,7 @@ signal action_result(attacker: String, target: String, damage: int, is_crit: boo
 signal battle_log(message: String)
 signal battle_ended(victory: bool)
 signal limit_gauge_updated(unit)
+signal summon_triggered(summon_name, element)
 
 var party: Array = []
 var player_unit = null
@@ -98,6 +99,7 @@ func start_battle(dungeon: bool = false, boss: bool = false) -> void:
 		GameManager.new_game()
 	party = GameManager.party
 	_apply_spell_materias()
+	GameManager.reset_summon_charges()
 	player_unit = null
 	enemies.clear()
 	if is_boss1_battle:
@@ -247,6 +249,39 @@ func player_limit_break() -> void:
 				var dmg: int = int(player_unit.atk * 2.0 * randf_range(0.90, 1.10))
 				e.take_damage_ignore_def(dmg)
 				action_result.emit(player_unit.unit_name, e.unit_name, dmg, true)
+	_after_player_turn()
+
+func _get_available_summons() -> Array:
+	var result: Array = []
+	for key in GameManager.materia_equipped:
+		var mat_path: String = GameManager.materia_equipped[key]
+		var mat = load(mat_path)
+		if mat != null and mat.materia_type == "summon":
+			var charges: int = GameManager.summon_charges.get(mat_path, 0)
+			if charges > 0 and not mat_path in result:
+				result.append(mat_path)
+	return result
+
+func player_summon(mat_path: String) -> void:
+	if state != BattleState.PLAYER_TURN or player_unit == null:
+		return
+	if GameManager.summon_charges.get(mat_path, 0) <= 0:
+		return
+	var mat = load(mat_path)
+	if mat == null:
+		return
+	GameManager.summon_charges[mat_path] = 0
+	var mult: float = mat.passive_pct
+	battle_log.emit("★ %s!" % mat.materia_name.to_upper())
+	var alive: Array = enemies.filter(func(e) -> bool: return e.is_alive())
+	for e in alive:
+		var dmg: int = int(player_unit.atk * mult * randf_range(0.90, 1.10))
+		if mat.passive_stat != "" and e.element_weakness == mat.passive_stat:
+			dmg = int(dmg * 1.5)
+			battle_log.emit("Weakness! %s takes extra!" % e.unit_name)
+		e.hp = max(0, e.hp - dmg)
+		action_result.emit(mat.materia_name, e.unit_name, dmg, false)
+	summon_triggered.emit(mat.materia_name, mat.passive_stat)
 	_after_player_turn()
 
 func player_attack(target = null) -> void:

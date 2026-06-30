@@ -18,6 +18,8 @@ extends Node2D
 @onready var _party_sprites: Array = [$PartySprite0, $PartySprite1, $PartySprite2]
 @onready var _target_menu: VBoxContainer  = $UI/TargetMenu
 @onready var _target_list: VBoxContainer  = $UI/TargetMenu/TargetList
+@onready var _summon_menu: VBoxContainer  = $UI/SummonMenu
+@onready var _summon_btn: Button          = $UI/ActionButtons/SummonButton
 
 const UnitSprite = preload("res://scripts/UnitSprite.gd")
 
@@ -41,6 +43,7 @@ func _ready() -> void:
 	gameover_overlay.hide()
 	magic_menu.hide()
 	item_menu.hide()
+	_summon_menu.hide()
 	_create_limit_button()
 	_fade_in()
 	AudioManager.play_battle_bgm()
@@ -50,6 +53,7 @@ func _ready() -> void:
 	BattleManager.battle_ended.connect(_on_battle_ended)
 	BattleManager.battle_log.connect(_log)
 	BattleManager.limit_gauge_updated.connect(_on_limit_gauge_updated)
+	BattleManager.summon_triggered.connect(_on_summon_triggered)
 	GameManager.level_up.connect(_on_level_up)
 	BattleManager.start_battle(BattleManager.dungeon_mode, BattleManager.is_boss_battle)
 
@@ -166,6 +170,7 @@ func _on_turn_changed(unit) -> void:
 		_highlight_active_member()
 		_rebuild_magic_button(unit)
 		_update_limit_button(unit)
+		_update_summon_button()
 	_log("%s's turn" % unit.unit_name)
 
 func _update_limit_button(unit) -> void:
@@ -488,6 +493,58 @@ func _on_target_cancel_pressed() -> void:
 func _on_item_close_pressed() -> void:
 	item_menu.hide()
 	action_buttons.show()
+
+func _update_summon_button() -> void:
+	var available: Array = BattleManager._get_available_summons()
+	_summon_btn.visible = available.size() > 0
+
+func _on_summon_pressed() -> void:
+	action_buttons.hide()
+	_show_summon_menu()
+
+func _show_summon_menu() -> void:
+	for c in _summon_menu.get_children():
+		if c.name != "SummonCloseButton":
+			c.queue_free()
+	var available: Array = BattleManager._get_available_summons()
+	for mat_path in available:
+		var mat = load(mat_path)
+		var btn := Button.new()
+		btn.text = "%s — %s" % [mat.materia_name, mat.description]
+		btn.add_theme_font_size_override("font_size", 28)
+		btn.add_theme_color_override("font_color", Color(0.9, 0.7, 1.0, 1))
+		btn.pressed.connect(_on_summon_selected.bind(mat_path))
+		_summon_menu.add_child(btn)
+	_summon_menu.show()
+
+func _on_summon_selected(mat_path: String) -> void:
+	_summon_menu.hide()
+	action_buttons.show()
+	BattleManager.player_summon(mat_path)
+
+func _on_summon_close_pressed() -> void:
+	_summon_menu.hide()
+	action_buttons.show()
+
+func _on_summon_triggered(summon_name: String, element: String) -> void:
+	_animate_summon_flash(element)
+	_shake_screen(24.0)
+	_spawn_popup("★ %s!" % summon_name, Color(0.9, 0.7, 1.0, 1))
+
+func _animate_summon_flash(element: String) -> void:
+	var color: Color
+	match element:
+		"fire":      color = Color(1.0, 0.4, 0.0, 0.5)
+		"ice":       color = Color(0.4, 0.8, 1.0, 0.5)
+		"lightning": color = Color(1.0, 1.0, 0.2, 0.5)
+		_:           color = Color(0.6, 0.2, 1.0, 0.5)
+	var overlay := ColorRect.new()
+	overlay.color = color
+	overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	popup_layer.add_child(overlay)
+	var tw := overlay.create_tween()
+	tw.tween_property(overlay, "color:a", 0.0, 0.3)
+	tw.tween_callback(overlay.queue_free)
 
 func _on_run_pressed() -> void:
 	BattleManager.player_run()

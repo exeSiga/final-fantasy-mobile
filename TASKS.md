@@ -618,3 +618,141 @@
   - AC3: _fade_in() CanvasLayer layer 100, alpha 1→0 0.4s; _fade_out() après 1.2s delay
   - AC4: _animate_attack(spr, direction) Tween position:x ±20px 0.08s aller/retour
 - Contrôle D (regression): null guards OK, popup_layer partagé sans conflit, flow inchangé
+
+---
+
+## Sprint 29 — Invocations (Summons) [STATUS: DONE]
+**Goal:** 4 invocations FF7 (Ifrit/Shiva/Ramuh/Bahamut) déclenchables via Materia Invocation équipée
+
+**Acceptance Criteria:**
+- [ ] AC1: Materia "Summon Ifrit" (Feu AoE ×2, tous ennemis), "Summon Shiva" (Glace AoE ×2), "Summon Ramuh" (Foudre AoE ×2), "Summon Bahamut" (Néant AoE ×3) — achetables au Shop 1500G
+- [ ] AC2: Summon Materia équipée → bouton "SUMMON" dans menu combat, affiche les invocations disponibles
+- [ ] AC3: L'invocation coûte 1 usage par combat (max 1 fois par invocation par battle), costs 0 MP mais consomme 1 charge
+- [ ] AC4: Annonce "SUMMON — Ifrit!" dans le log, effet visuel flash ColorRect couleur thématique 0.3s, dégâts appliqués à tous les ennemis
+- [ ] AC5: Charges reset à 1 à la fin du combat (ou à l'auberge)
+
+**Tasks:**
+- [ ] Ajout de SUMMON comme EffectType dans Spell.gd (ou type séparé dans Materia.gd)
+- [ ] 4 materia summon .tres (summon_ifrit.tres, summon_shiva.tres, summon_ramuh.tres, summon_bahamut.tres)
+- [ ] GameManager: summon_charges dict {materia_path: charges_left}, reset_summon_charges()
+- [ ] BattleManager: player_summon(materia), _apply_summon_aoe(), signal summon_triggered(name, color)
+- [ ] Battle.gd: _show_summon_menu(), _on_summon_selected(), _animate_summon_flash(color)
+- [ ] Shop: section Summon Materias (1500G chacune)
+- [ ] TestHeadless: 5 tests (summon_aoe_dmg, summon_charge_limit, summon_reset)
+
+**Verification Notes:**
+- Contrôle A (static): ✅ check_compat.sh All clear
+- Contrôle B (godot parse): ✅ 16/16 tests headless (0 failed); test level_pool_scaling mis à jour zone-based
+- Contrôle C (logic trace):
+  - AC1: 4 .tres avec materia_type="summon", passive_stat=élément, passive_pct=multiplicateur, prix=1500G ✅
+  - AC2: _update_summon_button() appelé dans _on_turn_changed() → SummonButton visible si charges > 0 ✅
+  - AC3: GameManager.summon_charges[mat_path]=0 après usage; garde charges<=0 dans player_summon() ✅
+  - AC4: summon_triggered signal → _on_summon_triggered() → flash + shake + popup ✅
+  - AC5: reset_summon_charges() appelé dans start_battle() → 1 charge par summon en début de battle ✅
+- Contrôle D (regression): 16/16 tests passent; flow MainMenu→Battle inchangé; Limit/Magic/Item buttons préservés
+- Déferments: Animations de convocation élaborées (sprite invocation), son thématique par summon
+
+---
+
+## Sprint 30 — Sephiroth Boss Final (3 phases) [STATUS: TODO]
+**Goal:** Boss final iconique de FF7 — 3 phases progressives, attaque signature Supernova
+
+**Acceptance Criteria:**
+- [ ] AC1: Bouton "Boss Final — Sephiroth" sur WorldMap (requis niv 15), accès depuis zone Mt.Nibel
+- [ ] AC2: Phase 1 (100%→60% HP) — Shadow Flare sur un membre (×3 ATK, ignore DEF), +Masamune (×2 ATK physique)
+- [ ] AC3: Phase 2 (60%→30% HP) — "Heartless Angel" réduit HP de toute la party à 1, + Regen (20HP/tour sur lui-même)
+- [ ] AC4: Phase 3 (<30% HP) — "Supernova": dégâts = 60% HP max de chaque membre (unavoidable), puis attaque physique double chaque tour
+- [ ] AC5: Victoire → XP 5000 + 2000G + message "Sephiroth vaincu ! La planète est sauvée." + retour WorldMap
+
+**Tasks:**
+- [ ] sephiroth.tres (3000HP, atk 80, def 40, spd 12)
+- [ ] BattleManager: _ai_sephiroth(), _check_phase_transition() 3 paliers, Heartless Angel + Supernova + Masamune + Regen
+- [ ] WorldMap: bouton Sephiroth (niv 15 requis, zone Mt.Nibel)
+- [ ] Battle.gd: message de victoire spécial pour boss Sephiroth
+- [ ] TestHeadless: tests phase transitions + Heartless Angel + Supernova
+
+**Verification Notes:**
+- Contrôle A (static):
+- Contrôle B (godot parse):
+- Contrôle C (logic trace):
+- Contrôle D (regression):
+- Déferments:
+
+---
+
+## Sprint 31 — Rang de Soldat SOLDIER [STATUS: TODO]
+**Goal:** Système de progression méta — 3rd Class → 2nd Class → 1st Class SOLDIER selon les kills
+
+**Acceptance Criteria:**
+- [ ] AC1: 3 rangs: 3rd Class (0-49 kills), 2nd Class (50-149 kills), 1st Class SOLDIER (150+ kills) — basé sur total_kills dans GameManager
+- [ ] AC2: Rang affiché sur WorldHUD (ex: "[3rd Class] LV5  Gold: 120G")
+- [ ] AC3: Chaque rang débloque un bonus passif : 3rd=rien, 2nd=+10% XP tous combats, 1st=+15% ATK tous membres
+- [ ] AC4: Notification popup "Rang atteint : 2nd Class SOLDIER !" à la montée de rang
+- [ ] AC5: Rang sauvegardé/chargé dans SaveSystem
+
+**Tasks:**
+- [ ] GameManager: total_kills counter, get_soldier_rank() → String, get_rank_bonus()
+- [ ] BattleManager: incrémenter total_kills dans _check_battle_end(), appliquer xp bonus 2nd class
+- [ ] WorldHUD: affichage rang
+- [ ] Battle.gd: appliquer ATK bonus 1st class dans _compute_phys_damage()
+- [ ] Popup notification rang dans WorldMap ou via TransitionManager
+- [ ] SaveSystem: save/load total_kills
+- [ ] TestHeadless: 4 tests (rank thresholds, xp_bonus, atk_bonus)
+
+**Verification Notes:**
+- Contrôle A (static):
+- Contrôle B (godot parse):
+- Contrôle C (logic trace):
+- Contrôle D (regression):
+- Déferments:
+
+---
+
+## Sprint 32 — Événements Aléatoires WorldMap [STATUS: TODO]
+**Goal:** Rencontres non-combat sur la WorldMap — marchands, coffres cachés, PNJ aide
+
+**Acceptance Criteria:**
+- [ ] AC1: 10% de chance d'événement aléatoire à chaque groupe de 80 pas (au lieu d'un combat)
+- [ ] AC2: 3 types d'événements: Marchand itinérant (3 items aléatoires -20%), Coffre caché (+50-200G aléatoire), PNJ aide (soin 30HP à toute la party gratuitement)
+- [ ] AC3: Popup événement avec description et bouton de confirmation ("Acheter", "Ouvrir", "Merci")
+- [ ] AC4: Marchand itinérant utilise le ShopUI existant (sous-ensemble des items normaux)
+- [ ] AC5: Chaque type d'événement a une icône ColorRect distinctive (bleu=marchand, doré=coffre, vert=PNJ)
+
+**Tasks:**
+- [ ] WorldMap.gd: _check_random_event() dans step_counter logic, RANDOM_EVENT_CHANCE=0.1
+- [ ] WorldMap.gd: _trigger_merchant(), _trigger_chest(), _trigger_helper_npc()
+- [ ] EventPopup.tscn (CanvasLayer layer 30, ColorRect + Label + bouton confirm)
+- [ ] GameManager: random_merchant_discount=0.8, apply_merchant_discount()
+- [ ] TestHeadless: 3 tests (event probabilities, chest gold range, merchant discount)
+
+**Verification Notes:**
+- Contrôle A (static):
+- Contrôle B (godot parse):
+- Contrôle C (logic trace):
+- Contrôle D (regression):
+- Déferments:
+
+---
+
+## Sprint 33 — BGM Thématique par Zone + Météo WorldMap [STATUS: TODO]
+**Goal:** Musique procédurale distincte par zone FF7 + effets météo visuels sur WorldMap
+
+**Acceptance Criteria:**
+- [ ] AC1: 3 BGM distincts par zone : Midgar (gamme Phrygienne mineure, rythme 140 BPM), Kalm (pentatonique calme, 80 BPM, "thème Aerith"), Mt.Nibel (chromatique tendu, 120 BPM, "One Winged Angel")
+- [ ] AC2: BGM fade-out/fade-in lors du changement de zone (0.5s fade)
+- [ ] AC3: Effets météo visuels sur WorldMap : Midgar=smog (ColorRect gris semi-transparent α=0.15, léger clignotement), Kalm=ciel bleu (teinte fond), Mt.Nibel=brume (ColorRect blanc α=0.1 animé)
+- [ ] AC4: La météo change avec la zone active (pas aléatoire, liée à la zone)
+- [ ] AC5: Écran de titre animé : étoiles clignotantes (8 Label "*" en positions aléatoires, alpha animé), texte "FINAL FANTASY" défilant lentement vers le haut
+
+**Tasks:**
+- [ ] AudioManager: play_zone_bgm(zone_name), _gen_midgar_bgm(), _gen_kalm_bgm(), _gen_nibel_bgm(), bgm_fade_out/in()
+- [ ] WorldMap.gd: _update_weather(zone), WeatherLayer CanvasLayer layer 2 avec ColorRect animé
+- [ ] MainMenu.tscn: StarLayer (8 Label "*") + ScrollingTitle (Label "FINAL FANTASY" avec Tween position:y)
+- [ ] MainMenu.gd: _animate_stars(), _animate_title()
+
+**Verification Notes:**
+- Contrôle A (static):
+- Contrôle B (godot parse):
+- Contrôle C (logic trace):
+- Contrôle D (regression):
+- Déferments:

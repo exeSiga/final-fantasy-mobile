@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="Materia" load_steps=2 format=3 uid="uid://mat_shiva"]
+
+[ext_resource type="Script" path="res://scripts/Materia.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+materia_name = "Shiva"
+materia_type = "summon"
+spell_path = ""
+passive_stat = "ice"
+passive_pct = 2.0
+price = 1500
+description = "Ice Queen — AoE Ice ×2 all enemies"

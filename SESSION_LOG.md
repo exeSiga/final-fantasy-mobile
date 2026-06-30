@@ -30,3 +30,4 @@
 [2026-06-30 01:00] Sprint 25 (zones WorldMap Midgar/Kalm/Mt.Nibel + pools ennemis + save) — DONE — ~3000 tokens
 [2026-06-30 01:03] Sprint 26 (DialogueManager + DialogueBox + prologue + 3 PNJ) — DONE — ~3500 tokens
 [2026-06-30 01:06] Sprint 27 (QuestManager + 3 quêtes kill-count + QuestMenu + save) — DONE — ~3500 tokens
+[2026-06-30 01:08] Sprint 28 (screen shake Limit Break + death particles + fade in/out + attack tween) — DONE — ~3000 tokens

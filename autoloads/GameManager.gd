@@ -16,6 +16,7 @@ var equipment: Array = [               # one dict per party member
 ]
 var materia_inventory: Dictionary = {} # resource_path → count
 var materia_equipped: Dictionary = {}  # "member_weapon_0" → resource_path
+var summon_charges: Dictionary = {}    # materia_path → charges_left (reset each battle)
 var base_party_spell_paths: Array = [[], [], []]
 var return_after_battle: String = "res://scenes/world/WorldMap.tscn"
 var dungeon_boss_cleared = false
@@ -57,6 +58,7 @@ func new_game() -> void:
 	]
 	materia_inventory = {}
 	materia_equipped = {}
+	summon_charges = {}
 	base_party_spell_paths = []
 	active_zone = "midgar"
 	story_intro_done = false
@@ -183,6 +185,13 @@ func _remove_equip_bonus(member, item: Resource) -> void:
 		member.atk -= item.stat_bonus
 	else:
 		member.def -= item.stat_bonus
+
+func reset_summon_charges() -> void:
+	for key in materia_equipped:
+		var mat_path: String = materia_equipped[key]
+		var mat = load(mat_path)
+		if mat != null and mat.materia_type == "summon":
+			summon_charges[mat_path] = 1
 
 func buy_materia(mat: Resource) -> bool:
 	if gold < mat.price:
