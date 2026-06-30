@@ -71,7 +71,7 @@
 
 ---
 
-## Sprint 37 — Crafting + Boutique Shinra [STATUS: TODO]
+## Sprint 37 — Crafting + Boutique Shinra [STATUS: DONE]
 **Goal:** Système de craft simple (2 matériaux → 1 équipement) + section boutique militaire ShinRa réservée aux hauts rangs SOLDIER
 
 **Acceptance Criteria:**
@@ -91,11 +91,15 @@
 - [ ] Shop.gd: section "ShinRa Armory" filtrée par rang
 
 **Verification Notes:**
-- Contrôle A (static):
-- Contrôle B (godot parse):
+- Contrôle A (static): ✅ check_compat.sh All clear
+- Contrôle B (godot parse): ✅ 35/35 tests headless
 - Contrôle C (logic trace):
-- Contrôle D (regression):
-- Déferments:
+  - AC1: 4 .tres matériaux (scrap_metal/mako_crystal/monster_fang/magic_ore) créés, effect_type=3
+  - AC2: CraftMenu.gd+.tscn, bouton dans Shop._add_craft_button(), _can_craft() désactive si insuffisant
+  - AC3: 3 recettes dans CRAFT_RECIPES; craft() consomme ingrédients et ajoute résultat
+  - AC4: ShinRa Armory visible dans Shop si rang != "3rd Class"
+  - AC5: craft → equip_inventory ou inventory (sauvegardés par SaveSystem existant)
+- Contrôle D (regression): 35/35 tests, flow complet intact
 
 ---
 

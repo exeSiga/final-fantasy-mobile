@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="" load_steps=2 format=3 uid="uid://mako_bracelet"]
+
+[ext_resource type="Script" path="res://resources/Equipment.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+equip_name = "Mako Bracelet"
+slot = 1
+stat_bonus = 12
+price = 0
+allowed_classes = []
+description = "Crafted bracelet infused with Mako — fits any class."
+materia_slots = 2

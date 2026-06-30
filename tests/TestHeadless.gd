@@ -50,6 +50,9 @@ func _run_all() -> void:
 	_test_enemy_skill_materia_load()
 	_test_enemy_skill_learn()
 	_test_enemy_skill_save_load()
+	_test_craft_ingredients()
+	_test_craft_success()
+	_test_material_drop_config()
 
 func _test_new_game() -> void:
 	GameManager.new_game()
@@ -581,3 +584,36 @@ func _test_enemy_skill_save_load() -> void:
 	if GameManager.learned_enemy_skills[0] != path1:
 		_ko("enemy_skill_save_load", "loaded skill path mismatch"); return
 	_ok("enemy_skill_save_load: learned_enemy_skills persists through save/load")
+
+func _test_craft_ingredients() -> void:
+	GameManager.new_game()
+	var ok: bool = GameManager.craft(0)
+	if ok:
+		_ko("craft_ingredients", "craft(0) should fail with 0 materials"); return
+	_ok("craft_ingredients: craft(0) returns false when ingredients are missing")
+
+func _test_craft_success() -> void:
+	GameManager.new_game()
+	var scrap_path: String = "res://resources/items/scrap_metal.tres"
+	GameManager.inventory[scrap_path] = 2
+	var ok: bool = GameManager.craft(0)
+	if not ok:
+		_ko("craft_success", "craft(0) should succeed with 2 scrap metals"); return
+	if GameManager.inventory.get(scrap_path, 0) != 0:
+		_ko("craft_success", "scrap metals should be consumed after craft"); return
+	var result_path: String = "res://resources/equipment/buster_sword_plus.tres"
+	if GameManager.equip_inventory.get(result_path, 0) != 1:
+		_ko("craft_success", "Buster Sword+ should be in equip_inventory after craft"); return
+	_ok("craft_success: 2x Scrap Metal → Buster Sword+ crafted, ingredients consumed")
+
+func _test_material_drop_config() -> void:
+	for enemy_name in BattleManager.MATERIAL_DROPS:
+		var drop: Dictionary = BattleManager.MATERIAL_DROPS[enemy_name]
+		if not "path" in drop or not "chance" in drop:
+			_ko("material_drop_config", "drop for '%s' missing path or chance" % enemy_name); return
+		if drop.chance <= 0.0 or drop.chance > 1.0:
+			_ko("material_drop_config", "chance for '%s' out of range: %f" % [enemy_name, drop.chance]); return
+		var mat_item = load(drop.path)
+		if mat_item == null:
+			_ko("material_drop_config", "cannot load drop item for '%s': %s" % [enemy_name, drop.path]); return
+	_ok("material_drop_config: all MATERIAL_DROPS entries have valid paths and chances")

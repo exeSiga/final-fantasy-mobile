@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="" load_steps=2 format=3 uid="uid://shinra_blade"]
+
+[ext_resource type="Script" path="res://resources/Equipment.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+equip_name = "ShinRa Blade"
+slot = 0
+stat_bonus = 35
+price = 1500
+allowed_classes = ["Warrior"]
+description = "Military-grade ShinRa weapon — 2nd Class+ only."
+materia_slots = 2

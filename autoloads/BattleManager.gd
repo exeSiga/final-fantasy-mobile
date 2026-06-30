@@ -50,6 +50,19 @@ signal limit_gauge_updated(unit)
 signal summon_triggered(summon_name, element)
 signal atb_updated(unit, value)
 signal atb_ready(unit)
+signal enemy_skill_learned(spell_name: String)
+
+const ENEMY_SKILL_MAP := {
+	"Gargoyle":     "res://resources/spells/white_wind.tres",
+	"Dark Knight":  "res://resources/spells/flame_thrower.tres",
+}
+
+const MATERIAL_DROPS: Dictionary = {
+	"Orc":      {"path": "res://resources/items/scrap_metal.tres",  "chance": 0.30},
+	"Troll":    {"path": "res://resources/items/monster_fang.tres", "chance": 0.25},
+	"Skeleton": {"path": "res://resources/items/magic_ore.tres",    "chance": 0.30},
+	"Gargoyle": {"path": "res://resources/items/mako_crystal.tres", "chance": 0.25},
+}
 
 var party: Array = []
 var player_unit = null
@@ -98,6 +111,28 @@ func _apply_spell_materias() -> void:
 					continue
 				if not mat.spell_path in member.spell_paths:
 					member.spell_paths.append(mat.spell_path)
+		if GameManager.has_enemy_skill_materia(i):
+			for sp in GameManager.learned_enemy_skills:
+				if not sp in member.spell_paths:
+					member.spell_paths.append(sp)
+
+func _party_idx_of(unit) -> int:
+	for i in party.size():
+		if party[i] == unit:
+			return i
+	return -1
+
+func _try_learn_enemy_skill(enemy_name: String, target) -> void:
+	var spell_path: String = ENEMY_SKILL_MAP.get(enemy_name, "")
+	if spell_path == "" or target == null:
+		return
+	var idx: int = _party_idx_of(target)
+	if idx < 0 or not GameManager.has_enemy_skill_materia(idx):
+		return
+	if GameManager.learn_enemy_skill(spell_path):
+		var spell = load(spell_path)
+		battle_log.emit("Compétence apprise : %s !" % spell.spell_name)
+		enemy_skill_learned.emit(spell.spell_name)
 
 func start_battle(dungeon: bool = false, boss: bool = false) -> void:
 	is_boss_battle = boss
@@ -586,6 +621,7 @@ func _ai_gargoyle(enemy) -> void:
 		if target == null:
 			return
 		battle_log.emit("Stone Gaze!")
+		_try_learn_enemy_skill(enemy.unit_name, target)
 		if target.inflict_status("sleep"):
 			target.status_turns = 2
 			battle_log.emit("%s is petrified!" % target.unit_name)
@@ -602,6 +638,7 @@ func _ai_dark_knight(enemy) -> void:
 			var actual: int = target.take_damage(dmg)
 			_fill_limit_gauge(target, 20)
 			action_result.emit(enemy.unit_name, target.unit_name, actual, false)
+			_try_learn_enemy_skill(enemy.unit_name, target)
 			await get_tree().create_timer(0.25).timeout
 	else:
 		# Double physical attack
@@ -718,6 +755,17 @@ func rebuild_and_next() -> void:
 	_rebuild_queue()
 	_advance_turn()
 
+func _try_drop_materials() -> void:
+	for e in enemies:
+		var drop: Dictionary = MATERIAL_DROPS.get(e.unit_name, {})
+		if drop.is_empty():
+			continue
+		if randf() < drop.chance:
+			var mat_item = load(drop.path)
+			if mat_item != null:
+				GameManager.add_item(mat_item)
+				battle_log.emit("Dropped: %s" % mat_item.item_name)
+
 func _check_battle_end() -> void:
 	var all_enemies_dead: bool = enemies.all(func(e) -> bool: return not e.is_alive())
 	if all_enemies_dead:
@@ -729,6 +777,7 @@ func _check_battle_end() -> void:
 		var new_rank: String = GameManager.get_soldier_rank()
 		if new_rank != prev_rank:
 			GameManager.pending_rank_notification = new_rank
+		_try_drop_materials()
 		GameManager.grant_battle_rewards()
 		battle_ended.emit(true)
 		return

@@ -24,6 +24,11 @@ const SHOP_MATERIAS: Array[String] = [
 	"res://resources/materias/enemy_skill_materia.tres",
 ]
 
+const SHINRA_ARMORY: Array[String] = [
+	"res://resources/equipment/shinra_blade.tres",
+	"res://resources/equipment/shinra_armor.tres",
+]
+
 const SHOP_EQUIP: Array[String] = [
 	"res://resources/equipment/short_sword.tres",
 	"res://resources/equipment/long_sword.tres",
@@ -38,6 +43,8 @@ const SHOP_EQUIP: Array[String] = [
 @onready var item_list: VBoxContainer = $Panel/VBox/ItemList
 @onready var status_label: Label = $Panel/VBox/StatusLabel
 
+var _craft_scene: PackedScene = preload("res://scenes/ui/CraftMenu.tscn")
+
 func _ready() -> void:
 	$Panel/VBox/CloseButton.pressed.connect(_on_close)
 	_build_shop()
@@ -46,6 +53,8 @@ func _build_shop() -> void:
 	gold_label.text = "Gold: %d" % GameManager.gold
 	for child in item_list.get_children():
 		child.queue_free()
+	# --- Craft Workshop button ---
+	_add_craft_button()
 	# --- Items section ---
 	_add_section_header("Items")
 	for path in SHOP_ITEMS:
@@ -68,6 +77,27 @@ func _build_shop() -> void:
 	for path in SHOP_SUMMONS:
 		var mat = load(path)
 		_add_item_row(mat.materia_name + " — " + mat.description, mat.price, _on_buy_materia.bind(mat))
+	# --- ShinRa Armory (2nd Class and above only) ---
+	if GameManager.get_soldier_rank() != "3rd Class":
+		_add_section_header("ShinRa Armory [%s]" % GameManager.get_soldier_rank())
+		for path in SHINRA_ARMORY:
+			var item = load(path)
+			var bonus_stat: String = "ATK" if item.slot == 0 else "DEF"
+			var lbl_extra: String = " [+%d %s]" % [item.stat_bonus, bonus_stat]
+			_add_item_row(item.equip_name + lbl_extra, item.price, _on_buy_equip.bind(item))
+
+func _add_craft_button() -> void:
+	var btn := Button.new()
+	btn.text = "Open Craft Workshop"
+	btn.add_theme_font_size_override("font_size", 28)
+	btn.add_theme_color_override("font_color", Color(0.4, 1.0, 0.6, 1))
+	btn.custom_minimum_size = Vector2(0, 70)
+	btn.pressed.connect(_on_craft_pressed)
+	item_list.add_child(btn)
+
+func _on_craft_pressed() -> void:
+	var menu = _craft_scene.instantiate()
+	get_parent().add_child(menu)
 
 func _add_section_header(title: String) -> void:
 	var lbl := Label.new()

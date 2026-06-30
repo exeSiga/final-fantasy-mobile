@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="" load_steps=2 format=3 uid="uid://buster_sword_plus"]
+
+[ext_resource type="Script" path="res://resources/Equipment.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+equip_name = "Buster Sword+"
+slot = 0
+stat_bonus = 28
+price = 0
+allowed_classes = ["Warrior"]
+description = "Crafted heavy blade — upgraded Buster Sword."
+materia_slots = 3

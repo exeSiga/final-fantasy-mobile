@@ -1,7 +1,7 @@
 extends Resource
 class_name Item
 
-enum EffectType { HEAL_HP, HEAL_MP, REVIVE }
+enum EffectType { HEAL_HP, HEAL_MP, REVIVE, MATERIAL }
 
 @export var item_name: String = ""
 @export var description: String = ""

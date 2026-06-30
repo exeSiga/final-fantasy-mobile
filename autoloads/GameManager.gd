@@ -2,6 +2,30 @@ extends Node
 
 enum GameState { MAIN_MENU, WORLD, BATTLE, CUTSCENE, GAME_OVER }
 
+const CRAFT_RECIPES: Array = [
+	{
+		"name": "Buster Sword+",
+		"ingredients": {"res://resources/items/scrap_metal.tres": 2},
+		"result": "res://resources/equipment/buster_sword_plus.tres",
+		"result_type": "equip",
+	},
+	{
+		"name": "Mako Bracelet",
+		"ingredients": {"res://resources/items/mako_crystal.tres": 2},
+		"result": "res://resources/equipment/mako_bracelet.tres",
+		"result_type": "equip",
+	},
+	{
+		"name": "Ether",
+		"ingredients": {
+			"res://resources/items/monster_fang.tres": 1,
+			"res://resources/items/magic_ore.tres": 1,
+		},
+		"result": "res://resources/items/ether.tres",
+		"result_type": "item",
+	},
+]
+
 var current_state: GameState = GameState.MAIN_MENU
 var current_scene: Node = null
 var party: Array = []          # 3 CombatUnit: [Warrior, BlackMage, WhiteMage]
@@ -16,6 +40,7 @@ var equipment: Array = [               # one dict per party member
 ]
 var materia_inventory: Dictionary = {} # resource_path → count
 var materia_equipped: Dictionary = {}  # "member_weapon_0" → resource_path
+var learned_enemy_skills: Array = []   # Array of spell resource_paths learned via Enemy Skill Materia
 var summon_charges: Dictionary = {}    # materia_path → charges_left (reset each battle)
 var base_party_spell_paths: Array = [[], [], []]
 var return_after_battle: String = "res://scenes/world/WorldMap.tscn"
@@ -62,6 +87,7 @@ func new_game() -> void:
 	]
 	materia_inventory = {}
 	materia_equipped = {}
+	learned_enemy_skills = []
 	summon_charges = {}
 	base_party_spell_paths = []
 	active_zone = "midgar"
@@ -254,6 +280,51 @@ func unequip_materia(member_idx: int, slot_name: String, slot_idx: int) -> void:
 			var bonus: int = int(member.max_mp * mat.passive_pct / (1.0 + mat.passive_pct))
 			member.max_mp = max(0, member.max_mp - bonus)
 			member.mp = min(member.mp, member.max_mp)
+
+func has_enemy_skill_materia(member_idx: int) -> bool:
+	if member_idx < 0 or member_idx >= equipment.size():
+		return false
+	for slot_name in ["weapon", "armor"]:
+		var item = equipment[member_idx].get(slot_name)
+		if item == null:
+			continue
+		var slots: int = item.materia_slots if "materia_slots" in item else 0
+		for s in range(slots):
+			var mkey: String = "%d_%s_%d" % [member_idx, slot_name, s]
+			var mat_path: String = materia_equipped.get(mkey, "")
+			if mat_path == "":
+				continue
+			var mat = load(mat_path)
+			if mat != null and mat.materia_type == "enemy_skill":
+				return true
+	return false
+
+func learn_enemy_skill(spell_path: String) -> bool:
+	if spell_path in learned_enemy_skills:
+		return false
+	learned_enemy_skills.append(spell_path)
+	return true
+
+func craft(recipe_idx: int) -> bool:
+	if recipe_idx < 0 or recipe_idx >= CRAFT_RECIPES.size():
+		return false
+	var recipe: Dictionary = CRAFT_RECIPES[recipe_idx]
+	for ing_path in recipe.ingredients:
+		var needed: int = recipe.ingredients[ing_path]
+		if inventory.get(ing_path, 0) < needed:
+			return false
+	for ing_path in recipe.ingredients:
+		inventory[ing_path] = inventory.get(ing_path, 0) - recipe.ingredients[ing_path]
+		if inventory[ing_path] <= 0:
+			inventory.erase(ing_path)
+	var result_path: String = recipe.result
+	if recipe.result_type == "equip":
+		equip_inventory[result_path] = equip_inventory.get(result_path, 0) + 1
+	else:
+		var item = load(result_path)
+		if item != null:
+			add_item(item)
+	return true
 
 func get_discounted_price(price: int) -> int:
 	return int(price * merchant_discount)
