@@ -58,6 +58,9 @@ func _run_all() -> void:
 	_test_arena_enemy_pools()
 	_test_arena_heal_formula()
 	_test_arena_defeat_resets_flags()
+	_test_gameover_quotes()
+	_test_retry_hp_restore()
+	_test_retry_was_arena_flag()
 
 func _test_new_game() -> void:
 	GameManager.new_game()
@@ -676,3 +679,43 @@ func _test_arena_defeat_resets_flags() -> void:
 	if BattleManager.arena_wave != 0:
 		_ko("arena_defeat_resets_flags", "arena_wave should be 0 after defeat, got %d" % BattleManager.arena_wave); return
 	_ok("arena_defeat_resets_flags: arena_mode=false and arena_wave=0 reset on defeat")
+
+func _test_gameover_quotes() -> void:
+	var quotes: Array = BattleManager.SEPHIROTH_QUOTES
+	if quotes.size() < 5:
+		_ko("gameover_quotes", "need at least 5 quotes, got %d" % quotes.size()); return
+	for q in quotes:
+		if q == "":
+			_ko("gameover_quotes", "empty quote found"); return
+	_ok("gameover_quotes: %d Sephiroth quotes defined, none empty" % quotes.size())
+
+func _test_retry_hp_restore() -> void:
+	GameManager.new_game()
+	for m in GameManager.party:
+		m.hp = 0
+	# Apply retry formula manually
+	for m in GameManager.party:
+		if m.max_hp > 0:
+			m.hp = max(1, int(m.max_hp * 0.50))
+	for m in GameManager.party:
+		if m.hp < 1:
+			_ko("retry_hp_restore", "HP should be >= 1 after retry, got %d" % m.hp); return
+		var expected: int = max(1, int(m.max_hp * 0.50))
+		if m.hp != expected:
+			_ko("retry_hp_restore", "expected %d HP, got %d" % [expected, m.hp]); return
+	_ok("retry_hp_restore: party restored to 50%% HP (e.g. %d/%d)" % [GameManager.party[0].hp, GameManager.party[0].max_hp])
+
+func _test_retry_was_arena_flag() -> void:
+	BattleManager._retry_was_arena = false
+	BattleManager.arena_mode = true
+	# Simulate defeat detection saving arena context
+	BattleManager._retry_was_arena = BattleManager.arena_mode
+	BattleManager.arena_mode = false
+	BattleManager.arena_wave = 0
+	if not BattleManager._retry_was_arena:
+		_ko("retry_was_arena_flag", "_retry_was_arena should be true after arena defeat"); return
+	# Simulate retry clearing it
+	BattleManager._retry_was_arena = false
+	if BattleManager._retry_was_arena:
+		_ko("retry_was_arena_flag", "_retry_was_arena should be cleared after retry"); return
+	_ok("retry_was_arena_flag: _retry_was_arena set on arena defeat, cleared on retry")

@@ -24,6 +24,13 @@ const BOSS2_PATH          := "res://resources/units/jenova.tres"
 const BOSS_SEPHIROTH_PATH := "res://resources/units/sephiroth.tres"
 const CHAMPION_BELT_PATH  := "res://resources/equipment/champion_belt.tres"
 const ARENA_TOTAL_WAVES   := 8
+const SEPHIROTH_QUOTES: Array = [
+	"Pitoyable...",
+	"Tu aurais dû rester dans l'ombre.",
+	"Le destin est impitoyable avec les faibles.",
+	"Je suis un guerrier. Toi, tu n'es qu'un souvenir.",
+	"Tout feu s'éteint. Le tien ne faisait pas exception.",
+]
 
 const SPELL_DAMAGE := 0
 const SPELL_HEAL   := 1
@@ -45,6 +52,7 @@ var dungeon_mode: bool = false
 var arena_mode: bool = false
 var arena_wave: int = 0
 var arena_completed: bool = false
+var _retry_was_arena: bool = false
 
 signal battle_started(party, enemies)
 signal turn_changed(unit)
@@ -756,6 +764,19 @@ func _ai_jenova(enemy) -> void:
 		enemy.hp = min(enemy.max_hp, enemy.hp + actual)
 	_check_phase_transition(enemy)
 
+func retry_battle() -> void:
+	for m in GameManager.party:
+		if m.max_hp > 0:
+			m.hp = max(1, int(m.max_hp * 0.50))
+		if m.max_mp > 0:
+			m.mp = max(0, int(m.max_mp * 0.50))
+		m.clear_status()
+	if _retry_was_arena:
+		_retry_was_arena = false
+		start_arena()
+	else:
+		start_battle(dungeon_mode, is_boss_battle)
+
 func start_arena() -> void:
 	arena_mode = true
 	arena_wave = 1
@@ -852,6 +873,7 @@ func _check_battle_end() -> void:
 	var all_party_dead: bool = party.all(func(m) -> bool: return not m.is_alive())
 	if all_party_dead:
 		state = BattleState.GAME_OVER
+		_retry_was_arena = arena_mode
 		if arena_mode:
 			arena_mode = false
 			arena_wave = 0

@@ -28,6 +28,7 @@ var _enemy_hp_bars: Array = []
 var _enemy_sprite_list: Array = []
 var _wave_label: Label = null
 var _wave_canvas: CanvasLayer = null
+var _last_quote_idx: int = -1
 
 # Party panel rows — built dynamically
 var _party_hp_bars: Array = []
@@ -405,7 +406,7 @@ func _on_battle_ended(victory: bool) -> void:
 			_victory_title.text = "Victory!\n+%d XP  +%d G" % [BattleManager.last_xp, BattleManager.last_gold]
 		victory_overlay.show()
 	else:
-		gameover_overlay.show()
+		_show_gameover()
 	_fade_out()
 
 func _fade_out() -> void:
@@ -620,6 +621,44 @@ func _on_run_pressed() -> void:
 
 func _on_victory_continue_pressed() -> void:
 	GameManager.change_scene(GameManager.return_after_battle)
+
+func _show_gameover() -> void:
+	var vbox = gameover_overlay.get_node("VBox")
+	# Add Sephiroth quote
+	var quotes: Array = BattleManager.SEPHIROTH_QUOTES
+	var idx: int = randi() % quotes.size()
+	if quotes.size() > 1:
+		while idx == _last_quote_idx:
+			idx = randi() % quotes.size()
+	_last_quote_idx = idx
+	var quote_lbl := Label.new()
+	quote_lbl.text = "— %s" % quotes[idx]
+	quote_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	quote_lbl.add_theme_font_size_override("font_size", 26)
+	quote_lbl.add_theme_color_override("font_color", Color(0.75, 0.75, 1.0, 1))
+	quote_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	vbox.add_child(quote_lbl)
+	vbox.move_child(quote_lbl, 1)
+	# Add Retry button
+	var retry_btn := Button.new()
+	retry_btn.text = "Réessayer (50% HP)"
+	retry_btn.add_theme_font_size_override("font_size", 32)
+	retry_btn.add_theme_color_override("font_color", Color(0.3, 1.0, 0.5, 1))
+	retry_btn.custom_minimum_size = Vector2(300, 80)
+	retry_btn.pressed.connect(_on_gameover_retry_pressed)
+	vbox.add_child(retry_btn)
+	vbox.move_child(retry_btn, 2)
+	gameover_overlay.show()
+
+func _on_gameover_retry_pressed() -> void:
+	# Clean up dynamic widgets before retry
+	var vbox = gameover_overlay.get_node("VBox")
+	for c in vbox.get_children():
+		if c.name != "TitleLabel" and c.name != "MenuButton":
+			c.queue_free()
+	gameover_overlay.hide()
+	AudioManager.play_battle_bgm()
+	BattleManager.retry_battle()
 
 func _on_gameover_menu_pressed() -> void:
 	GameManager.change_scene("res://scenes/ui/MainMenu.tscn")

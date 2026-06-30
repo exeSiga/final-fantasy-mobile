@@ -130,3 +130,115 @@
   - AC4: arena_wave>=8 → Champion Belt dans equip_inventory → arena_completed=true → victory overlay
   - AC5: _on_battle_started() → _ensure_wave_label() → "Vague X/8"
 - Contrôle D (regression): 40/40 tests, flow normal et boss battles intacts, arena isolé derrière arena_mode flag
+
+---
+
+## Sprint 39 — Game Over amélioré (Citation Sephiroth + Retry) [STATUS: DONE]
+**Goal:** Enrichir l'écran de Game Over avec une citation Sephiroth aléatoire et un bouton "Réessayer" relançant le combat
+
+**Acceptance Criteria:**
+- [ ] AC1: L'écran de Game Over affiche une citation aléatoire de Sephiroth parmi 5 (ex: "Pitoyable...", "Tu aurais dû rester dans l'ombre.")
+- [ ] AC2: Un bouton "Réessayer" relance exactement le même type de combat (même boss/zone) avec la party à 50% HP/MP, sans perte d'or ni d'XP
+- [ ] AC3: Le bouton "Menu Principal" (existant) reste fonctionnel et renvoie au MainMenu
+- [ ] AC4: Les citations changent aléatoirement à chaque Game Over (pas la même deux fois de suite)
+
+**Tasks:**
+- [ ] Battle.gd: gameover_overlay — label citation (Label dynamique) + bouton Retry
+- [ ] BattleManager.gd: retry_battle() — restaure party 50% HP/MP et relance start_battle / start_arena / start_boss selon flags
+- [ ] GameManager.gd: SEPHIROTH_QUOTES const Array[String] avec 5 citations
+- [ ] Battle.gd: _on_gameover_retry_pressed() → BattleManager.retry_battle()
+
+**Verification Notes:**
+- Contrôle A (static):
+- Contrôle B (godot parse):
+- Contrôle C (logic trace):
+- Contrôle D (regression):
+- Déferments:
+
+---
+
+**Verification Notes (Sprint 39):**
+- Contrôle A (static): ✅ All clear
+- Contrôle B (godot parse): ✅ 43/43 tests
+- Contrôle C (logic trace):
+  - AC1: SEPHIROTH_QUOTES const 5 entrées; _show_gameover() pick random idx ≠ last
+  - AC2: retry_battle() restore 50% HP/MP, relance start_battle ou start_arena
+  - AC3: MenuButton existant → _on_gameover_menu_pressed() → MainMenu intact
+  - AC4: while idx == _last_quote_idx → rotation garantie
+- Contrôle D (regression): 43/43 tests, flow victoire et arène intacts
+
+---
+
+## Sprint 40 — Barret + Party Setup (4 membres sélectionnables) [STATUS: TODO]
+**Goal:** Ajouter Barret (Gunner, AoE) comme 4e membre disponible avec un menu de sélection de party sur WorldMap
+
+**Acceptance Criteria:**
+- [ ] AC1: Barret (character_class="Gunner", sprite distinctif rouge/marron) ajouté au roster dans GameManager — 4 membres disponibles au total
+- [ ] AC2: Bouton "Party" sur WorldMap ouvre un menu permettant de cocher 3 membres actifs parmi 4 (minimum 1 requis)
+- [ ] AC3: En combat, seuls les 3 membres actifs sélectionnés participent
+- [ ] AC4: Barret a une attaque spéciale "Big Shot" (AoE, frappe jusqu'à 2 ennemis) disponible via un bouton dédié si actif
+
+**Tasks:**
+- [ ] GameManager.gd: available_members Array (4 membres), active_party_indices Array[int] (3 actifs), _build_active_party()
+- [ ] GameManager.new_game(): initialiser available_members avec Cloud/Tifa/Aerith/Barret
+- [ ] WorldMap.gd: bouton "Party" → PartySetupMenu (VBoxContainer dynamique)
+- [ ] PartySetupMenu: checkboxes pour les 4 membres, validation 3 sélectionnés
+- [ ] BattleManager.start_battle(): utiliser GameManager._build_active_party() au lieu de GameManager.party directement
+- [ ] Battle.gd: bouton "Big Shot" visible quand Barret est actif et c'est son tour — BattleManager.player_bigshot()
+
+**Verification Notes:**
+- Contrôle A (static):
+- Contrôle B (godot parse):
+- Contrôle C (logic trace):
+- Contrôle D (regression):
+- Déferments:
+
+---
+
+## Sprint 41 — Ruby & Emerald Weapon (Boss optionnels Lv.20+) [STATUS: TODO]
+**Goal:** Deux boss ultra-difficiles optionnels accessibles depuis WorldMap, avec récompenses d'équipement uniques
+
+**Acceptance Criteria:**
+- [ ] AC1: Bouton "⚔ Ruby Weapon" et "⚔ Emerald Weapon" sur WorldMap, débloqués si niveau moyen >= 20
+- [ ] AC2: Ruby Weapon (HP très élevé, counter-attack à 30%) ; Emerald Weapon (AoE chaque tour, vulnérabilité à la foudre)
+- [ ] AC3: Victoire Ruby Weapon → "Ruby Ring" (weapon, ATK+40) dans equip_inventory ; victoire Emerald Weapon → "Emerald Bangle" (armor, DEF+30, MP+50) 
+- [ ] AC4: Les deux Weapons ont des sprites distinctifs (couleurs différentes) et des noms affichés correctement
+
+**Tasks:**
+- [ ] resources/units/ruby_weapon.tres + emerald_weapon.tres (hp élevé, atk fort)
+- [ ] resources/equipment/ruby_ring.tres + emerald_bangle.tres
+- [ ] BattleManager.gd: is_ruby_weapon_battle/is_emerald_weapon_battle flags ; AI ruby (_ai_ruby_weapon) + AI emerald (_ai_emerald_weapon)
+- [ ] BattleManager._check_battle_end(): récompense Ruby Ring ou Emerald Bangle selon le boss
+- [ ] WorldMap.gd: _add_weapon_buttons() (Lv.20+ requis)
+
+**Verification Notes:**
+- Contrôle A (static):
+- Contrôle B (godot parse):
+- Contrôle C (logic trace):
+- Contrôle D (regression):
+- Déferments:
+
+---
+
+## Sprint 42 — Scènes narratives clés (Réacteur + Sephiroth Flashback) [STATUS: TODO]
+**Goal:** Déclencher des cutscenes textuelles automatiques après les boss clés pour enrichir la narration FF7
+
+**Acceptance Criteria:**
+- [ ] AC1: Après victoire sur Guard Scorpion (Boss 1), une cutscene "Réacteur Mako — Secteur 1" s'affiche (3 bulles de dialogue, Cloud narrateur) avant le retour à la WorldMap
+- [ ] AC2: Après victoire sur Jenova (Boss 2), une cutscene "Souvenir de Nibelheim — Sephiroth" s'affiche (3 bulles, Sephiroth/Cloud) avant le retour
+- [ ] AC3: Chaque cutscene ne se rejoue jamais (flags GameManager.scene_reactor_done et scene_jenova_done)
+- [ ] AC4: Les cutscenes utilisent le DialogueBox existant (DialogueManager.show_dialogue) avec un enchaînement automatique
+
+**Tasks:**
+- [ ] GameManager.gd: scene_reactor_done: bool, scene_jenova_done: bool — persistés en save
+- [ ] SaveSystem.gd: sauvegarder/charger scene_reactor_done et scene_jenova_done
+- [ ] Battle.gd: _on_battle_ended(true) → si is_boss1_battle et not scene_reactor_done → show cutscene reactor
+- [ ] Battle.gd: _on_battle_ended(true) → si is_boss2_battle et not scene_jenova_done → show cutscene jenova  
+- [ ] DialogueManager ou Battle.gd: _show_cutscene(lines: Array) → dialogue séquentiel, puis change_scene(return_after_battle)
+
+**Verification Notes:**
+- Contrôle A (static):
+- Contrôle B (godot parse):
+- Contrôle C (logic trace):
+- Contrôle D (regression):
+- Déferments:
