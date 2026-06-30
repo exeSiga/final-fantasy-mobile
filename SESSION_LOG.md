@@ -38,3 +38,4 @@
 [2026-06-30] Sprint 33 (BGM thématique Midgar/Kalm/Mt.Nibel + fade 0.5s + météo WorldMap + étoiles+titre animés MainMenu) — DONE — ~3500 tokens
 [2026-06-30] Sprint 34 (personnages nommés FF7 Cloud/Tifa/Aerith + sprites distinctifs + backstory dialogues + 28/28 tests) — DONE — ~5000 tokens
 [2026-06-30] Sprint 35 (jauge ATB par spd, barre visuelle, boutons gated par atb_ready, 29/29 tests) — DONE — ~6500 tokens
+[2026-06-30] Sprint 36 (Enemy Skill Materia) — DONE — SaveSystem fix + white_wind/flame_thrower + shop + popup, 32/32 tests
