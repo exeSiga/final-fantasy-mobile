@@ -25,6 +25,7 @@ var active_zone: String = "midgar"
 var story_intro_done: bool = false
 var total_kills: int = 0
 var pending_rank_notification: String = ""
+var merchant_discount: float = 1.0
 
 signal gold_changed(new_amount: int)
 signal level_up(new_level: int)
@@ -138,9 +139,10 @@ func _first_dead():
 	return null
 
 func buy_equipment(item: Resource) -> bool:
-	if gold < item.price:
+	var cost: int = get_discounted_price(item.price)
+	if gold < cost:
 		return false
-	gold -= item.price
+	gold -= cost
 	gold_changed.emit(gold)
 	var key: String = item.resource_path
 	equip_inventory[key] = equip_inventory.get(key, 0) + 1
@@ -199,9 +201,10 @@ func reset_summon_charges() -> void:
 			summon_charges[mat_path] = 1
 
 func buy_materia(mat: Resource) -> bool:
-	if gold < mat.price:
+	var cost: int = get_discounted_price(mat.price)
+	if gold < cost:
 		return false
-	gold -= mat.price
+	gold -= cost
 	gold_changed.emit(gold)
 	var key: String = mat.resource_path
 	materia_inventory[key] = materia_inventory.get(key, 0) + 1
@@ -252,6 +255,9 @@ func unequip_materia(member_idx: int, slot_name: String, slot_idx: int) -> void:
 			member.max_mp = max(0, member.max_mp - bonus)
 			member.mp = min(member.mp, member.max_mp)
 
+func get_discounted_price(price: int) -> int:
+	return int(price * merchant_discount)
+
 func get_soldier_rank() -> String:
 	if total_kills >= 150:
 		return "1st Class"
@@ -270,12 +276,13 @@ func get_rank_atk_mult() -> float:
 	return 1.0
 
 func buy_item(item: Resource) -> bool:
-	if gold < item.price:
+	var cost: int = get_discounted_price(item.price)
+	if gold < cost:
 		return false
 	var key: String = item.resource_path
 	if inventory.get(key, 0) >= item.max_stack:
 		return false
-	gold -= item.price
+	gold -= cost
 	gold_changed.emit(gold)
 	add_item(item)
 	return true

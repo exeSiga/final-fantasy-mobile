@@ -718,7 +718,7 @@
 
 ---
 
-## Sprint 32 — Événements Aléatoires WorldMap [STATUS: TODO]
+## Sprint 32 — Événements Aléatoires WorldMap [STATUS: DONE]
 **Goal:** Rencontres non-combat sur la WorldMap — marchands, coffres cachés, PNJ aide
 
 **Acceptance Criteria:**
@@ -736,11 +736,16 @@
 - [ ] TestHeadless: 3 tests (event probabilities, chest gold range, merchant discount)
 
 **Verification Notes:**
-- Contrôle A (static):
-- Contrôle B (godot parse):
+- Contrôle A (static): ✅ check_compat.sh All clear
+- Contrôle B (godot parse): ✅ 27/27 tests headless (0 failed)
 - Contrôle C (logic trace):
-- Contrôle D (regression):
-- Déferments:
+  - AC1: _on_encounter() randf()<0.1 → _check_random_event(); else → battle ✅
+  - AC2: match randi()%3 → 0=merchant(bleu), 1=chest(doré), 2=npc(vert) ✅
+  - AC3: EventPopup.tscn layer 30; setup(color, message, btn_label, show_close); confirmed/closed signals ✅
+  - AC4: merchant_discount=0.8 avant shop; buy_item/equip/materia → get_discounted_price(); reset sur close ✅
+  - AC5: ColorRect icon colors: bleu=marchand, doré=coffre, vert=npc ✅
+- Contrôle D (regression): 27/27; encounters normaux inchangés (randf()>=0.1 → battle); shop NPC discount=1.0 car pas de merchant event
+- Déferments: Quantité limitée d'items chez le marchand (sous-ensemble), inventaire du marchand aléatoire
 
 ---
 

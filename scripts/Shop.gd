@@ -79,7 +79,9 @@ func _add_section_header(title: String) -> void:
 func _add_item_row(label_text: String, price: int, callback: Callable) -> void:
 	var row := HBoxContainer.new()
 	var lbl := Label.new()
-	lbl.text = "%s — %dG" % [label_text, price]
+	var display_price: int = GameManager.get_discounted_price(price)
+	var price_text: String = "%dG" % display_price if display_price == price else "%dG (-%d%%)" % [display_price, int((1.0 - GameManager.merchant_discount) * 100)]
+	lbl.text = "%s — %s" % [label_text, price_text]
 	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	lbl.add_theme_font_size_override("font_size", 26)
 	var btn := Button.new()

@@ -9,7 +9,10 @@ const CAMERA_LERP := 5.0
 @onready var joystick: Control = $VirtualJoystick
 @onready var _pause_menu = $PauseMenu
 
+const RANDOM_EVENT_CHANCE := 0.1
+
 var _shop_scene: PackedScene = preload("res://scenes/ui/Shop.tscn")
+var _event_popup_scene: PackedScene = preload("res://scenes/ui/EventPopup.tscn")
 var _shop_open: bool = false
 var _inn_dialog = null
 var _quest_open: bool = false
@@ -339,7 +342,46 @@ func _show_inn_feedback(msg: String) -> void:
 	await get_tree().create_timer(2.0).timeout
 	canvas.queue_free()
 
+func _check_random_event() -> void:
+	match randi() % 3:
+		0: _trigger_merchant()
+		1: _trigger_chest()
+		_: _trigger_helper_npc()
+
+func _trigger_merchant() -> void:
+	GameManager.merchant_discount = 0.8
+	var popup = _event_popup_scene.instantiate()
+	add_child(popup)
+	popup.setup(Color(0.2, 0.4, 0.8, 1), "Marchand Itinérant\n\n-20% sur tous les articles !", "Ouvrir Boutique", true)
+	popup.confirmed.connect(func():
+		if _shop_open: return
+		_shop_open = true
+		var shop := _shop_scene.instantiate()
+		shop.tree_exited.connect(func(): GameManager.merchant_discount = 1.0; _shop_open = false)
+		get_tree().root.add_child(shop)
+	)
+	popup.closed.connect(func(): GameManager.merchant_discount = 1.0)
+
+func _trigger_chest() -> void:
+	var gold_found: int = 50 + randi() % 151
+	GameManager.add_gold(gold_found)
+	var popup = _event_popup_scene.instantiate()
+	add_child(popup)
+	popup.setup(Color(1.0, 0.85, 0.1, 1), "Coffre Caché\n\nVous avez trouvé %d Gil !" % gold_found, "Ouvrir")
+
+func _trigger_helper_npc() -> void:
+	var heal_amt: int = 30
+	for m in GameManager.party:
+		if m.is_alive():
+			m.hp = min(m.max_hp, m.hp + heal_amt)
+	var popup = _event_popup_scene.instantiate()
+	add_child(popup)
+	popup.setup(Color(0.2, 0.8, 0.3, 1), "Voyageur Mystérieux\n\n\"Voici de l'énergie, voyageur.\"\n+%d HP à tous !" % heal_amt, "Merci")
+
 func _on_encounter() -> void:
+	if randf() < RANDOM_EVENT_CHANCE:
+		_check_random_event()
+		return
 	GameManager.return_after_battle = "res://scenes/world/WorldMap.tscn"
 	BattleManager.is_boss_battle = false
 	BattleManager.is_boss1_battle = false
