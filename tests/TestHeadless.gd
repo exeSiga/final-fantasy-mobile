@@ -47,6 +47,9 @@ func _run_all() -> void:
 	_test_merchant_discount()
 	_test_ff7_character_names()
 	_test_atb_gauge()
+	_test_enemy_skill_materia_load()
+	_test_enemy_skill_learn()
+	_test_enemy_skill_save_load()
 
 func _test_new_game() -> void:
 	GameManager.new_game()
@@ -529,3 +532,52 @@ func _test_atb_gauge() -> void:
 	if tifa_cycles <= cloud_cycles:
 		_ko("atb_gauge", "Tifa should act more often than Cloud over %f s window" % window); return
 	_ok("atb_gauge: atb_gauge defaults to 0; charge duration decreases with spd; Tifa(spd=%d)=%.2f cycles > Cloud(spd=%d)=%.2f cycles in %fs" % [tifa.spd, tifa_cycles, cloud.spd, cloud_cycles, window])
+
+func _test_enemy_skill_materia_load() -> void:
+	var mat = load("res://resources/materias/enemy_skill_materia.tres")
+	if mat == null:
+		_ko("enemy_skill_materia_load", "enemy_skill_materia.tres not found"); return
+	if mat.materia_type != "enemy_skill":
+		_ko("enemy_skill_materia_load", "expected materia_type='enemy_skill', got '%s'" % mat.materia_type); return
+	if mat.price <= 0:
+		_ko("enemy_skill_materia_load", "price should be > 0"); return
+	var white_wind = load("res://resources/spells/white_wind.tres")
+	if white_wind == null:
+		_ko("enemy_skill_materia_load", "white_wind.tres not found"); return
+	var flame_thrower = load("res://resources/spells/flame_thrower.tres")
+	if flame_thrower == null:
+		_ko("enemy_skill_materia_load", "flame_thrower.tres not found"); return
+	_ok("enemy_skill_materia_load: Enemy Skill Materia + white_wind + flame_thrower all load correctly")
+
+func _test_enemy_skill_learn() -> void:
+	GameManager.new_game()
+	var path1: String = "res://resources/spells/white_wind.tres"
+	var path2: String = "res://resources/spells/flame_thrower.tres"
+	if not GameManager.learn_enemy_skill(path1):
+		_ko("enemy_skill_learn", "first learn should return true"); return
+	if GameManager.learn_enemy_skill(path1):
+		_ko("enemy_skill_learn", "second learn of same spell should return false (dedup)"); return
+	if GameManager.learned_enemy_skills.size() != 1:
+		_ko("enemy_skill_learn", "expected 1 learned skill, got %d" % GameManager.learned_enemy_skills.size()); return
+	if not GameManager.learn_enemy_skill(path2):
+		_ko("enemy_skill_learn", "learning second spell should return true"); return
+	if GameManager.learned_enemy_skills.size() != 2:
+		_ko("enemy_skill_learn", "expected 2 learned skills, got %d" % GameManager.learned_enemy_skills.size()); return
+	_ok("enemy_skill_learn: learn_enemy_skill deduplicates; learned 2 distinct skills")
+
+func _test_enemy_skill_save_load() -> void:
+	GameManager.new_game()
+	var path1: String = "res://resources/spells/white_wind.tres"
+	GameManager.learn_enemy_skill(path1)
+	SaveSystem.save(0)
+	GameManager.new_game()
+	if GameManager.learned_enemy_skills.size() != 0:
+		_ko("enemy_skill_save_load", "new_game should clear learned skills"); return
+	var ok: bool = SaveSystem.load_save(0)
+	if not ok:
+		_ko("enemy_skill_save_load", "load_save returned false"); return
+	if GameManager.learned_enemy_skills.size() != 1:
+		_ko("enemy_skill_save_load", "expected 1 loaded skill, got %d" % GameManager.learned_enemy_skills.size()); return
+	if GameManager.learned_enemy_skills[0] != path1:
+		_ko("enemy_skill_save_load", "loaded skill path mismatch"); return
+	_ok("enemy_skill_save_load: learned_enemy_skills persists through save/load")

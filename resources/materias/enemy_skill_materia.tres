@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="Materia" load_steps=2 format=3 uid="uid://mat_enemyskill"]
+
+[ext_resource type="Script" path="res://scripts/Materia.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+materia_name = "Enemy Skill"
+materia_type = "enemy_skill"
+spell_path = ""
+passive_stat = ""
+passive_pct = 0.0
+price = 600
+description = "Learns a monster's special attack when its wearer is hit by it."

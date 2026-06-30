@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="Spell" load_steps=2 format=3 uid="uid://flamethrower"]
+
+[ext_resource type="Script" path="res://resources/Spell.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+spell_name = "Flame Thrower"
+mp_cost = 16
+damage_multiplier = 2.4
+effect_type = 0
+description = "Enemy Skill — burns an enemy for 2.4x damage"
+element = "fire"
+heal_value = 0

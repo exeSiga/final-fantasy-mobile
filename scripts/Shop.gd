@@ -21,6 +21,7 @@ const SHOP_MATERIAS: Array[String] = [
 	"res://resources/materias/cure_materia.tres",
 	"res://resources/materias/hp_plus_materia.tres",
 	"res://resources/materias/mp_plus_materia.tres",
+	"res://resources/materias/enemy_skill_materia.tres",
 ]
 
 const SHOP_EQUIP: Array[String] = [

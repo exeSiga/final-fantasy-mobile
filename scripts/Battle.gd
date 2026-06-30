@@ -57,6 +57,7 @@ func _ready() -> void:
 	BattleManager.summon_triggered.connect(_on_summon_triggered)
 	BattleManager.atb_updated.connect(_on_atb_updated)
 	BattleManager.atb_ready.connect(_on_atb_ready)
+	BattleManager.enemy_skill_learned.connect(_on_enemy_skill_learned)
 	GameManager.level_up.connect(_on_level_up)
 	BattleManager.start_battle(BattleManager.dungeon_mode, BattleManager.is_boss_battle)
 
@@ -296,6 +297,9 @@ func _on_action_result(attacker: String, target: String, damage: int, is_crit: b
 	for i in BattleManager.enemies.size():
 		if i < _enemy_hp_bars.size():
 			_enemy_hp_bars[i].animate_to(BattleManager.enemies[i].hp)
+
+func _on_enemy_skill_learned(spell_name: String) -> void:
+	_spawn_popup("★ Appris : %s !" % spell_name, Color(0.4, 1.0, 0.6, 1))
 
 func _on_level_up(new_level: int) -> void:
 	_spawn_popup("★ LEVEL UP! Lv.%d ★" % new_level, Color(1.0, 0.9, 0.1, 1))
