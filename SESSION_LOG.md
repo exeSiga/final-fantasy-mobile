@@ -34,3 +34,4 @@
 [2026-06-30] Sprint 29 (invocations Ifrit/Shiva/Ramuh/Bahamut + Summon Materia + shop + 16/16 tests) — DONE — ~8000 tokens
 [2026-06-30] Sprint 30 (Sephiroth 3 phases: Shadow Flare/Heartless Angel/Supernova + bouton Lv.15 + 20/20 tests) — DONE — ~5000 tokens
 [2026-06-30] Sprint 31 (Rang SOLDIER 3rd/2nd/1st + XP/ATK bonus + WorldHUD + save + 24/24 tests) — DONE — ~4500 tokens
+[2026-06-30] Sprint 32 (événements aléatoires WorldMap: marchand -20% / coffre / NPC soin + EventPopup + 27/27 tests) — DONE — ~4000 tokens

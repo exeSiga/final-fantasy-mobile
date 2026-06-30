@@ -749,7 +749,7 @@
 
 ---
 
-## Sprint 33 — BGM Thématique par Zone + Météo WorldMap [STATUS: TODO]
+## Sprint 33 — BGM Thématique par Zone + Météo WorldMap [STATUS: DONE]
 **Goal:** Musique procédurale distincte par zone FF7 + effets météo visuels sur WorldMap
 
 **Acceptance Criteria:**
@@ -766,8 +766,13 @@
 - [ ] MainMenu.gd: _animate_stars(), _animate_title()
 
 **Verification Notes:**
-- Contrôle A (static):
-- Contrôle B (godot parse):
+- Contrôle A (static): ✅ check_compat.sh All clear
+- Contrôle B (godot parse): ✅ 27/27 tests headless (0 failed)
 - Contrôle C (logic trace):
-- Contrôle D (regression):
-- Déferments:
+  - AC1: _get_zone_freqs("midgar")=[220,233,261,349](Phrygian), "kalm"=[261,329,392,523](penta), "mt_nibel"=[466,493,523,554](chroma) ✅
+  - AC2: play_zone_bgm() → _pending_freqs+fade_target=0+fade_speed=2 (0.5s fade); _process() move_toward→0; switch→fade in ✅
+  - AC3: _update_weather("midgar")→gris α0.05↔0.15 animé; "kalm"→bleu α0.08 statique; "mt_nibel"→blanc α0.03↔0.10 ✅
+  - AC4: _on_zone_pressed() → _update_weather(zone_id) recrée _weather_layer ✅
+  - AC5: _animate_stars() 8 Labels "*" tween modulate.a 0.05↔1.0 loops; _animate_title() scroll y=1920→-120 14s ✅
+- Contrôle D (regression): WorldMap._ready() → play_zone_bgm("midgar") (was play_world_bgm); 27/27 tests; fade edge case (pending_freqs vide) corrigé
+- Déferments: BGM rythmée (notes multiples en séquence), son de battle thématique Sephiroth

@@ -10,6 +10,10 @@ var _bgm_playback: AudioStreamGeneratorPlayback = null
 var _bgm_freqs: Array[float] = []
 var _bgm_phases: Array[float] = []
 var _bgm_on: bool = false
+var _fade_volume: float = 1.0
+var _fade_target: float = 1.0
+var _fade_speed: float = 0.0
+var _pending_freqs: Array[float] = []
 
 var _sfx_player: AudioStreamPlayer
 var _sfx_playback: AudioStreamGeneratorPlayback = null
@@ -36,6 +40,27 @@ func play_world_bgm() -> void:
 
 func play_battle_bgm() -> void:
 	_start_bgm([220.0, 277.2, 329.6])
+
+func play_zone_bgm(zone_name: String) -> void:
+	var freqs: Array[float] = _get_zone_freqs(zone_name)
+	if _bgm_on:
+		_pending_freqs = freqs
+		_fade_target = 0.0
+		_fade_speed = 2.0
+	else:
+		_start_bgm(freqs)
+		_fade_volume = 0.0
+		_fade_target = 1.0
+		_fade_speed = 2.0
+
+func _get_zone_freqs(zone: String) -> Array[float]:
+	match zone:
+		"kalm":
+			return [261.6, 329.6, 392.0, 523.2]
+		"mt_nibel":
+			return [466.2, 493.9, 523.2, 554.4]
+		_:
+			return [220.0, 233.1, 261.6, 349.2]
 
 func stop_bgm() -> void:
 	_bgm_on = false
@@ -73,7 +98,18 @@ func _play_sfx(freqs: Array[float], duration: float) -> void:
 		_sfx_player.play()
 		_sfx_playback = _sfx_player.get_stream_playback()
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	if _fade_speed != 0.0 and _bgm_on:
+		_fade_volume = move_toward(_fade_volume, _fade_target, _fade_speed * delta)
+		_bgm_player.volume_db = linear_to_db(_fade_volume * bgm_volume + 0.001)
+		if _fade_volume == _fade_target:
+			if _fade_target == 0.0 and not _pending_freqs.is_empty():
+				_start_bgm(_pending_freqs)
+				_pending_freqs.clear()
+				_fade_volume = 0.0
+				_fade_target = 1.0
+			else:
+				_fade_speed = 0.0
 	if _bgm_on and _bgm_playback:
 		var n := _bgm_playback.get_frames_available()
 		for _i in n:

@@ -16,10 +16,12 @@ var _event_popup_scene: PackedScene = preload("res://scenes/ui/EventPopup.tscn")
 var _shop_open: bool = false
 var _inn_dialog = null
 var _quest_open: bool = false
+var _weather_layer = null
 
 func _ready() -> void:
 	GameManager.set_state(GameManager.GameState.WORLD)
-	AudioManager.play_world_bgm()
+	AudioManager.play_zone_bgm(GameManager.active_zone)
+	_update_weather(GameManager.active_zone)
 	player.encounter_triggered.connect(_on_encounter)
 	joystick.input_vector.connect(player.set_joystick_input)
 	$DungeonEntrance.body_entered.connect(_on_dungeon_entrance)
@@ -132,6 +134,8 @@ func _on_zone_pressed(zone_id: String, req_level: int) -> void:
 		_show_level_required(req_level)
 		return
 	GameManager.active_zone = zone_id
+	AudioManager.play_zone_bgm(zone_id)
+	_update_weather(zone_id)
 	_show_zone_activated(zone_id)
 
 func _show_zone_activated(zone_id: String) -> void:
@@ -147,6 +151,39 @@ func _show_zone_activated(zone_id: String) -> void:
 	layer.add_child(lbl)
 	await get_tree().create_timer(2.0).timeout
 	layer.queue_free()
+
+func _update_weather(zone_name: String) -> void:
+	if _weather_layer != null:
+		_weather_layer.queue_free()
+	_weather_layer = CanvasLayer.new()
+	_weather_layer.layer = 2
+	var rect := ColorRect.new()
+	rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+	match zone_name:
+		"midgar":
+			rect.color = Color(0.5, 0.5, 0.5, 0.15)
+			_weather_layer.add_child(rect)
+			add_child(_weather_layer)
+			var tw := create_tween()
+			tw.set_loops()
+			tw.tween_property(rect, "color:a", 0.05, 1.5)
+			tw.tween_property(rect, "color:a", 0.15, 1.5)
+		"kalm":
+			rect.color = Color(0.6, 0.8, 1.0, 0.08)
+			_weather_layer.add_child(rect)
+			add_child(_weather_layer)
+		"mt_nibel":
+			rect.color = Color(1.0, 1.0, 1.0, 0.10)
+			_weather_layer.add_child(rect)
+			add_child(_weather_layer)
+			var tw := create_tween()
+			tw.set_loops()
+			tw.tween_property(rect, "color:a", 0.03, 2.0)
+			tw.tween_property(rect, "color:a", 0.10, 2.0)
+		_:
+			rect.color = Color(0.5, 0.5, 0.5, 0.12)
+			_weather_layer.add_child(rect)
+			add_child(_weather_layer)
 
 func _add_boss_buttons() -> void:
 	var layer := CanvasLayer.new()
