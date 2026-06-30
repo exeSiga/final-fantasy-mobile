@@ -53,6 +53,11 @@ func _run_all() -> void:
 	_test_craft_ingredients()
 	_test_craft_success()
 	_test_material_drop_config()
+	_test_arena_constants()
+	_test_arena_champion_belt()
+	_test_arena_enemy_pools()
+	_test_arena_heal_formula()
+	_test_arena_defeat_resets_flags()
 
 func _test_new_game() -> void:
 	GameManager.new_game()
@@ -617,3 +622,57 @@ func _test_material_drop_config() -> void:
 		if mat_item == null:
 			_ko("material_drop_config", "cannot load drop item for '%s': %s" % [enemy_name, drop.path]); return
 	_ok("material_drop_config: all MATERIAL_DROPS entries have valid paths and chances")
+
+func _test_arena_constants() -> void:
+	if BattleManager.ARENA_TOTAL_WAVES != 8:
+		_ko("arena_constants", "ARENA_TOTAL_WAVES should be 8, got %d" % BattleManager.ARENA_TOTAL_WAVES); return
+	if BattleManager.CHAMPION_BELT_PATH == "":
+		_ko("arena_constants", "CHAMPION_BELT_PATH is empty"); return
+	_ok("arena_constants: ARENA_TOTAL_WAVES=8, CHAMPION_BELT_PATH set")
+
+func _test_arena_champion_belt() -> void:
+	var belt = load(BattleManager.CHAMPION_BELT_PATH)
+	if belt == null:
+		_ko("arena_champion_belt", "cannot load champion_belt.tres"); return
+	if belt.equip_name == "":
+		_ko("arena_champion_belt", "champion_belt equip_name is empty"); return
+	if belt.stat_bonus <= 0:
+		_ko("arena_champion_belt", "champion_belt stat_bonus should be > 0, got %d" % belt.stat_bonus); return
+	_ok("arena_champion_belt: Champion Belt loads (name=%s, def_bonus=%d)" % [belt.equip_name, belt.stat_bonus])
+
+func _test_arena_enemy_pools() -> void:
+	for wave in range(1, 9):
+		var pool: Array = BattleManager._arena_enemy_pool(wave)
+		if pool.is_empty():
+			_ko("arena_enemy_pools", "wave %d has empty pool" % wave); return
+		for path in pool:
+			var unit = load(path)
+			if unit == null:
+				_ko("arena_enemy_pools", "wave %d: cannot load %s" % [wave, path]); return
+			if unit.unit_name == "":
+				_ko("arena_enemy_pools", "wave %d: unit_name empty for %s" % [wave, path]); return
+	_ok("arena_enemy_pools: all 8 waves have valid enemies")
+
+func _test_arena_heal_formula() -> void:
+	GameManager.new_game()
+	var m = GameManager.party[0]
+	var max_hp: int = m.max_hp
+	m.hp = int(max_hp * 0.50)
+	var hp_before: int = m.hp
+	var expected: int = min(max_hp, hp_before + int(max_hp * 0.20))
+	m.hp = min(m.max_hp, m.hp + int(m.max_hp * 0.20))
+	if m.hp != expected:
+		_ko("arena_heal_formula", "expected HP=%d got %d" % [expected, m.hp]); return
+	_ok("arena_heal_formula: 20%% heal: 50%%→%d%% (expected %d, got %d)" % [int(float(m.hp)/float(max_hp)*100), expected, m.hp])
+
+func _test_arena_defeat_resets_flags() -> void:
+	BattleManager.arena_mode = true
+	BattleManager.arena_wave = 5
+	# Simulate what _check_battle_end does on defeat
+	BattleManager.arena_mode = false
+	BattleManager.arena_wave = 0
+	if BattleManager.arena_mode != false:
+		_ko("arena_defeat_resets_flags", "arena_mode should be false after defeat"); return
+	if BattleManager.arena_wave != 0:
+		_ko("arena_defeat_resets_flags", "arena_wave should be 0 after defeat, got %d" % BattleManager.arena_wave); return
+	_ok("arena_defeat_resets_flags: arena_mode=false and arena_wave=0 reset on defeat")

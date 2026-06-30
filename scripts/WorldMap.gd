@@ -37,6 +37,7 @@ func _ready() -> void:
 	$PauseLayer/PauseButton.pressed.connect(_pause_menu.show_pause)
 	_add_zone_buttons()
 	_add_boss_buttons()
+	_add_arena_button()
 	_add_npc_buttons()
 	_add_quest_button()
 	if GameManager.pending_rank_notification != "":
@@ -276,6 +277,43 @@ func _on_boss2_pressed() -> void:
 	BattleManager.is_boss2_battle = true
 	BattleManager.is_boss_sephiroth_battle = false
 	BattleManager.dungeon_mode = false
+	GameManager.change_scene("res://scenes/combat/Battle.tscn")
+
+func _add_arena_button() -> void:
+	var layer := CanvasLayer.new()
+	layer.layer = 5
+	add_child(layer)
+	var btn := Button.new()
+	btn.text = "⚔ Arène\n[8 vagues] (Lv.10+)"
+	btn.add_theme_font_size_override("font_size", 22)
+	btn.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2, 1))
+	btn.custom_minimum_size = Vector2(200, 90)
+	btn.anchor_left = 1.0
+	btn.anchor_top = 0.0
+	btn.anchor_right = 1.0
+	btn.anchor_bottom = 0.0
+	btn.offset_left = -215.0
+	btn.offset_top = 10.0
+	btn.offset_right = -10.0
+	btn.offset_bottom = 105.0
+	btn.pressed.connect(_on_arena_pressed)
+	layer.add_child(btn)
+
+func _on_arena_pressed() -> void:
+	var avg_level: int = 0
+	for m in GameManager.party:
+		avg_level += m.level
+	avg_level = avg_level / max(1, GameManager.party.size())
+	if avg_level < 10:
+		_show_level_required(10)
+		return
+	GameManager.return_after_battle = "res://scenes/world/WorldMap.tscn"
+	BattleManager.is_boss_battle = false
+	BattleManager.is_boss1_battle = false
+	BattleManager.is_boss2_battle = false
+	BattleManager.is_boss_sephiroth_battle = false
+	BattleManager.dungeon_mode = false
+	BattleManager.arena_mode = true
 	GameManager.change_scene("res://scenes/combat/Battle.tscn")
 
 func _show_level_required(req: int) -> void:

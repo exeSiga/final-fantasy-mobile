@@ -22,6 +22,8 @@ const BOSS_PATH           := "res://resources/units/dark_knight.tres"
 const BOSS1_PATH          := "res://resources/units/guard_scorpion.tres"
 const BOSS2_PATH          := "res://resources/units/jenova.tres"
 const BOSS_SEPHIROTH_PATH := "res://resources/units/sephiroth.tres"
+const CHAMPION_BELT_PATH  := "res://resources/equipment/champion_belt.tres"
+const ARENA_TOTAL_WAVES   := 8
 
 const SPELL_DAMAGE := 0
 const SPELL_HEAL   := 1
@@ -40,6 +42,9 @@ var is_boss1_battle: bool = false
 var is_boss2_battle: bool = false
 var is_boss_sephiroth_battle: bool = false
 var dungeon_mode: bool = false
+var arena_mode: bool = false
+var arena_wave: int = 0
+var arena_completed: bool = false
 
 signal battle_started(party, enemies)
 signal turn_changed(unit)
@@ -51,6 +56,7 @@ signal summon_triggered(summon_name, element)
 signal atb_updated(unit, value)
 signal atb_ready(unit)
 signal enemy_skill_learned(spell_name: String)
+signal arena_wave_cleared(wave: int)
 
 const ENEMY_SKILL_MAP := {
 	"Gargoyle":     "res://resources/spells/white_wind.tres",
@@ -750,6 +756,55 @@ func _ai_jenova(enemy) -> void:
 		enemy.hp = min(enemy.max_hp, enemy.hp + actual)
 	_check_phase_transition(enemy)
 
+func start_arena() -> void:
+	arena_mode = true
+	arena_wave = 1
+	arena_completed = false
+	is_boss_battle = false
+	is_boss1_battle = false
+	is_boss2_battle = false
+	is_boss_sephiroth_battle = false
+	dungeon_mode = false
+	if GameManager.party.is_empty():
+		GameManager.new_game()
+	party = GameManager.party
+	_apply_spell_materias()
+	GameManager.reset_summon_charges()
+	player_unit = null
+	enemies.clear()
+	for path in _arena_enemy_pool(1):
+		enemies.append(load(path).duplicate())
+	_build_turn_queue()
+	state = BattleState.IDLE
+	battle_started.emit(party, enemies)
+	_advance_turn()
+
+func _arena_enemy_pool(wave: int) -> Array:
+	match wave:
+		1: return ["res://resources/units/slime.tres", "res://resources/units/goblin.tres"]
+		2: return ["res://resources/units/goblin.tres", "res://resources/units/skeleton.tres"]
+		3: return ["res://resources/units/skeleton.tres", "res://resources/units/bat.tres"]
+		4: return ["res://resources/units/orc.tres", "res://resources/units/shadow.tres"]
+		5: return ["res://resources/units/orc.tres", "res://resources/units/troll.tres"]
+		6: return ["res://resources/units/shadow.tres", "res://resources/units/gargoyle.tres"]
+		7: return ["res://resources/units/troll.tres", "res://resources/units/gargoyle.tres"]
+		8: return ["res://resources/units/dark_knight.tres"]
+		_: return ["res://resources/units/slime.tres"]
+
+func _next_arena_wave() -> void:
+	for m in party:
+		if m.is_alive():
+			m.hp = min(m.max_hp, m.hp + int(m.max_hp * 0.20))
+			if m.max_mp > 0:
+				m.mp = min(m.max_mp, m.mp + int(m.max_mp * 0.20))
+	enemies.clear()
+	for path in _arena_enemy_pool(arena_wave):
+		enemies.append(load(path).duplicate())
+	_build_turn_queue()
+	state = BattleState.IDLE
+	battle_started.emit(party, enemies)
+	_advance_turn()
+
 # Called by Battle.gd after item use
 func rebuild_and_next() -> void:
 	_rebuild_queue()
@@ -779,9 +834,25 @@ func _check_battle_end() -> void:
 			GameManager.pending_rank_notification = new_rank
 		_try_drop_materials()
 		GameManager.grant_battle_rewards()
+		if arena_mode:
+			if arena_wave >= ARENA_TOTAL_WAVES:
+				var belt = load(CHAMPION_BELT_PATH)
+				if belt != null:
+					GameManager.equip_inventory[CHAMPION_BELT_PATH] = GameManager.equip_inventory.get(CHAMPION_BELT_PATH, 0) + 1
+					battle_log.emit("★ Champion Belt obtenu !")
+				arena_completed = true
+				arena_mode = false
+				battle_ended.emit(true)
+			else:
+				arena_wave += 1
+				arena_wave_cleared.emit(arena_wave - 1)
+			return
 		battle_ended.emit(true)
 		return
 	var all_party_dead: bool = party.all(func(m) -> bool: return not m.is_alive())
 	if all_party_dead:
 		state = BattleState.GAME_OVER
+		if arena_mode:
+			arena_mode = false
+			arena_wave = 0
 		battle_ended.emit(false)

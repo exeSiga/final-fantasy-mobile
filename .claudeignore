@@ -1,0 +1,23 @@
+# Fichiers jamais nécessaires au loop de développement
+.godot/
+*.import
+*.uid
+*.translation
+export_presets.cfg
+android/
+ios/
+builds/
+*.apk
+*.aab
+*.ipa
+
+# Logs et archives
+.claude/loop.log
+TASKS_ARCHIVE.md
+
+# Assets binaires
+assets/fonts/*.ttf
+assets/fonts/*.otf
+assets/sprites/*.png
+assets/audio/*.ogg
+assets/audio/*.wav

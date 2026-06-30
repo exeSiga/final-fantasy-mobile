@@ -26,6 +26,8 @@ const UnitSprite = preload("res://scripts/UnitSprite.gd")
 var _log_lines: PackedStringArray = []
 var _enemy_hp_bars: Array = []
 var _enemy_sprite_list: Array = []
+var _wave_label: Label = null
+var _wave_canvas: CanvasLayer = null
 
 # Party panel rows — built dynamically
 var _party_hp_bars: Array = []
@@ -58,8 +60,12 @@ func _ready() -> void:
 	BattleManager.atb_updated.connect(_on_atb_updated)
 	BattleManager.atb_ready.connect(_on_atb_ready)
 	BattleManager.enemy_skill_learned.connect(_on_enemy_skill_learned)
+	BattleManager.arena_wave_cleared.connect(_on_arena_wave_cleared)
 	GameManager.level_up.connect(_on_level_up)
-	BattleManager.start_battle(BattleManager.dungeon_mode, BattleManager.is_boss_battle)
+	if BattleManager.arena_mode:
+		BattleManager.start_arena()
+	else:
+		BattleManager.start_battle(BattleManager.dungeon_mode, BattleManager.is_boss_battle)
 
 func _fade_in() -> void:
 	var overlay := ColorRect.new()
@@ -84,12 +90,34 @@ func _create_limit_button() -> void:
 	action_buttons.add_child(_limit_btn)
 	action_buttons.move_child(_limit_btn, 0)
 
+func _ensure_wave_label() -> void:
+	if _wave_canvas != null:
+		return
+	_wave_canvas = CanvasLayer.new()
+	_wave_canvas.layer = 10
+	add_child(_wave_canvas)
+	_wave_label = Label.new()
+	_wave_label.add_theme_font_size_override("font_size", 36)
+	_wave_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2, 1))
+	_wave_label.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	_wave_label.offset_left = -260.0
+	_wave_label.offset_top = 10.0
+	_wave_label.offset_right = -10.0
+	_wave_label.offset_bottom = 60.0
+	_wave_canvas.add_child(_wave_label)
+
 func _on_battle_started(party: Array, enemies: Array) -> void:
 	_build_party_panel(party)
 	_build_party_sprites(party)
 	_build_enemy_sprites(enemies)
 	_build_enemy_bars(enemies)
-	_log("Battle start!")
+	if BattleManager.arena_mode:
+		_ensure_wave_label()
+		_wave_label.text = "Vague %d/8" % BattleManager.arena_wave
+		_wave_label.show()
+		_log("Vague %d/8 — En garde !" % BattleManager.arena_wave)
+	else:
+		_log("Battle start!")
 
 func _build_party_panel(party: Array) -> void:
 	for child in hero_panel.get_children():
@@ -355,6 +383,12 @@ func _animate_attack(spr: Node2D, direction: float) -> void:
 	tw.tween_property(spr, "position:x", origin.x + direction * 20.0, 0.08)
 	tw.tween_property(spr, "position:x", origin.x, 0.08)
 
+func _on_arena_wave_cleared(wave: int) -> void:
+	_log("Vague %d terminée ! Soin 20%% HP/MP..." % wave)
+	_spawn_popup("Vague %d !" % wave, Color(0.3, 1.0, 0.5, 1))
+	await get_tree().create_timer(1.5).timeout
+	BattleManager._next_arena_wave()
+
 func _on_battle_ended(victory: bool) -> void:
 	action_buttons.hide()
 	magic_menu.hide()
@@ -362,7 +396,10 @@ func _on_battle_ended(victory: bool) -> void:
 	if victory:
 		AudioManager.play_sfx_victory()
 		SaveSystem.save(0)
-		if BattleManager.is_boss_sephiroth_battle:
+		if BattleManager.arena_completed:
+			BattleManager.arena_completed = false
+			_victory_title.text = "Champion de l'Arène !\n★ Champion Belt obtenu !\n+%d XP  +%d G" % [BattleManager.last_xp, BattleManager.last_gold]
+		elif BattleManager.is_boss_sephiroth_battle:
 			_victory_title.text = "Sephiroth vaincu !\nLa planète est sauvée.\n+%d XP  +%d G" % [BattleManager.last_xp, BattleManager.last_gold]
 		else:
 			_victory_title.text = "Victory!\n+%d XP  +%d G" % [BattleManager.last_xp, BattleManager.last_gold]

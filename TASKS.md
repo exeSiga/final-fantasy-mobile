@@ -103,7 +103,7 @@
 
 ---
 
-## Sprint 38 — Arène de Combat (Battle Arena, 8 vagues) [STATUS: TODO]
+## Sprint 38 — Arène de Combat (Battle Arena, 8 vagues) [STATUS: DONE]
 **Goal:** Mode de combat optionnel à 8 vagues consécutives avec récompenses uniques, accessible depuis la WorldMap
 
 **Acceptance Criteria:**
@@ -121,8 +121,12 @@
 - [ ] GameManager.gd ou BattleManager.gd: octroi Champion Belt à la vague 8
 
 **Verification Notes:**
-- Contrôle A (static):
-- Contrôle B (godot parse):
+- Contrôle A (static): ✅ check_compat.sh All clear
+- Contrôle B (godot parse): ✅ 40/40 tests headless
 - Contrôle C (logic trace):
-- Contrôle D (regression):
-- Déferments:
+  - AC1: WorldMap._add_arena_button() → _on_arena_pressed() avg_level check → arena_mode=true → Battle.tscn
+  - AC2: start_arena() vague 1 ; _check_battle_end() → arena_wave_cleared → _next_arena_wave() heal 20% + ennemis suivants
+  - AC3: all_party_dead → arena_mode=false, arena_wave=0, battle_ended(false) → game_over overlay
+  - AC4: arena_wave>=8 → Champion Belt dans equip_inventory → arena_completed=true → victory overlay
+  - AC5: _on_battle_started() → _ensure_wave_label() → "Vague X/8"
+- Contrôle D (regression): 40/40 tests, flow normal et boss battles intacts, arena isolé derrière arena_mode flag

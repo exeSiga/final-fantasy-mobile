@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="" load_steps=2 format=3 uid="uid://champion_belt"]
+
+[ext_resource type="Script" path="res://resources/Equipment.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+equip_name = "Champion Belt"
+slot = 1
+stat_bonus = 25
+price = 0
+allowed_classes = []
+description = "Awarded to Arena champions — defense +25."
+materia_slots = 1
