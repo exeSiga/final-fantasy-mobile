@@ -40,3 +40,4 @@
 [2026-06-30] Sprint 35 (jauge ATB par spd, barre visuelle, boutons gated par atb_ready, 29/29 tests) — DONE — ~6500 tokens
 [2026-06-30] Sprint 36 (Enemy Skill Materia) — DONE — SaveSystem fix + white_wind/flame_thrower + shop + popup, 32/32 tests
 [2026-06-30] Sprint 37 (Crafting + ShinRa Armory) — DONE — 3 recettes, 4 matériaux, ShinRa Armory 2nd+, CraftMenu, drops, 35/35 tests
+[2026-06-30] Sprint 38 (Arène de Combat 8 vagues) — DONE — arena_mode, wave label Vague X/8, soin 20% HP/MP inter-vague, Champion Belt vague 8, 40/40 tests
