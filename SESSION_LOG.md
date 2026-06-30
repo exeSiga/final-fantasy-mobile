@@ -36,3 +36,4 @@
 [2026-06-30] Sprint 31 (Rang SOLDIER 3rd/2nd/1st + XP/ATK bonus + WorldHUD + save + 24/24 tests) — DONE — ~4500 tokens
 [2026-06-30] Sprint 32 (événements aléatoires WorldMap: marchand -20% / coffre / NPC soin + EventPopup + 27/27 tests) — DONE — ~4000 tokens
 [2026-06-30] Sprint 33 (BGM thématique Midgar/Kalm/Mt.Nibel + fade 0.5s + météo WorldMap + étoiles+titre animés MainMenu) — DONE — ~3500 tokens
+[2026-06-30] Sprint 34 (personnages nommés FF7 Cloud/Tifa/Aerith + sprites distinctifs + backstory dialogues + 28/28 tests) — DONE — ~5000 tokens
