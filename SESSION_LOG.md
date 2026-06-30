@@ -39,3 +39,4 @@
 [2026-06-30] Sprint 34 (personnages nommés FF7 Cloud/Tifa/Aerith + sprites distinctifs + backstory dialogues + 28/28 tests) — DONE — ~5000 tokens
 [2026-06-30] Sprint 35 (jauge ATB par spd, barre visuelle, boutons gated par atb_ready, 29/29 tests) — DONE — ~6500 tokens
 [2026-06-30] Sprint 36 (Enemy Skill Materia) — DONE — SaveSystem fix + white_wind/flame_thrower + shop + popup, 32/32 tests
+[2026-06-30] Sprint 37 (Crafting + ShinRa Armory) — DONE — 3 recettes, 4 matériaux, ShinRa Armory 2nd+, CraftMenu, drops, 35/35 tests
