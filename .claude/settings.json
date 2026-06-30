@@ -34,15 +34,6 @@
         ]
       }
     ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "grep -qm1 'STATUS: TODO\\|STATUS: IN_PROGRESS' TASKS.md 2>/dev/null && echo '{\"decision\": \"block\", \"reason\": \"Sprint suivant disponible : continue la boucle autonome. Lis TASKS.md.\"}' || echo '{\"decision\": \"block\", \"reason\": \"Aucun sprint TODO trouvé. Tu dois générer 3-5 nouveaux sprints Final Fantasy 7 dans TASKS.md (consulte la section Génération Autonome de Sprints dans CLAUDE.md), puis exécuter le premier immédiatement.\"}'"
-          }
-        ]
-      }
-    ]
+    "Stop": []
   }
 }
