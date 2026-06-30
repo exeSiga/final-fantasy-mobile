@@ -56,6 +56,13 @@ func _build_member_section(idx: int) -> void:
 		status_lbl.add_theme_font_size_override("font_size", 24)
 		status_lbl.add_theme_color_override("font_color", Color(1.0, 0.4, 0.4, 1))
 		sec.add_child(status_lbl)
+	var backstory_id: String = "backstory_%s" % m.unit_name.to_lower()
+	if DialogueManager.DIALOGUES.has(backstory_id):
+		var hist_btn := Button.new()
+		hist_btn.text = "Historique"
+		hist_btn.add_theme_font_size_override("font_size", 22)
+		hist_btn.pressed.connect(func(): DialogueManager.show_dialogue(get_tree().root, backstory_id, ""))
+		sec.add_child(hist_btn)
 	var sep := HSeparator.new()
 	sep.custom_minimum_size = Vector2(0, 12)
 	sec.add_child(sep)

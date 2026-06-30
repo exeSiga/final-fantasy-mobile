@@ -4,7 +4,7 @@
 
 [resource]
 script = ExtResource("1")
-unit_name = "Black Mage"
+unit_name = "Tifa"
 hp = 160
 max_hp = 160
 mp = 140
@@ -13,7 +13,7 @@ atk = 18
 def = 6
 spd = 32
 is_player = true
-sprite_color = Color(0.5, 0.1, 0.75, 1)
+sprite_color = Color(0.55, 0.15, 0.1, 1)
 level = 1
 xp = 0
 xp_to_next_level = 100

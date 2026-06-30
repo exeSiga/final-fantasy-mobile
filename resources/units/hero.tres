@@ -4,7 +4,7 @@
 
 [resource]
 script = ExtResource("1")
-unit_name = "Warrior"
+unit_name = "Cloud"
 hp = 320
 max_hp = 320
 mp = 0

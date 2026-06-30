@@ -776,3 +776,139 @@
   - AC5: _animate_stars() 8 Labels "*" tween modulate.a 0.05↔1.0 loops; _animate_title() scroll y=1920→-120 14s ✅
 - Contrôle D (regression): WorldMap._ready() → play_zone_bgm("midgar") (was play_world_bgm); 27/27 tests; fade edge case (pending_freqs vide) corrigé
 - Déferments: BGM rythmée (notes multiples en séquence), son de battle thématique Sephiroth
+
+---
+
+## Sprint 34 — Personnages nommés FF7 (Cloud / Tifa / Aerith) [STATUS: DONE]
+**Goal:** Renommer le party générique avec les identités FF7 + sprites distinctifs + mini-dialogues backstory
+
+**Acceptance Criteria:**
+- [x] AC1: Le party affiche "Cloud" (ex-Warrior), "Tifa" (ex-Black Mage), "Aerith" (ex-White Mage) partout (Battle, StatusMenu, HUD, sauvegarde) — character_class interne inchangé (Warrior/Black Mage/White Mage) pour ne pas casser équipement/materia
+- [x] AC2: Chaque personnage a un sprite géométrique distinctif et reconnaissable dans UnitSprite._draw() (Cloud: cheveux blonds en pics + épée large ; Tifa: gants de combat + queue de cheval ; Aerith: robe rose + tresse + ruban)
+- [x] AC3: StatusMenu affiche un bouton "Historique" par personnage qui ouvre un mini-dialogue (2-3 lignes) racontant son passé (Cloud: ex-SOLDIER ; Tifa: bar Seventh Heaven secteur 7 ; Aerith: dernière Cetra)
+- [x] AC4: Les sauvegardes existantes restent compatibles (SaveSystem ne casse pas si unit_name a changé)
+
+**Tasks:**
+- [x] hero.tres: unit_name "Warrior" → "Cloud" ; black_mage.tres: "Black Mage" → "Tifa" ; white_mage.tres: "White Mage" → "Aerith"
+- [x] UnitSprite.gd: match sur les nouveaux noms ("Cloud"/"Tifa"/"Aerith"), nouvelles fonctions _draw_cloud/_draw_tifa/_draw_aerith
+- [x] DialogueManager.gd: ajouter entrées DIALOGUES "backstory_cloud", "backstory_tifa", "backstory_aerith"
+- [x] StatusMenu.gd: bouton "Historique" par section membre → DialogueManager.show_dialogue(get_tree().root, "backstory_<id>", "")
+
+**Verification Notes:**
+- Contrôle A (static): ✅ check_compat.sh All clear
+- Contrôle B (godot parse): ✅ 28/28 tests headless (0 failed) ; `--headless --check-only .` hangs indéfiniment dans cet environnement (pré-existant, indépendant des changements) — substitué par TestRunner.tscn qui charge/parse tous les scripts et autoloads
+- Contrôle C (logic trace):
+  - AC1: GameManager.new_game() → load hero/black_mage/white_mage.tres → unit_name="Cloud"/"Tifa"/"Aerith", character_class inchangé ✅ (testé _test_ff7_character_names)
+  - AC2: UnitSprite._draw() match unit_name_label "Cloud"/"Tifa"/"Aerith" → _draw_cloud/_draw_tifa/_draw_aerith ✅
+  - AC3: StatusMenu._build_member_section() → backstory_id="backstory_"+unit_name.to_lower() → DIALOGUES.has() → bouton "Historique" → DialogueManager.show_dialogue ✅
+  - AC4: SaveSystem sauvegarde unit_name comme simple champ (pas une clé de lookup) ; anciennes saves rechargent leur unit_name stocké sans crash ; fallback "Warrior"/"Black Mage"/"White Mage" conservé dans UnitSprite._draw() pour les sprites des saves existantes ✅
+- Contrôle D (regression): MainMenu → New Game → WorldMap → Battle → Victory → WorldMap inchangé (équipement/materia restent indexés par character_class) ; 28/28 tests
+- Déferments: aucun
+
+---
+
+## Sprint 35 — ATB Gauge (Active Time Battle) [STATUS: TODO]
+**Goal:** Remplacer le tour-par-tour strict par une jauge ATB qui se remplit selon la vitesse (spd), action jouable uniquement à jauge pleine
+
+**Acceptance Criteria:**
+- [ ] AC1: Chaque unité (joueur et ennemi) a une jauge ATB 0-100 qui se remplit automatiquement au fil du temps, proportionnelle à spd
+- [ ] AC2: Une barre ATB visuelle (sous la HP bar) est visible pour chaque membre du party en combat
+- [ ] AC3: Le bouton d'action (Fight/Spell/Item/etc.) n'est actionnable pour un membre que lorsque sa jauge ATB est pleine (100) ; jauge consommée à 0 après action
+- [ ] AC4: Les ennemis agissent automatiquement dès que leur jauge ATB est pleine, indépendamment de l'ordre des joueurs
+- [ ] AC5: Les unités plus rapides (spd élevé) agissent plus fréquemment que les unités lentes — vérifiable par un test headless comptant les actions sur N ticks
+
+**Tasks:**
+- [ ] CombatUnit.gd: ajouter atb_gauge (runtime, non sauvegardé), const ATB_MAX
+- [ ] BattleManager.gd: _process/_tick_atb(delta) qui incrémente atb_gauge de toutes les unités vivantes proportionnellement à spd ; état BattleState.ATB_WAIT entre les tours
+- [ ] BattleManager.gd: déclenchement de l'IA ennemie dès atb_gauge>=100 (au lieu du round-robin existant) ; reset à 0 après action
+- [ ] Battle.gd: barre ATB (ProgressBar ou ColorRect) sous chaque HPBar, mise à jour via signal atb_updated ; griser les boutons d'action tant que le membre actif n'a pas l'ATB plein
+- [ ] HPBar.gd ou nouveau ATBBar.gd: rendu de la jauge
+
+**Verification Notes:**
+- Contrôle A (static):
+- Contrôle B (godot parse):
+- Contrôle C (logic trace):
+- Contrôle D (regression):
+- Déferments:
+
+---
+
+## Sprint 36 — Enemy Skill Materia [STATUS: TODO]
+**Goal:** Materia spéciale qui apprend une capacité ennemie au porteur lorsqu'il la subit en combat
+
+**Acceptance Criteria:**
+- [ ] AC1: Une nouvelle Materia "Enemy Skill" (materia_type="enemy_skill") existe, achetable en boutique
+- [ ] AC2: Au moins 2 ennemis (ex: Gargoyle, Dark Knight) ont une attaque spéciale taguée enemy_skill_id qui, si elle touche un membre équipé de la Enemy Skill Materia, l'apprend (stockée dans GameManager.learned_enemy_skills)
+- [ ] AC3: Une fois apprise, la capacité apparaît dans le menu de sorts du membre équipé comme un sort utilisable (coût MP défini), au même titre qu'un sort classique
+- [ ] AC4: Les capacités apprises persistent à la sauvegarde/chargement
+- [ ] AC5: Notification "Compétence apprise : <nom>" affichée au moment de l'apprentissage
+
+**Tasks:**
+- [ ] Materia.gd: support materia_type="enemy_skill" (déjà Resource générique, ajouter le type)
+- [ ] resources/materias/enemy_skill_materia.tres
+- [ ] resources/spells/: 2 nouveaux sorts ex. "white_wind.tres" (Gargoyle), "flame_thrower.tres" (Dark Knight) avec un flag learned_only=true (non présents par défaut dans spell_paths)
+- [ ] BattleManager.gd: lors d'une attaque ennemie spéciale touchant un membre avec Enemy Skill Materia équipée → GameManager.learn_enemy_skill(spell_path) si pas déjà apprise
+- [ ] GameManager.gd: learned_enemy_skills: Array, learn_enemy_skill(), get_available_spells(member_idx) inclut les sorts appris si materia équipée
+- [ ] SaveSystem.gd: persister learned_enemy_skills
+- [ ] Battle.gd: notification "Compétence apprise"
+
+**Verification Notes:**
+- Contrôle A (static):
+- Contrôle B (godot parse):
+- Contrôle C (logic trace):
+- Contrôle D (regression):
+- Déferments:
+
+---
+
+## Sprint 37 — Crafting + Boutique Shinra [STATUS: TODO]
+**Goal:** Système de craft simple (2 matériaux → 1 équipement) + section boutique militaire ShinRa réservée aux hauts rangs SOLDIER
+
+**Acceptance Criteria:**
+- [ ] AC1: 4 nouveaux items "matériau" (Scrap Metal, Mako Crystal, Monster Fang, Magic Ore) obtenables via drops d'ennemis (ajout gold_reward-like material_drop sur CombatUnit ennemis) ou coffres WorldMap
+- [ ] AC2: Un CraftMenu accessible depuis le Shop liste des recettes (2 matériaux précis → 1 équipement/item), bouton "Crafter" désactivé si matériaux insuffisants
+- [ ] AC3: Au moins 3 recettes fonctionnelles (ex: 2x Scrap Metal → Buster Sword+ ; 2x Mako Crystal → Mako Bracelet (armure) ; Monster Fang+Magic Ore → Ether)
+- [ ] AC4: Section "ShinRa Armory" dans le Shop : 2 équipements exclusifs visibles seulement si GameManager.get_soldier_rank() != "3rd Class"
+- [ ] AC5: Craft et achats ShinRa persistent à la sauvegarde (equip_inventory standard)
+
+**Tasks:**
+- [ ] resources/items/: scrap_metal.tres, mako_crystal.tres, monster_fang.tres, magic_ore.tres (effect_type=-1 ou nouveau type "material")
+- [ ] CombatUnit ennemis: material_drop_path + material_drop_chance (ex Goblin→scrap_metal 40%)
+- [ ] BattleManager.gd: à la victoire, roll material_drop par ennemi → GameManager.add_item
+- [ ] resources/equipment/: buster_sword_plus.tres, mako_bracelet.tres (2 armes/armures ShinRa exclusives)
+- [ ] GameManager.gd: CRAFT_RECIPES const Array de Dictionary {mat1, mat2, result, result_type}, craft(recipe_idx) bool
+- [ ] scripts/CraftMenu.gd + scenes/ui/CraftMenu.tscn ; bouton "Craft" dans Shop.gd
+- [ ] Shop.gd: section "ShinRa Armory" filtrée par rang
+
+**Verification Notes:**
+- Contrôle A (static):
+- Contrôle B (godot parse):
+- Contrôle C (logic trace):
+- Contrôle D (regression):
+- Déferments:
+
+---
+
+## Sprint 38 — Arène de Combat (Battle Arena, 8 vagues) [STATUS: TODO]
+**Goal:** Mode de combat optionnel à 8 vagues consécutives avec récompenses uniques, accessible depuis la WorldMap
+
+**Acceptance Criteria:**
+- [ ] AC1: Bouton "Arena" sur WorldMap, débloqué si niveau moyen du party >= 10
+- [ ] AC2: L'arène enchaîne 8 vagues d'ennemis (difficulté croissante, pools existants + boss mineur en vague 8), sans retour à la WorldMap entre les vagues, soin partiel (20% HP/MP) entre chaque vague
+- [ ] AC3: Si le party est vaincu à n'importe quelle vague, retour à la WorldMap sans perte permanente (pas de game over définitif), mais aucune récompense
+- [ ] AC4: Victoire à la vague 8 → équipement unique "Champion Belt" (+stat bonus élevé) ajouté à equip_inventory, non disponible ailleurs
+- [ ] AC5: Compteur de vague visible en combat ("Vague 3/8")
+
+**Tasks:**
+- [ ] BattleManager.gd: arena_mode bool, arena_wave int, start_arena(), _next_arena_wave(), _arena_enemy_pool(wave)
+- [ ] resources/equipment/champion_belt.tres (armure exclusive, stat_bonus élevé)
+- [ ] WorldMap.gd: bouton Arena (visible si niveau moyen >= 10) → BattleManager.start_arena() → change_scene Battle.tscn
+- [ ] Battle.gd: label "Vague X/8" ; à la victoire d'une vague non-finale → soin 20% + _next_arena_wave() au lieu de retour WorldMap ; à la défaite → retour WorldMap sans pénalité
+- [ ] GameManager.gd ou BattleManager.gd: octroi Champion Belt à la vague 8 vaincue
+
+**Verification Notes:**
+- Contrôle A (static):
+- Contrôle B (godot parse):
+- Contrôle C (logic trace):
+- Contrôle D (regression):
+- Déferments:

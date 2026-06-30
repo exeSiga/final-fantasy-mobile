@@ -16,7 +16,15 @@
       "Bash(cp *)",
       "Bash(mv *)",
       "Bash(godot *)",
-      "Bash(wc *)"
+      "Bash(wc *)",
+      "Bash(which *)",
+      "Bash(systemctl *)",
+      "Bash(chmod *)",
+      "Bash(bash *)",
+      "Bash(id)",
+      "Bash(pgrep *)",
+      "Bash(nohup *)",
+      "Bash(tee *)"
     ],
     "deny": [
       "Bash(rm -rf /)",

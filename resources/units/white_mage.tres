@@ -4,7 +4,7 @@
 
 [resource]
 script = ExtResource("1")
-unit_name = "White Mage"
+unit_name = "Aerith"
 hp = 220
 max_hp = 220
 mp = 120
@@ -13,7 +13,7 @@ atk = 14
 def = 10
 spd = 25
 is_player = true
-sprite_color = Color(1.0, 0.9, 0.3, 1)
+sprite_color = Color(1.0, 0.55, 0.7, 1)
 level = 1
 xp = 0
 xp_to_next_level = 100

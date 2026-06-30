@@ -30,6 +30,12 @@ func _draw() -> void:
 	if active_highlight:
 		draw_rect(Rect2(-W*0.50, -H*0.55, W*1.00, H*1.10), Color(1,1,0.4,0.12))
 	match unit_name_label:
+		"Cloud":
+			_draw_cloud()
+		"Tifa":
+			_draw_tifa()
+		"Aerith":
+			_draw_aerith()
 		"Warrior":
 			_draw_warrior()
 		"Black Mage":
@@ -115,6 +121,63 @@ func _draw_white_mage() -> void:
 	draw_rect(Rect2(-W*0.42, h(-0.58), W*0.10, H*0.88), Color(0.7, 0.55, 0.1, 1))
 	draw_circle(Vector2(-W*0.37, h(-0.60)), W*0.14, Color(0.9, 0.75, 0.1, 1))
 	draw_circle(Vector2(-W*0.37, h(-0.60)), W*0.07, Color(1.0, 1.0, 0.9, 1))
+
+func _draw_cloud() -> void:
+	var c := sprite_color
+	# Legs
+	draw_rect(Rect2(-W*0.28, h(0.12), W*0.22, H*0.32), Color(0.15, 0.15, 0.2))
+	draw_rect(Rect2(W*0.06,  h(0.12), W*0.22, H*0.32), Color(0.15, 0.15, 0.2))
+	# Torso (SOLDIER 1st Class uniform, dark blue)
+	draw_rect(Rect2(-W*0.38, h(-0.26), W*0.76, H*0.40), c.darkened(0.15))
+	# Shoulder pauldron
+	draw_rect(Rect2(W*0.20, h(-0.34), W*0.22, H*0.18), Color(0.75, 0.75, 0.8))
+	# Head + spiky blond hair
+	draw_circle(Vector2(0, h(-0.50)), W*0.24, Color(0.96, 0.84, 0.68))
+	var spikes := PackedVector2Array([
+		Vector2(-W*0.26, h(-0.58)), Vector2(-W*0.12, h(-0.86)), Vector2(0, h(-0.62)),
+		Vector2(W*0.12, h(-0.88)), Vector2(W*0.26, h(-0.58)), Vector2(0, h(-0.68))])
+	draw_polygon(spikes, PackedColorArray([Color(1.0, 0.92, 0.4)]))
+	draw_circle(Vector2(0, h(-0.50)), W*0.07, Color(0.3, 0.7, 1.0))
+	# Buster Sword (large gray blade behind back)
+	draw_rect(Rect2(W*0.34, h(-0.80), W*0.14, H*1.10), Color(0.65, 0.68, 0.72))
+	draw_rect(Rect2(W*0.30, h(0.20), W*0.22, H*0.10), Color(0.35, 0.25, 0.15))
+
+func _draw_tifa() -> void:
+	var c := sprite_color
+	# Legs (black shorts/tights)
+	draw_rect(Rect2(-W*0.26, h(0.10), W*0.20, H*0.34), Color(0.1, 0.1, 0.1))
+	draw_rect(Rect2(W*0.06,  h(0.10), W*0.20, H*0.34), Color(0.1, 0.1, 0.1))
+	# Torso (white tank top + suspenders)
+	draw_rect(Rect2(-W*0.32, h(-0.22), W*0.64, H*0.34), Color(0.95, 0.95, 0.9))
+	draw_rect(Rect2(-W*0.30, h(0.04), W*0.60, H*0.10), c)
+	# Head + ponytail
+	draw_circle(Vector2(0, h(-0.46)), W*0.22, Color(0.96, 0.84, 0.68))
+	draw_polygon(
+		PackedVector2Array([Vector2(-W*0.18, h(-0.62)), Vector2(W*0.18, h(-0.62)), Vector2(0, h(-0.86))]),
+		PackedColorArray([Color(0.25, 0.12, 0.08)]))
+	draw_rect(Rect2(W*0.18, h(-0.58), W*0.10, H*0.50), Color(0.25, 0.12, 0.08))
+	# Fighting gloves (fists forward)
+	draw_circle(Vector2(-W*0.34, h(-0.06)), W*0.14, Color(0.85, 0.2, 0.2))
+	draw_circle(Vector2(W*0.34, h(-0.06)), W*0.14, Color(0.85, 0.2, 0.2))
+
+func _draw_aerith() -> void:
+	var c := sprite_color
+	# Pink dress (A-line)
+	draw_polygon(
+		PackedVector2Array([Vector2(-W*0.22, h(-0.12)), Vector2(W*0.22, h(-0.12)),
+							Vector2(W*0.40, h(0.42)),  Vector2(-W*0.40, h(0.42))]),
+		PackedColorArray([c]))
+	# Pink jacket trim
+	draw_rect(Rect2(-W*0.24, h(-0.20), W*0.48, H*0.14), c.darkened(0.2))
+	# Head + braid
+	draw_circle(Vector2(0, h(-0.46)), W*0.22, Color(0.96, 0.84, 0.68))
+	draw_circle(Vector2(0, h(-0.58)), W*0.24, Color(0.55, 0.30, 0.15))
+	draw_rect(Rect2(-W*0.06, h(-0.40), W*0.12, H*0.62), Color(0.55, 0.30, 0.15))
+	# Pink ribbon on hair
+	draw_rect(Rect2(-W*0.14, h(-0.68), W*0.28, H*0.08), Color(1.0, 0.3, 0.5))
+	# Staff (right side, simple rod with materia orb)
+	draw_rect(Rect2(W*0.38, h(-0.50), W*0.08, H*0.80), Color(0.6, 0.45, 0.3))
+	draw_circle(Vector2(W*0.42, h(-0.52)), W*0.12, Color(0.4, 0.9, 0.5))
 
 func _draw_slime() -> void:
 	var c := sprite_color

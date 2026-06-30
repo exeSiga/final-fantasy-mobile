@@ -44,6 +44,21 @@ const DIALOGUES := {
 			"Ça vaut le coup non ?",
 		],
 	},
+	"backstory_cloud": [
+		"Je m'appelle Cloud. Ex-SOLDIER, 1st Class.",
+		"J'ai quitté Midgar après l'incident du réacteur de Nibelheim.",
+		"Depuis, je me bats pour ceux qui ne peuvent pas se défendre.",
+	],
+	"backstory_tifa": [
+		"Tifa Lockhart. Je tiens le bar Seventh Heaven, secteur 7.",
+		"J'ai grandi à Nibelheim, avec Cloud.",
+		"Le bar n'est qu'une façade — en vérité, je me bats contre ShinRa.",
+	],
+	"backstory_aerith": [
+		"Aerith. Je vends des fleurs dans les bas-fonds de Midgar.",
+		"On dit que je suis la dernière des Cetra, l'Ancienne race.",
+		"La Planète me parle parfois... et elle a peur.",
+	],
 	"prologue": [
 		"Il y a longtemps, ShinRa contrôlait tout...",
 		"Mais une résistance grandit dans l'ombre.",

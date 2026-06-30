@@ -4,6 +4,11 @@ REPO="/home/siga/final-fantasy-mobile"
 LOG="$REPO/.claude/loop.log"
 INTERVAL=18000  # 5 heures
 
+# PATH complet pour systemd (ne charge pas .bashrc/.nvm)
+export NVM_DIR="/home/siga/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"
+export PATH="/home/siga/.nvm/versions/node/v23.11.0/bin:$PATH"
+
 cd "$REPO"
 
 while true; do

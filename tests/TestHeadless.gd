@@ -45,6 +45,7 @@ func _run_all() -> void:
 	_test_event_probabilities()
 	_test_chest_gold_range()
 	_test_merchant_discount()
+	_test_ff7_character_names()
 
 func _test_new_game() -> void:
 	GameManager.new_game()
@@ -487,3 +488,21 @@ func _test_merchant_discount() -> void:
 		_ko("merchant_discount", "buy_item with discount failed (gold=%d, cost=%d)" % [GameManager.gold, GameManager.get_discounted_price(potion.price)]); return
 	GameManager.merchant_discount = 1.0
 	_ok("merchant_discount: get_discounted_price(100)=80 at 0.8; buy_item uses discount")
+
+func _test_ff7_character_names() -> void:
+	GameManager.new_game()
+	var cloud = GameManager.party[0]
+	var tifa = GameManager.party[1]
+	var aerith = GameManager.party[2]
+	if cloud.unit_name != "Cloud" or cloud.character_class != "Warrior":
+		_ko("ff7_character_names", "party[0] expected Cloud/Warrior, got %s/%s" % [cloud.unit_name, cloud.character_class]); return
+	if tifa.unit_name != "Tifa" or tifa.character_class != "Black Mage":
+		_ko("ff7_character_names", "party[1] expected Tifa/Black Mage, got %s/%s" % [tifa.unit_name, tifa.character_class]); return
+	if aerith.unit_name != "Aerith" or aerith.character_class != "White Mage":
+		_ko("ff7_character_names", "party[2] expected Aerith/White Mage, got %s/%s" % [aerith.unit_name, aerith.character_class]); return
+	for bid in ["backstory_cloud", "backstory_tifa", "backstory_aerith"]:
+		if not DialogueManager.DIALOGUES.has(bid):
+			_ko("ff7_character_names", "missing dialogue entry " + bid); return
+		if DialogueManager.DIALOGUES[bid].is_empty():
+			_ko("ff7_character_names", bid + " has no lines"); return
+	_ok("ff7_character_names: Cloud/Tifa/Aerith named correctly, classes unchanged, backstory dialogues present")
