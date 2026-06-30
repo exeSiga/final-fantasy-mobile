@@ -333,7 +333,10 @@ func _on_battle_ended(victory: bool) -> void:
 	if victory:
 		AudioManager.play_sfx_victory()
 		SaveSystem.save(0)
-		_victory_title.text = "Victory!\n+%d XP  +%d G" % [BattleManager.last_xp, BattleManager.last_gold]
+		if BattleManager.is_boss_sephiroth_battle:
+			_victory_title.text = "Sephiroth vaincu !\nLa planète est sauvée.\n+%d XP  +%d G" % [BattleManager.last_xp, BattleManager.last_gold]
+		else:
+			_victory_title.text = "Victory!\n+%d XP  +%d G" % [BattleManager.last_xp, BattleManager.last_gold]
 		victory_overlay.show()
 	else:
 		gameover_overlay.show()

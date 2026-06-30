@@ -145,6 +145,21 @@ func _add_boss_buttons() -> void:
 	var layer := CanvasLayer.new()
 	layer.layer = 5
 	add_child(layer)
+	var seph_btn := Button.new()
+	seph_btn.text = "★ Sephiroth\n[Boss Final] (Lv.15+)"
+	seph_btn.add_theme_font_size_override("font_size", 22)
+	seph_btn.add_theme_color_override("font_color", Color(0.85, 0.85, 1.0, 1))
+	seph_btn.custom_minimum_size = Vector2(200, 90)
+	seph_btn.anchor_left = 0.0
+	seph_btn.anchor_top = 1.0
+	seph_btn.anchor_right = 0.0
+	seph_btn.anchor_bottom = 1.0
+	seph_btn.offset_left = 10.0
+	seph_btn.offset_top = -290.0
+	seph_btn.offset_right = 215.0
+	seph_btn.offset_bottom = -195.0
+	seph_btn.pressed.connect(_on_sephiroth_pressed)
+	layer.add_child(seph_btn)
 	var boss1_btn := Button.new()
 	boss1_btn.text = "⚔ Guard Scorpion\n[Boss 1] (Lv.5+)"
 	boss1_btn.add_theme_font_size_override("font_size", 22)
@@ -174,6 +189,21 @@ func _add_boss_buttons() -> void:
 	boss2_btn.pressed.connect(_on_boss2_pressed)
 	layer.add_child(boss2_btn)
 
+func _on_sephiroth_pressed() -> void:
+	var avg_level: int = 0
+	for m in GameManager.party:
+		avg_level += m.level
+	avg_level = avg_level / max(1, GameManager.party.size())
+	if avg_level < 15:
+		_show_level_required(15)
+		return
+	GameManager.return_after_battle = "res://scenes/world/WorldMap.tscn"
+	BattleManager.is_boss_sephiroth_battle = true
+	BattleManager.is_boss1_battle = false
+	BattleManager.is_boss2_battle = false
+	BattleManager.dungeon_mode = false
+	GameManager.change_scene("res://scenes/combat/Battle.tscn")
+
 func _on_boss1_pressed() -> void:
 	var avg_level: int = 0
 	for m in GameManager.party:
@@ -185,6 +215,7 @@ func _on_boss1_pressed() -> void:
 	GameManager.return_after_battle = "res://scenes/world/WorldMap.tscn"
 	BattleManager.is_boss1_battle = true
 	BattleManager.is_boss2_battle = false
+	BattleManager.is_boss_sephiroth_battle = false
 	BattleManager.dungeon_mode = false
 	GameManager.change_scene("res://scenes/combat/Battle.tscn")
 
@@ -199,6 +230,7 @@ func _on_boss2_pressed() -> void:
 	GameManager.return_after_battle = "res://scenes/world/WorldMap.tscn"
 	BattleManager.is_boss1_battle = false
 	BattleManager.is_boss2_battle = true
+	BattleManager.is_boss_sephiroth_battle = false
 	BattleManager.dungeon_mode = false
 	GameManager.change_scene("res://scenes/combat/Battle.tscn")
 
@@ -306,5 +338,8 @@ func _show_inn_feedback(msg: String) -> void:
 func _on_encounter() -> void:
 	GameManager.return_after_battle = "res://scenes/world/WorldMap.tscn"
 	BattleManager.is_boss_battle = false
+	BattleManager.is_boss1_battle = false
+	BattleManager.is_boss2_battle = false
+	BattleManager.is_boss_sephiroth_battle = false
 	BattleManager.dungeon_mode = false
 	GameManager.change_scene("res://scenes/combat/Battle.tscn")

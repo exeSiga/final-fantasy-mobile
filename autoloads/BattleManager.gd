@@ -18,9 +18,10 @@ const HARD_POOL := [
 	"res://resources/units/troll.tres",
 	"res://resources/units/gargoyle.tres",
 ]
-const BOSS_PATH  := "res://resources/units/dark_knight.tres"
-const BOSS1_PATH := "res://resources/units/guard_scorpion.tres"
-const BOSS2_PATH := "res://resources/units/jenova.tres"
+const BOSS_PATH           := "res://resources/units/dark_knight.tres"
+const BOSS1_PATH          := "res://resources/units/guard_scorpion.tres"
+const BOSS2_PATH          := "res://resources/units/jenova.tres"
+const BOSS_SEPHIROTH_PATH := "res://resources/units/sephiroth.tres"
 
 const SPELL_DAMAGE := 0
 const SPELL_HEAL   := 1
@@ -34,6 +35,7 @@ const HASTE_TURNS  := 2
 var is_boss_battle: bool = false
 var is_boss1_battle: bool = false
 var is_boss2_battle: bool = false
+var is_boss_sephiroth_battle: bool = false
 var dungeon_mode: bool = false
 
 signal battle_started(party, enemies)
@@ -102,7 +104,9 @@ func start_battle(dungeon: bool = false, boss: bool = false) -> void:
 	GameManager.reset_summon_charges()
 	player_unit = null
 	enemies.clear()
-	if is_boss1_battle:
+	if is_boss_sephiroth_battle:
+		enemies.append(load(BOSS_SEPHIROTH_PATH).duplicate())
+	elif is_boss1_battle:
 		enemies.append(load(BOSS1_PATH).duplicate())
 	elif is_boss2_battle:
 		enemies.append(load(BOSS2_PATH).duplicate())
@@ -311,6 +315,13 @@ func _check_phase_transition(enemy) -> void:
 			if enemy.current_phase == 0 and hp_pct <= 0.3:
 				enemy.current_phase = 1
 				battle_log.emit("Jenova mutates! Phase 2 — life drain mode!")
+		"Sephiroth":
+			if enemy.current_phase == 0 and hp_pct <= 0.6:
+				enemy.current_phase = 1
+				battle_log.emit("Sephiroth smiles coldly. Phase 2 — HEARTLESS ANGEL!")
+			elif enemy.current_phase == 1 and hp_pct <= 0.3:
+				enemy.current_phase = 2
+				battle_log.emit("★ ONE WINGED ANGEL! Phase 3 — SUPERNOVA!")
 
 func player_cast_spell(spell, target = null) -> void:
 	if state != BattleState.PLAYER_TURN or player_unit == null:
@@ -417,6 +428,7 @@ func _enemy_act(enemy) -> void:
 		"Dark Knight":    await _ai_dark_knight(enemy)
 		"Guard Scorpion": await _ai_guard_scorpion(enemy)
 		"Jenova":         await _ai_jenova(enemy)
+		"Sephiroth":      await _ai_sephiroth(enemy)
 		_:                _ai_basic_attack(enemy)
 	_check_battle_end()
 	if state != BattleState.ENEMY_TURN:
@@ -579,6 +591,67 @@ func _ai_guard_scorpion(enemy) -> void:
 			_fill_limit_gauge(target, 20)
 			action_result.emit(enemy.unit_name, target.unit_name, actual, false)
 			await get_tree().create_timer(0.2).timeout
+	_check_phase_transition(enemy)
+
+func _apply_heartless_angel() -> void:
+	for m in party:
+		if m.is_alive():
+			m.hp = 1
+	battle_log.emit("Heartless Angel! All HP reduced to 1!")
+	for m in party:
+		action_result.emit("Sephiroth", m.unit_name, m.max_hp - 1, false)
+
+func _apply_supernova() -> void:
+	battle_log.emit("SUPERNOVA! Unavoidable catastrophic damage!")
+	for m in party:
+		if m.is_alive():
+			var dmg: int = int(m.max_hp * 0.60)
+			m.hp = max(0, m.hp - dmg)
+			action_result.emit("Sephiroth", m.unit_name, dmg, false)
+
+func _ai_sephiroth(enemy) -> void:
+	var self_regen: int = 0
+	if enemy.current_phase >= 1:
+		self_regen = 20
+		enemy.hp = min(enemy.max_hp, enemy.hp + self_regen)
+		action_result.emit("Sephiroth", "Sephiroth", -self_regen, false)
+	match enemy.current_phase:
+		0:
+			if randf() < 0.50:
+				var target = _random_alive_ally()
+				if target == null:
+					return
+				battle_log.emit("Shadow Flare!")
+				var dmg: int = int(enemy.atk * 3.0 * randf_range(0.90, 1.10))
+				target.take_damage_ignore_def(dmg)
+				_fill_limit_gauge(target, 20)
+				action_result.emit(enemy.unit_name, target.unit_name, dmg, false)
+			else:
+				battle_log.emit("Masamune!")
+				var target = _random_alive_ally()
+				if target == null:
+					return
+				var dmg: int = int(enemy.atk * 2.0 * randf_range(0.90, 1.10))
+				var actual: int = target.take_damage(dmg)
+				_fill_limit_gauge(target, 20)
+				action_result.emit(enemy.unit_name, target.unit_name, actual, false)
+		1:
+			if randf() < 0.30:
+				_apply_heartless_angel()
+				await get_tree().create_timer(0.3).timeout
+			else:
+				_ai_basic_attack(enemy)
+		2:
+			if randf() < 0.40:
+				_apply_supernova()
+				await get_tree().create_timer(0.3).timeout
+			else:
+				_ai_basic_attack(enemy)
+				_check_battle_end()
+				if state != BattleState.ENEMY_TURN:
+					return
+				await get_tree().create_timer(0.5).timeout
+				_ai_basic_attack(enemy)
 	_check_phase_transition(enemy)
 
 func _ai_jenova(enemy) -> void:

@@ -34,6 +34,10 @@ func _run_all() -> void:
 	_test_summon_materia_load()
 	_test_summon_charges_reset()
 	_test_summon_aoe_damage()
+	_test_sephiroth_load()
+	_test_sephiroth_phases()
+	_test_sephiroth_heartless_angel()
+	_test_sephiroth_supernova()
 
 func _test_new_game() -> void:
 	GameManager.new_game()
@@ -287,6 +291,69 @@ func _test_summon_charges_reset() -> void:
 	if available.has(mat_path):
 		_ko("summon_charges_reset", "spent summon should not appear in available list"); return
 	_ok("summon_charges_reset: reset gives 1 charge, spent summon excluded from available")
+
+func _test_sephiroth_load() -> void:
+	var s = load("res://resources/units/sephiroth.tres")
+	if s == null:
+		_ko("sephiroth_load", "sephiroth.tres not found"); return
+	if s.unit_name != "Sephiroth":
+		_ko("sephiroth_load", "unit_name=%s" % s.unit_name); return
+	if s.hp != 3000:
+		_ko("sephiroth_load", "hp=%d (expected 3000)" % s.hp); return
+	if s.atk != 80:
+		_ko("sephiroth_load", "atk=%d (expected 80)" % s.atk); return
+	if s.def != 40:
+		_ko("sephiroth_load", "def=%d (expected 40)" % s.def); return
+	if s.xp_reward != 5000:
+		_ko("sephiroth_load", "xp_reward=%d (expected 5000)" % s.xp_reward); return
+	if s.gold_reward != 2000:
+		_ko("sephiroth_load", "gold_reward=%d (expected 2000)" % s.gold_reward); return
+	_ok("sephiroth_load: Sephiroth 3000HP/80ATK/40DEF, xp=5000, gold=2000")
+
+func _test_sephiroth_phases() -> void:
+	var s = load("res://resources/units/sephiroth.tres").duplicate()
+	# Phase 0 -> 1 at 60% HP
+	s.hp = int(s.max_hp * 0.59)
+	BattleManager._check_phase_transition(s)
+	if s.current_phase != 1:
+		_ko("sephiroth_phases", "phase should be 1 at 59%% HP, got %d" % s.current_phase); return
+	# Phase 1 -> 2 at 30% HP
+	s.hp = int(s.max_hp * 0.29)
+	BattleManager._check_phase_transition(s)
+	if s.current_phase != 2:
+		_ko("sephiroth_phases", "phase should be 2 at 29%% HP, got %d" % s.current_phase); return
+	# Phase should NOT go back
+	s.hp = int(s.max_hp * 0.50)
+	BattleManager._check_phase_transition(s)
+	if s.current_phase != 2:
+		_ko("sephiroth_phases", "phase should stay 2 after HP increase"); return
+	_ok("sephiroth_phases: phase 0→1 at 60%%, 1→2 at 30%%, no regression")
+
+func _test_sephiroth_heartless_angel() -> void:
+	GameManager.new_game()
+	BattleManager.party = GameManager.party
+	for m in BattleManager.party:
+		m.hp = m.max_hp
+	BattleManager._apply_heartless_angel()
+	for m in BattleManager.party:
+		if m.hp != 1:
+			_ko("sephiroth_heartless_angel", "%s HP=%d (expected 1)" % [m.unit_name, m.hp]); return
+	_ok("sephiroth_heartless_angel: all party HP reduced to 1")
+
+func _test_sephiroth_supernova() -> void:
+	GameManager.new_game()
+	BattleManager.party = GameManager.party
+	for m in BattleManager.party:
+		m.hp = m.max_hp
+	var expected: Array = []
+	for m in BattleManager.party:
+		expected.append(max(0, m.max_hp - int(m.max_hp * 0.60)))
+	BattleManager._apply_supernova()
+	for i in BattleManager.party.size():
+		var m = BattleManager.party[i]
+		if m.hp != expected[i]:
+			_ko("sephiroth_supernova", "%s HP=%d (expected ~%d)" % [m.unit_name, m.hp, expected[i]]); return
+	_ok("sephiroth_supernova: 60%% max_hp damage applied to all party members")
 
 func _test_summon_aoe_damage() -> void:
 	GameManager.new_game()

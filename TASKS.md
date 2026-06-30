@@ -654,7 +654,7 @@
 
 ---
 
-## Sprint 30 — Sephiroth Boss Final (3 phases) [STATUS: TODO]
+## Sprint 30 — Sephiroth Boss Final (3 phases) [STATUS: DONE]
 **Goal:** Boss final iconique de FF7 — 3 phases progressives, attaque signature Supernova
 
 **Acceptance Criteria:**
@@ -672,11 +672,16 @@
 - [ ] TestHeadless: tests phase transitions + Heartless Angel + Supernova
 
 **Verification Notes:**
-- Contrôle A (static):
-- Contrôle B (godot parse):
+- Contrôle A (static): ✅ check_compat.sh All clear
+- Contrôle B (godot parse): ✅ 20/20 tests headless (0 failed)
 - Contrôle C (logic trace):
-- Contrôle D (regression):
-- Déferments:
+  - AC1: _on_sephiroth_pressed() → avg_level < 15 guard → is_boss_sephiroth_battle=true ✅
+  - AC2: _ai_sephiroth() phase 0 → Shadow Flare ×3 ignore DEF ou Masamune ×2 phys ✅
+  - AC3: _apply_heartless_angel() → hp=1 tous membres; regen 20HP/tour phase>=1 ✅
+  - AC4: _apply_supernova() → dmg=60% max_hp; sinon double attaque physique ✅
+  - AC5: xp_reward=5000/gold_reward=2000 dans .tres; message "Sephiroth vaincu !" ✅
+- Contrôle D (regression): _on_encounter() reset all boss flags; 20/20 tests; flow WorldMap→Battle intact ✅
+- Déferments: Animations spéciales pour One Winged Angel, musique thématique
 
 ---
 
