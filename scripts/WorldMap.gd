@@ -34,6 +34,10 @@ func _ready() -> void:
 	_add_boss_buttons()
 	_add_npc_buttons()
 	_add_quest_button()
+	if GameManager.pending_rank_notification != "":
+		var rn: String = GameManager.pending_rank_notification
+		GameManager.pending_rank_notification = ""
+		_show_inn_feedback("Rang atteint : %s SOLDIER !" % rn)
 	if not GameManager.story_intro_done:
 		GameManager.story_intro_done = true
 		DialogueManager.show_prologue(self)

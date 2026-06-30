@@ -23,9 +23,12 @@ var dungeon_boss_cleared = false
 var dungeon_return_room: int = -1
 var active_zone: String = "midgar"
 var story_intro_done: bool = false
+var total_kills: int = 0
+var pending_rank_notification: String = ""
 
 signal gold_changed(new_amount: int)
 signal level_up(new_level: int)
+signal rank_changed(new_rank: String)
 
 func _ready() -> void:
 	get_tree().root.child_entered_tree.connect(_on_root_child_entered)
@@ -62,6 +65,8 @@ func new_game() -> void:
 	base_party_spell_paths = []
 	active_zone = "midgar"
 	story_intro_done = false
+	total_kills = 0
+	pending_rank_notification = ""
 	for m in party:
 		base_party_spell_paths.append(m.spell_paths.duplicate())
 	dungeon_boss_cleared = false
@@ -247,6 +252,23 @@ func unequip_materia(member_idx: int, slot_name: String, slot_idx: int) -> void:
 			member.max_mp = max(0, member.max_mp - bonus)
 			member.mp = min(member.mp, member.max_mp)
 
+func get_soldier_rank() -> String:
+	if total_kills >= 150:
+		return "1st Class"
+	if total_kills >= 50:
+		return "2nd Class"
+	return "3rd Class"
+
+func get_rank_xp_mult() -> float:
+	if total_kills >= 50:
+		return 1.10
+	return 1.0
+
+func get_rank_atk_mult() -> float:
+	if total_kills >= 150:
+		return 1.15
+	return 1.0
+
 func buy_item(item: Resource) -> bool:
 	if gold < item.price:
 		return false
@@ -273,9 +295,11 @@ func grant_battle_rewards() -> void:
 		total_xp *= 3
 		total_gold += 500
 	add_gold(total_gold)
+	var xp_mult: float = get_rank_xp_mult()
+	var xp_with_bonus: int = int(total_xp * xp_mult)
 	var any_levelup := false
 	for m in alive_party():
-		if m.add_xp(total_xp):
+		if m.add_xp(xp_with_bonus):
 			any_levelup = true
 	if any_levelup:
 		AudioManager.play_sfx_levelup()
@@ -284,7 +308,7 @@ func grant_battle_rewards() -> void:
 			if m.level > max_level:
 				max_level = m.level
 		level_up.emit(max_level)
-	BattleManager.last_xp = total_xp
+	BattleManager.last_xp = xp_with_bonus
 	BattleManager.last_gold = total_gold
 	# Restore 20% MP to all party members after victory
 	for m in party:

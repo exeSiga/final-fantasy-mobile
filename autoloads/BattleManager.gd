@@ -208,7 +208,8 @@ func _fill_limit_gauge(unit, amount: int) -> void:
 func _compute_phys_damage(atk: int, target) -> Dictionary:
 	var variance: float = randf_range(0.85, 1.15)
 	var is_crit: bool = randf() < CRIT_CHANCE
-	var raw: int = int(atk * variance * (CRIT_MULT if is_crit else 1.0))
+	var rank_mult: float = GameManager.get_rank_atk_mult()
+	var raw: int = int(atk * variance * (CRIT_MULT if is_crit else 1.0) * rank_mult)
 	var dmg: int = target.take_damage(raw)
 	_fill_limit_gauge(target, 20)
 	return {dmg = dmg, crit = is_crit}
@@ -688,8 +689,13 @@ func _check_battle_end() -> void:
 	var all_enemies_dead: bool = enemies.all(func(e) -> bool: return not e.is_alive())
 	if all_enemies_dead:
 		state = BattleState.VICTORY
+		var prev_rank: String = GameManager.get_soldier_rank()
 		for e in enemies:
 			QuestManager.notify_kill(e.unit_name)
+			GameManager.total_kills += 1
+		var new_rank: String = GameManager.get_soldier_rank()
+		if new_rank != prev_rank:
+			GameManager.pending_rank_notification = new_rank
 		GameManager.grant_battle_rewards()
 		battle_ended.emit(true)
 		return

@@ -45,6 +45,7 @@ func save(slot: int) -> void:
 		"materia_equipped": GameManager.materia_equipped,
 		"active_zone": GameManager.active_zone,
 		"story_intro_done": GameManager.story_intro_done,
+		"total_kills": GameManager.total_kills,
 		"quest_kills": QuestManager.kill_counts,
 		"quest_completed": QuestManager.completed,
 		"timestamp": Time.get_datetime_string_from_system(),
@@ -86,6 +87,7 @@ func load_save(slot: int) -> bool:
 	GameManager.materia_equipped = d.get("materia_equipped", {})
 	GameManager.active_zone = d.get("active_zone", "midgar")
 	GameManager.story_intro_done = d.get("story_intro_done", false)
+	GameManager.total_kills = d.get("total_kills", 0)
 	QuestManager.kill_counts = d.get("quest_kills", {})
 	QuestManager.completed = d.get("quest_completed", {})
 	var equip_data: Array = d.get("equipment", [])

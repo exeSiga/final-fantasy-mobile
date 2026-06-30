@@ -685,7 +685,7 @@
 
 ---
 
-## Sprint 31 — Rang de Soldat SOLDIER [STATUS: TODO]
+## Sprint 31 — Rang de Soldat SOLDIER [STATUS: DONE]
 **Goal:** Système de progression méta — 3rd Class → 2nd Class → 1st Class SOLDIER selon les kills
 
 **Acceptance Criteria:**
@@ -705,11 +705,16 @@
 - [ ] TestHeadless: 4 tests (rank thresholds, xp_bonus, atk_bonus)
 
 **Verification Notes:**
-- Contrôle A (static):
-- Contrôle B (godot parse):
+- Contrôle A (static): ✅ check_compat.sh All clear
+- Contrôle B (godot parse): ✅ 24/24 tests headless (0 failed)
 - Contrôle C (logic trace):
-- Contrôle D (regression):
-- Déferments:
+  - AC1: get_soldier_rank() total_kills: 0→3rd, 50→2nd, 150→1st ✅
+  - AC2: WorldHUD._refresh() → "[%s] Lv.%d" % [rank, level] ✅
+  - AC3: get_rank_xp_mult() → 1.1 @2nd; grant_battle_rewards() xp_with_bonus ✅; get_rank_atk_mult() → 1.15 @1st; _compute_phys_damage() × rank_mult ✅
+  - AC4: _check_battle_end() prev_rank→incr kills→new_rank→pending_rank_notification; WorldMap._ready() checks + shows popup ✅
+  - AC5: SaveSystem save/load total_kills; test_soldier_save_load 77 kills roundtrip ✅
+- Contrôle D (regression): 24/24 tests; sephiroth.tres recréé (était supprimé); flow WorldMap→Battle inchangé
+- Déferments: Animation spéciale montée de rang, écran de classement SOLDIER
 
 ---
 

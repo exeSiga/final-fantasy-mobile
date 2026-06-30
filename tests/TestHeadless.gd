@@ -38,6 +38,10 @@ func _run_all() -> void:
 	_test_sephiroth_phases()
 	_test_sephiroth_heartless_angel()
 	_test_sephiroth_supernova()
+	_test_soldier_rank_thresholds()
+	_test_soldier_xp_bonus()
+	_test_soldier_atk_bonus()
+	_test_soldier_save_load()
 
 func _test_new_game() -> void:
 	GameManager.new_game()
@@ -380,3 +384,54 @@ func _test_summon_aoe_damage() -> void:
 	if GameManager.summon_charges.get(mat_path, 1) != 0:
 		_ko("summon_aoe_damage", "summon charge should be 0 after use"); return
 	_ok("summon_aoe_damage: Bahamut AoE hits both enemies, charge consumed")
+
+func _test_soldier_rank_thresholds() -> void:
+	GameManager.new_game()
+	if GameManager.get_soldier_rank() != "3rd Class":
+		_ko("soldier_rank_thresholds", "0 kills → expected '3rd Class', got '%s'" % GameManager.get_soldier_rank()); return
+	GameManager.total_kills = 50
+	if GameManager.get_soldier_rank() != "2nd Class":
+		_ko("soldier_rank_thresholds", "50 kills → expected '2nd Class', got '%s'" % GameManager.get_soldier_rank()); return
+	GameManager.total_kills = 150
+	if GameManager.get_soldier_rank() != "1st Class":
+		_ko("soldier_rank_thresholds", "150 kills → expected '1st Class', got '%s'" % GameManager.get_soldier_rank()); return
+	GameManager.total_kills = 0
+	_ok("soldier_rank_thresholds: 0→3rd, 50→2nd, 150→1st Class")
+
+func _test_soldier_xp_bonus() -> void:
+	GameManager.new_game()
+	GameManager.total_kills = 0
+	var mult_3rd: float = GameManager.get_rank_xp_mult()
+	if mult_3rd != 1.0:
+		_ko("soldier_xp_bonus", "3rd class xp mult should be 1.0, got %f" % mult_3rd); return
+	GameManager.total_kills = 50
+	var mult_2nd: float = GameManager.get_rank_xp_mult()
+	if mult_2nd < 1.09 or mult_2nd > 1.11:
+		_ko("soldier_xp_bonus", "2nd class xp mult should be 1.10, got %f" % mult_2nd); return
+	GameManager.total_kills = 0
+	_ok("soldier_xp_bonus: 3rd=×1.0, 2nd=×1.10 XP multiplier")
+
+func _test_soldier_atk_bonus() -> void:
+	GameManager.new_game()
+	GameManager.total_kills = 0
+	var mult_3rd: float = GameManager.get_rank_atk_mult()
+	if mult_3rd != 1.0:
+		_ko("soldier_atk_bonus", "3rd class atk mult should be 1.0, got %f" % mult_3rd); return
+	GameManager.total_kills = 150
+	var mult_1st: float = GameManager.get_rank_atk_mult()
+	if mult_1st < 1.14 or mult_1st > 1.16:
+		_ko("soldier_atk_bonus", "1st class atk mult should be 1.15, got %f" % mult_1st); return
+	GameManager.total_kills = 0
+	_ok("soldier_atk_bonus: 3rd=×1.0, 1st=×1.15 ATK multiplier")
+
+func _test_soldier_save_load() -> void:
+	GameManager.new_game()
+	GameManager.total_kills = 77
+	SaveSystem.save(0)
+	GameManager.total_kills = 0
+	var ok: bool = SaveSystem.load_save(0)
+	if not ok:
+		_ko("soldier_save_load", "load_save returned false"); return
+	if GameManager.total_kills != 77:
+		_ko("soldier_save_load", "total_kills after load=%d (expected 77)" % GameManager.total_kills); return
+	_ok("soldier_save_load: total_kills=77 saved and reloaded correctly")
