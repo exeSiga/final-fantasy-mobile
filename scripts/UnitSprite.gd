@@ -60,6 +60,8 @@ func _draw() -> void:
 			_draw_troll()
 		"Gargoyle":
 			_draw_gargoyle()
+		"Barret":
+			_draw_barret()
 		_:
 			draw_rect(Rect2(-W*0.40, -H*0.50, W*0.80, H*1.00), sprite_color)
 	if _flash_active:
@@ -292,6 +294,25 @@ func _draw_gargoyle() -> void:
 	draw_circle(Vector2(0, h(-0.48)), W*0.26, c.lightened(0.12))
 	draw_circle(Vector2(-W*0.12, h(-0.52)), W*0.08, Color(0.3, 0.6, 1.0))
 	draw_circle(Vector2( W*0.12, h(-0.52)), W*0.08, Color(0.3, 0.6, 1.0))
+
+func _draw_barret() -> void:
+	var c := sprite_color
+	# Legs (heavy boots)
+	draw_rect(Rect2(-W*0.30, h(0.14), W*0.24, H*0.30), Color(0.2, 0.15, 0.1))
+	draw_rect(Rect2(W*0.06,  h(0.14), W*0.24, H*0.30), Color(0.2, 0.15, 0.1))
+	# Large torso (tank top, vest)
+	draw_rect(Rect2(-W*0.44, h(-0.28), W*0.88, H*0.46), c)
+	draw_rect(Rect2(-W*0.44, h(-0.28), W*0.88, H*0.12), Color(0.1, 0.1, 0.1))
+	# Head (dark, bald with goatee)
+	draw_circle(Vector2(0, h(-0.50)), W*0.25, Color(0.30, 0.20, 0.15))
+	draw_rect(Rect2(-W*0.10, h(-0.34), W*0.20, H*0.08), Color(0.15, 0.10, 0.08))
+	# Left arm (normal, clenched fist)
+	draw_rect(Rect2(-W*0.54, h(-0.24), W*0.16, H*0.36), c.darkened(0.1))
+	draw_circle(Vector2(-W*0.46, h(0.16)), W*0.12, Color(0.25, 0.15, 0.10))
+	# Right arm — gun arm (metal barrel)
+	draw_rect(Rect2(W*0.38, h(-0.22), W*0.20, H*0.32), Color(0.50, 0.50, 0.55))
+	draw_rect(Rect2(W*0.50, h(-0.16), W*0.22, H*0.12), Color(0.35, 0.35, 0.38))
+	draw_circle(Vector2(W*0.72, h(-0.10)), W*0.09, Color(0.15, 0.15, 0.15))
 
 # Helper: convert fraction of H to absolute Y offset (centered on origin)
 func h(frac: float) -> float:

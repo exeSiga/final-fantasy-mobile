@@ -169,7 +169,7 @@
 
 ---
 
-## Sprint 40 — Barret + Party Setup (4 membres sélectionnables) [STATUS: TODO]
+## Sprint 40 — Barret + Party Setup (4 membres sélectionnables) [STATUS: DONE]
 **Goal:** Ajouter Barret (Gunner, AoE) comme 4e membre disponible avec un menu de sélection de party sur WorldMap
 
 **Acceptance Criteria:**
@@ -192,6 +192,18 @@
 - Contrôle C (logic trace):
 - Contrôle D (regression):
 - Déferments:
+
+---
+
+**Verification Notes (Sprint 40):**
+- Contrôle A (static): ✅ All clear
+- Contrôle B (godot parse): ✅ 47/47 tests
+- Contrôle C (logic trace):
+  - AC1: barret.tres Gunner HP=380, available_members[3]=barret dans new_game()
+  - AC2: _on_party_pressed() → panel checkboxes → _on_party_confirm() → set_active_party_indices()
+  - AC3: rebuild_party_from_indices() → party = 3 membres actifs sélectionnés
+  - AC4: _create_bigshot_button() dans Battle._ready() ; _update_bigshot_button() visible si class==Gunner
+- Contrôle D (regression): 47/47 tests, équipement par position intact, save/load backward compat
 
 ---
 

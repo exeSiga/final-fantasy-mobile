@@ -17,6 +17,9 @@ var _shop_open: bool = false
 var _inn_dialog = null
 var _quest_open: bool = false
 var _weather_layer = null
+var _party_menu_open: bool = false
+var _party_menu_canvas = null
+var _party_checkboxes: Array = []
 
 func _ready() -> void:
 	GameManager.set_state(GameManager.GameState.WORLD)
@@ -38,6 +41,7 @@ func _ready() -> void:
 	_add_zone_buttons()
 	_add_boss_buttons()
 	_add_arena_button()
+	_add_party_button()
 	_add_npc_buttons()
 	_add_quest_button()
 	if GameManager.pending_rank_notification != "":
@@ -298,6 +302,87 @@ func _add_arena_button() -> void:
 	btn.offset_bottom = 105.0
 	btn.pressed.connect(_on_arena_pressed)
 	layer.add_child(btn)
+
+func _add_party_button() -> void:
+	var layer := CanvasLayer.new()
+	layer.layer = 5
+	add_child(layer)
+	var btn := Button.new()
+	btn.text = "Party\n[Équipe]"
+	btn.add_theme_font_size_override("font_size", 22)
+	btn.add_theme_color_override("font_color", Color(0.4, 1.0, 0.6, 1))
+	btn.custom_minimum_size = Vector2(160, 90)
+	btn.anchor_left = 1.0
+	btn.anchor_top = 0.0
+	btn.anchor_right = 1.0
+	btn.anchor_bottom = 0.0
+	btn.offset_left = -215.0
+	btn.offset_top = 120.0
+	btn.offset_right = -10.0
+	btn.offset_bottom = 215.0
+	btn.pressed.connect(_on_party_pressed)
+	layer.add_child(btn)
+
+func _on_party_pressed() -> void:
+	if _party_menu_open:
+		return
+	_party_menu_open = true
+	var canvas := CanvasLayer.new()
+	canvas.layer = 50
+	_party_menu_canvas = canvas
+	add_child(canvas)
+	var panel := PanelContainer.new()
+	panel.set_anchors_preset(Control.PRESET_CENTER)
+	panel.offset_left = -260
+	panel.offset_right = 260
+	panel.offset_top = -240
+	panel.offset_bottom = 240
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 10)
+	var title := Label.new()
+	title.text = "Sélectionner 3 membres"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 28)
+	vbox.add_child(title)
+	_party_checkboxes = []
+	for i in GameManager.available_members.size():
+		var m = GameManager.available_members[i]
+		var cb := CheckBox.new()
+		cb.text = "%s (%s) Lv.%d" % [m.unit_name, m.character_class, m.level]
+		cb.add_theme_font_size_override("font_size", 26)
+		cb.button_pressed = i in GameManager.active_party_indices
+		_party_checkboxes.append(cb)
+		vbox.add_child(cb)
+	var ok_btn := Button.new()
+	ok_btn.text = "Confirmer (3 membres)"
+	ok_btn.add_theme_font_size_override("font_size", 26)
+	ok_btn.custom_minimum_size = Vector2(0, 70)
+	ok_btn.pressed.connect(_on_party_confirm)
+	vbox.add_child(ok_btn)
+	var cancel_btn := Button.new()
+	cancel_btn.text = "Annuler"
+	cancel_btn.add_theme_font_size_override("font_size", 26)
+	cancel_btn.pressed.connect(_on_party_cancel)
+	vbox.add_child(cancel_btn)
+	panel.add_child(vbox)
+	canvas.add_child(panel)
+
+func _on_party_confirm() -> void:
+	var indices: Array = []
+	for i in _party_checkboxes.size():
+		if _party_checkboxes[i].button_pressed:
+			indices.append(i)
+	if indices.size() != 3:
+		return
+	GameManager.set_active_party_indices(indices)
+	_on_party_cancel()
+
+func _on_party_cancel() -> void:
+	_party_menu_open = false
+	_party_checkboxes = []
+	if _party_menu_canvas != null:
+		_party_menu_canvas.queue_free()
+		_party_menu_canvas = null
 
 func _on_arena_pressed() -> void:
 	var avg_level: int = 0

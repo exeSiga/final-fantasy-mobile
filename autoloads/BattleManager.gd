@@ -488,6 +488,18 @@ func _after_player_turn() -> void:
 	_rebuild_queue()
 	_advance_turn()
 
+func player_bigshot() -> void:
+	if state != BattleState.PLAYER_TURN or player_unit == null:
+		return
+	battle_log.emit("Big Shot!")
+	var alive: Array = enemies.filter(func(e) -> bool: return e.is_alive())
+	var targets: Array = alive.slice(0, 2)
+	for e in targets:
+		var dmg: int = int(player_unit.atk * 1.8 * randf_range(0.85, 1.15))
+		e.hp = max(0, e.hp - dmg)
+		action_result.emit(player_unit.unit_name, e.unit_name, dmg, false)
+	_after_player_turn()
+
 func player_run() -> void:
 	if state != BattleState.PLAYER_TURN:
 		return

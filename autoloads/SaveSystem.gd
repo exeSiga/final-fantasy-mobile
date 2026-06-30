@@ -36,8 +36,13 @@ func save(slot: int) -> void:
 	var members: Array = []
 	for m in GameManager.party:
 		members.append(_unit_to_dict(m))
+	var all_members: Array = []
+	for m in GameManager.available_members:
+		all_members.append(_unit_to_dict(m))
 	var d: Dictionary = {
 		"party": members,
+		"all_members": all_members,
+		"active_party_indices": GameManager.active_party_indices,
 		"gold": GameManager.gold,
 		"equip_inventory": GameManager.equip_inventory,
 		"equipment": _equipment_to_array(),
@@ -69,10 +74,13 @@ func load_save(slot: int) -> bool:
 	var d: Dictionary = parsed as Dictionary
 	GameManager.new_game()
 	GameManager.gold = d.get("gold", 0)
-	var members: Array = d.get("party", [])
-	for i in min(members.size(), GameManager.party.size()):
-		var md: Dictionary = members[i]
-		var m = GameManager.party[i]
+	# Load all 4 members (or fall back to legacy 3-member party data)
+	var all_members_data: Array = d.get("all_members", [])
+	if all_members_data.is_empty():
+		all_members_data = d.get("party", [])
+	for i in min(all_members_data.size(), GameManager.available_members.size()):
+		var md: Dictionary = all_members_data[i]
+		var m = GameManager.available_members[i]
 		m.hp = md.get("hp", m.max_hp)
 		m.max_hp = md.get("max_hp", m.max_hp)
 		m.mp = md.get("mp", m.max_mp)
@@ -83,6 +91,9 @@ func load_save(slot: int) -> bool:
 		m.level = md.get("level", 1)
 		m.xp = md.get("xp", 0)
 		m.xp_to_next_level = md.get("xp_to_next_level", 100)
+	var saved_indices: Array = d.get("active_party_indices", [0, 1, 2])
+	GameManager.active_party_indices = saved_indices
+	GameManager.rebuild_party_from_indices()
 	GameManager.equip_inventory = d.get("equip_inventory", {})
 	GameManager.materia_inventory = d.get("materia_inventory", {})
 	GameManager.materia_equipped = d.get("materia_equipped", {})

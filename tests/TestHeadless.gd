@@ -61,6 +61,10 @@ func _run_all() -> void:
 	_test_gameover_quotes()
 	_test_retry_hp_restore()
 	_test_retry_was_arena_flag()
+	_test_barret_loads()
+	_test_available_members()
+	_test_set_active_party_indices()
+	_test_barret_in_party()
 
 func _test_new_game() -> void:
 	GameManager.new_game()
@@ -719,3 +723,57 @@ func _test_retry_was_arena_flag() -> void:
 	if BattleManager._retry_was_arena:
 		_ko("retry_was_arena_flag", "_retry_was_arena should be cleared after retry"); return
 	_ok("retry_was_arena_flag: _retry_was_arena set on arena defeat, cleared on retry")
+
+func _test_barret_loads() -> void:
+	var barret = load("res://resources/units/barret.tres")
+	if barret == null:
+		_ko("barret_loads", "cannot load barret.tres"); return
+	if barret.unit_name != "Barret":
+		_ko("barret_loads", "unit_name should be 'Barret', got '%s'" % barret.unit_name); return
+	if barret.character_class != "Gunner":
+		_ko("barret_loads", "character_class should be 'Gunner', got '%s'" % barret.character_class); return
+	if barret.max_hp <= 0:
+		_ko("barret_loads", "max_hp should be > 0"); return
+	_ok("barret_loads: Barret loads (Gunner, HP=%d, ATK=%d)" % [barret.max_hp, barret.atk])
+
+func _test_available_members() -> void:
+	GameManager.new_game()
+	if GameManager.available_members.size() != 4:
+		_ko("available_members", "expected 4 available_members, got %d" % GameManager.available_members.size()); return
+	var barret = GameManager.available_members[3]
+	if barret.unit_name != "Barret":
+		_ko("available_members", "4th member should be Barret, got '%s'" % barret.unit_name); return
+	if GameManager.party.size() != 3:
+		_ko("available_members", "party should still be 3, got %d" % GameManager.party.size()); return
+	_ok("available_members: 4 members available (Cloud/Tifa/Aerith/Barret), 3 active by default")
+
+func _test_set_active_party_indices() -> void:
+	GameManager.new_game()
+	# Swap Tifa (idx 1) for Barret (idx 3)
+	GameManager.set_active_party_indices([0, 2, 3])
+	if GameManager.party.size() != 3:
+		_ko("set_active_party_indices", "party should be 3, got %d" % GameManager.party.size()); return
+	var has_barret := false
+	for m in GameManager.party:
+		if m.unit_name == "Barret":
+			has_barret = true
+	if not has_barret:
+		_ko("set_active_party_indices", "Barret should be in party after set_active_party_indices([0,2,3])"); return
+	# Restore default
+	GameManager.set_active_party_indices([0, 1, 2])
+	_ok("set_active_party_indices: [0,2,3] puts Barret in party; restore [0,1,2] removes him")
+
+func _test_barret_in_party() -> void:
+	GameManager.new_game()
+	GameManager.set_active_party_indices([0, 2, 3])
+	var barret_in_party := false
+	for m in GameManager.party:
+		if m.unit_name == "Barret" and m.character_class == "Gunner":
+			barret_in_party = true
+	if not barret_in_party:
+		_ko("barret_in_party", "Barret not found as Gunner in party after selection"); return
+	# Verify active_party_indices saved correctly
+	if GameManager.active_party_indices != [0, 2, 3]:
+		_ko("barret_in_party", "active_party_indices mismatch"); return
+	GameManager.set_active_party_indices([0, 1, 2])
+	_ok("barret_in_party: Barret correctly joined as Gunner; active_party_indices=[0,2,3]")

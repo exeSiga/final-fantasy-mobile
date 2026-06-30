@@ -28,8 +28,10 @@ const CRAFT_RECIPES: Array = [
 
 var current_state: GameState = GameState.MAIN_MENU
 var current_scene: Node = null
-var party: Array = []          # 3 CombatUnit: [Warrior, BlackMage, WhiteMage]
-var player_unit = null         # alias for party[0] (Warrior) — kept for compatibility
+var party: Array = []              # 3 active CombatUnit
+var available_members: Array = []  # 4 CombatUnit: [Cloud, Tifa, Aerith, Barret]
+var active_party_indices: Array = [0, 1, 2]  # which 3 of 4 are active
+var player_unit = null             # alias for party[0] — kept for compatibility
 var gold: int = 0
 var inventory: Dictionary = {}
 var equip_inventory: Dictionary = {}   # resource_path → count (unequipped gear owned)
@@ -68,11 +70,36 @@ func change_scene(path: String) -> void:
 func set_state(new_state: GameState) -> void:
 	current_state = new_state
 
+func rebuild_party_from_indices() -> void:
+	party.clear()
+	for idx in active_party_indices:
+		if idx < available_members.size():
+			party.append(available_members[idx])
+	player_unit = party[0] if not party.is_empty() else null
+	base_party_spell_paths = []
+	for m in party:
+		base_party_spell_paths.append(m.spell_paths.duplicate())
+
+func set_active_party_indices(indices: Array) -> void:
+	if indices.size() != 3:
+		return
+	var seen: Dictionary = {}
+	for idx in indices:
+		if idx < 0 or idx >= available_members.size() or seen.has(idx):
+			return
+		seen[idx] = true
+	active_party_indices = indices.duplicate()
+	rebuild_party_from_indices()
+
 func new_game() -> void:
+	available_members.clear()
 	party.clear()
 	var warrior = load("res://resources/units/hero.tres").duplicate()
 	var black_mage = load("res://resources/units/black_mage.tres").duplicate()
 	var white_mage = load("res://resources/units/white_mage.tres").duplicate()
+	var barret = load("res://resources/units/barret.tres").duplicate()
+	available_members = [warrior, black_mage, white_mage, barret]
+	active_party_indices = [0, 1, 2]
 	party.append(warrior)
 	party.append(black_mage)
 	party.append(white_mage)

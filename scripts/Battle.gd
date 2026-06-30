@@ -39,6 +39,7 @@ var _party_limit_labels: Array = []
 var _party_atb_bars: Array = []
 
 var _limit_btn: Button = null
+var _bigshot_btn: Button = null
 
 var _active_party_idx: int = -1
 
@@ -49,6 +50,7 @@ func _ready() -> void:
 	item_menu.hide()
 	_summon_menu.hide()
 	_create_limit_button()
+	_create_bigshot_button()
 	_fade_in()
 	AudioManager.play_battle_bgm()
 	BattleManager.battle_started.connect(_on_battle_started)
@@ -208,6 +210,16 @@ func _update_enemy_sprites() -> void:
 			var e = BattleManager.enemies[i]
 			_enemy_sprite_list[i].modulate.a = 0.25 if not e.is_alive() else 1.0
 
+func _create_bigshot_button() -> void:
+	_bigshot_btn = Button.new()
+	_bigshot_btn.text = "Big Shot"
+	_bigshot_btn.add_theme_font_size_override("font_size", 28)
+	_bigshot_btn.add_theme_color_override("font_color", Color(1.0, 0.6, 0.2, 1.0))
+	_bigshot_btn.custom_minimum_size = Vector2(160, 0)
+	_bigshot_btn.visible = false
+	_bigshot_btn.pressed.connect(_on_bigshot_pressed)
+	action_buttons.add_child(_bigshot_btn)
+
 func _on_turn_changed(unit) -> void:
 	var is_party_turn: bool = unit.is_player
 	action_buttons.visible = false
@@ -216,6 +228,7 @@ func _on_turn_changed(unit) -> void:
 		_highlight_active_member()
 		_rebuild_magic_button(unit)
 		_update_limit_button(unit)
+		_update_bigshot_button(unit)
 		_update_summon_button()
 	_log("%s's turn" % unit.unit_name)
 
@@ -227,6 +240,11 @@ func _on_atb_updated(unit, value: float) -> void:
 	var idx := _party_index_of(unit)
 	if idx >= 0 and idx < _party_atb_bars.size():
 		_party_atb_bars[idx].value = value
+
+func _update_bigshot_button(unit) -> void:
+	if _bigshot_btn == null:
+		return
+	_bigshot_btn.visible = (unit.character_class == "Gunner")
 
 func _update_limit_button(unit) -> void:
 	if _limit_btn == null:
@@ -454,6 +472,11 @@ func _spawn_popup(text: String, color: Color) -> void:
 	tween.tween_property(lbl, "position:y", lbl.position.y - 200, 0.8).set_ease(Tween.EASE_OUT)
 	tween.parallel().tween_property(lbl, "modulate:a", 0.0, 0.8).set_ease(Tween.EASE_IN)
 	tween.tween_callback(lbl.queue_free)
+
+func _on_bigshot_pressed() -> void:
+	action_buttons.hide()
+	_shake_screen(24.0)
+	BattleManager.player_bigshot()
 
 func _on_limit_pressed() -> void:
 	action_buttons.hide()
