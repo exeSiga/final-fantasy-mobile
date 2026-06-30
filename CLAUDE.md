@@ -71,7 +71,9 @@ Ne pas marquer DONE si un maillon de ce flow est cassé.
   - Si un contrôle échoue → corriger et recommencer ce contrôle
   - Si bloqué → STATUS: BLOCKED + noter le blocage dans Verification Notes
 - `git add -A && git commit -m "feat(sprint-N): name"`
+- `git push origin master`
 - Appender une ligne à SESSION_LOG.md
+- `git add SESSION_LOG.md && git commit -m "log: sprint N" && git push origin master`
 - Passer au sprint suivant
 
 ---
