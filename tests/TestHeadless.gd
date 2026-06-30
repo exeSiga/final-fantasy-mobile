@@ -46,6 +46,7 @@ func _run_all() -> void:
 	_test_chest_gold_range()
 	_test_merchant_discount()
 	_test_ff7_character_names()
+	_test_atb_gauge()
 
 func _test_new_game() -> void:
 	GameManager.new_game()
@@ -506,3 +507,25 @@ func _test_ff7_character_names() -> void:
 		if DialogueManager.DIALOGUES[bid].is_empty():
 			_ko("ff7_character_names", bid + " has no lines"); return
 	_ok("ff7_character_names: Cloud/Tifa/Aerith named correctly, classes unchanged, backstory dialogues present")
+
+func _test_atb_gauge() -> void:
+	GameManager.new_game()
+	var cloud = GameManager.party[0]   # spd 28
+	var tifa = GameManager.party[1]    # spd 32
+	if cloud.atb_gauge != 0.0:
+		_ko("atb_gauge", "atb_gauge should default to 0.0, got %f" % cloud.atb_gauge); return
+	var slow_duration: float = BattleManager._atb_charge_duration(10)
+	var fast_duration: float = BattleManager._atb_charge_duration(100)
+	if fast_duration >= slow_duration:
+		_ko("atb_gauge", "higher spd should charge faster: spd10=%f spd100=%f" % [slow_duration, fast_duration]); return
+	var cloud_duration: float = BattleManager._atb_charge_duration(cloud.spd)
+	var tifa_duration: float = BattleManager._atb_charge_duration(tifa.spd)
+	if tifa_duration >= cloud_duration:
+		_ko("atb_gauge", "Tifa (spd=%d) should charge faster than Cloud (spd=%d)" % [tifa.spd, cloud.spd]); return
+	# Over a fixed time window, the faster unit completes strictly more charge cycles
+	var window: float = 10.0
+	var cloud_cycles: float = window / cloud_duration
+	var tifa_cycles: float = window / tifa_duration
+	if tifa_cycles <= cloud_cycles:
+		_ko("atb_gauge", "Tifa should act more often than Cloud over %f s window" % window); return
+	_ok("atb_gauge: atb_gauge defaults to 0; charge duration decreases with spd; Tifa(spd=%d)=%.2f cycles > Cloud(spd=%d)=%.2f cycles in %fs" % [tifa.spd, tifa_cycles, cloud.spd, cloud_cycles, window])

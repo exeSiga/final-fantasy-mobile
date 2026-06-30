@@ -33,6 +33,7 @@ var _party_hp_texts: Array = []
 var _party_mp_texts: Array = []
 var _party_name_labels: Array = []
 var _party_limit_labels: Array = []
+var _party_atb_bars: Array = []
 
 var _limit_btn: Button = null
 
@@ -54,6 +55,8 @@ func _ready() -> void:
 	BattleManager.battle_log.connect(_log)
 	BattleManager.limit_gauge_updated.connect(_on_limit_gauge_updated)
 	BattleManager.summon_triggered.connect(_on_summon_triggered)
+	BattleManager.atb_updated.connect(_on_atb_updated)
+	BattleManager.atb_ready.connect(_on_atb_ready)
 	GameManager.level_up.connect(_on_level_up)
 	BattleManager.start_battle(BattleManager.dungeon_mode, BattleManager.is_boss_battle)
 
@@ -95,7 +98,10 @@ func _build_party_panel(party: Array) -> void:
 	_party_mp_texts.clear()
 	_party_name_labels.clear()
 	_party_limit_labels.clear()
+	_party_atb_bars.clear()
 	for m in party:
+		var member_box := VBoxContainer.new()
+		member_box.add_theme_constant_override("separation", 2)
 		var row := HBoxContainer.new()
 		var name_lbl := Label.new()
 		name_lbl.text = m.unit_name
@@ -126,12 +132,22 @@ func _build_party_panel(party: Array) -> void:
 		row.add_child(hp_txt)
 		row.add_child(mp_txt)
 		row.add_child(lmt_txt)
-		hero_panel.add_child(row)
+		member_box.add_child(row)
+		var atb_bar := ProgressBar.new()
+		atb_bar.min_value = 0.0
+		atb_bar.max_value = 100.0
+		atb_bar.value = 0.0
+		atb_bar.show_percentage = false
+		atb_bar.custom_minimum_size = Vector2(0, 10)
+		atb_bar.modulate = Color(0.3, 0.85, 1.0, 1)
+		member_box.add_child(atb_bar)
+		hero_panel.add_child(member_box)
 		_party_hp_bars.append(hp_bar)
 		_party_hp_texts.append(hp_txt)
 		_party_mp_texts.append(mp_txt)
 		_party_name_labels.append(name_lbl)
 		_party_limit_labels.append(lmt_txt)
+		_party_atb_bars.append(atb_bar)
 
 func _build_party_sprites(party: Array) -> void:
 	for i in min(party.size(), _party_sprites.size()):
@@ -164,7 +180,7 @@ func _update_enemy_sprites() -> void:
 
 func _on_turn_changed(unit) -> void:
 	var is_party_turn: bool = unit.is_player
-	action_buttons.visible = is_party_turn
+	action_buttons.visible = false
 	if is_party_turn:
 		_active_party_idx = _party_index_of(unit)
 		_highlight_active_member()
@@ -172,6 +188,15 @@ func _on_turn_changed(unit) -> void:
 		_update_limit_button(unit)
 		_update_summon_button()
 	_log("%s's turn" % unit.unit_name)
+
+func _on_atb_ready(unit) -> void:
+	if BattleManager.state == BattleManager.BattleState.PLAYER_TURN and unit == BattleManager.player_unit:
+		action_buttons.visible = true
+
+func _on_atb_updated(unit, value: float) -> void:
+	var idx := _party_index_of(unit)
+	if idx >= 0 and idx < _party_atb_bars.size():
+		_party_atb_bars[idx].value = value
 
 func _update_limit_button(unit) -> void:
 	if _limit_btn == null:

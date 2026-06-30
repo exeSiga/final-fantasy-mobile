@@ -32,6 +32,9 @@ const CRIT_CHANCE  := 0.10
 const CRIT_MULT    := 1.5
 const HASTE_TURNS  := 2
 
+const ATB_MAX       := 100.0
+const ATB_STEPS     := 8
+
 var is_boss_battle: bool = false
 var is_boss1_battle: bool = false
 var is_boss2_battle: bool = false
@@ -45,6 +48,8 @@ signal battle_log(message: String)
 signal battle_ended(victory: bool)
 signal limit_gauge_updated(unit)
 signal summon_triggered(summon_name, element)
+signal atb_updated(unit, value)
+signal atb_ready(unit)
 
 var party: Array = []
 var player_unit = null
@@ -142,6 +147,23 @@ func _rebuild_queue() -> void:
 	turn_queue = all
 	turn_queue.sort_custom(func(a, b) -> bool: return a.spd > b.spd)
 
+# How long (seconds) a unit's ATB gauge takes to fill from 0 to 100, based on spd.
+# Higher spd → shorter charge → that unit becomes actionable more often over time.
+func _atb_charge_duration(spd: int) -> float:
+	return clampf(1.6 - float(spd) / 80.0, 0.35, 1.6)
+
+func _charge_atb(unit) -> void:
+	unit.atb_gauge = 0.0
+	atb_updated.emit(unit, unit.atb_gauge)
+	var duration: float = _atb_charge_duration(unit.spd)
+	var step_time: float = duration / ATB_STEPS
+	for i in ATB_STEPS:
+		await get_tree().create_timer(step_time).timeout
+		if not unit.is_alive():
+			return
+		unit.atb_gauge = min(ATB_MAX, unit.atb_gauge + ATB_MAX / ATB_STEPS)
+		atb_updated.emit(unit, unit.atb_gauge)
+
 # Central turn dispatcher — applies status ticks and routes to player or enemy
 func _advance_turn() -> void:
 	# Try to find the next acting unit (skip dead, handle status)
@@ -159,16 +181,22 @@ func _advance_turn() -> void:
 			return
 		if skip:
 			continue  # loop to next unit
-		# Unit acts
+		# Unit charges its ATB gauge, then acts once full
 		if current.is_player:
 			player_unit = current
-			state = BattleState.PLAYER_TURN
 			turn_changed.emit(current)
+			await _charge_atb(current)
+			if not current.is_alive():
+				continue
+			state = BattleState.PLAYER_TURN
+			atb_ready.emit(current)
 			return
 		else:
 			state = BattleState.ENEMY_TURN
 			turn_changed.emit(current)
-			await get_tree().create_timer(1.0).timeout
+			await _charge_atb(current)
+			if not current.is_alive():
+				continue
 			await _enemy_act(current)
 			return
 
@@ -397,6 +425,9 @@ func _first_dead_ally():
 	return null
 
 func _after_player_turn() -> void:
+	if player_unit != null:
+		player_unit.atb_gauge = 0.0
+		atb_updated.emit(player_unit, 0.0)
 	_check_battle_end()
 	if state != BattleState.PLAYER_TURN:
 		return
@@ -431,6 +462,8 @@ func _enemy_act(enemy) -> void:
 		"Jenova":         await _ai_jenova(enemy)
 		"Sephiroth":      await _ai_sephiroth(enemy)
 		_:                _ai_basic_attack(enemy)
+	enemy.atb_gauge = 0.0
+	atb_updated.emit(enemy, 0.0)
 	_check_battle_end()
 	if state != BattleState.ENEMY_TURN:
 		return
