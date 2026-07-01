@@ -16,3 +16,4 @@
 [2026-07-01] Sprint 58 (Cait Sith Machinist) — DONE — Slot machine jackpot/demi/miss, _slot_btn Machinist, 8e membre, 125/125 tests
 [2026-07-01] Sprint 59 (Forge d'Armes) — DONE — upgrade équipement max Lv3 +5 stat par niveau, 200/400/600G, WorldMap btn, persist, 130/130 tests
 [2026-07-01] Sprint 60 (Météo de Combat) — DONE — 5 météos, WEATHER_SPELL_MOD, _apply_weather_mod dans player_cast_spell, HUD label, 135/135 tests
+[2026-07-01] Sprint 61 (Boss Rush Mode) — DONE — séquence 5 boss, no-heal entre combats, hero_drink récompense, best_score persist, 140/140 tests
