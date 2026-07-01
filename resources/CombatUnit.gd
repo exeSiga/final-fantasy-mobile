@@ -34,6 +34,8 @@ var limit_tier: int = 1           # 1 or 2; tier 2 unlocked at limit_damage_take
 var current_phase: int = 0   # boss phase tracker
 var spell_immune: bool = false  # blocks player spells (boss phase 2)
 var atb_gauge: float = 0.0    # 0-100 ATB charge, fills based on spd before the unit can act
+var galian_turns: int = 0     # >0 = Galian Beast active; ATK multiplied by galian_atk_bonus
+var galian_base_atk: int = 0  # original ATK saved when transforming
 
 const STATUS_MAX_TURNS := 3
 

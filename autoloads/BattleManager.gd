@@ -586,6 +586,9 @@ func player_cast_spell(spell, target = null) -> void:
 	if player_unit.berserk_turns > 0:
 		battle_log.emit("%s est berserk — ne peut pas lancer de sort !" % player_unit.unit_name)
 		return
+	if player_unit.galian_turns > 0:
+		battle_log.emit("%s est en Galian Beast — ne peut pas utiliser de matéria !" % player_unit.unit_name)
+		return
 	if player_unit.status == "silence":
 		battle_log.emit("%s is silenced — can't cast!" % player_unit.unit_name)
 		return
@@ -667,6 +670,12 @@ func _after_player_turn() -> void:
 		if player_unit.haste_turns_left == 0 and player_unit.base_spd > 0:
 			player_unit.spd = player_unit.base_spd
 			player_unit.base_spd = 0
+	if player_unit != null and player_unit.galian_turns > 0:
+		player_unit.galian_turns -= 1
+		if player_unit.galian_turns == 0 and player_unit.galian_base_atk > 0:
+			player_unit.atk = player_unit.galian_base_atk
+			player_unit.galian_base_atk = 0
+			battle_log.emit("Vincent reprend forme humaine")
 	_rebuild_queue()
 	_advance_turn()
 
@@ -723,6 +732,21 @@ func player_steal(target_idx: int) -> void:
 		action_result.emit(player_unit.unit_name, target.unit_name, 0, false)
 	else:
 		battle_log.emit("Le vol a échoué !")
+	_after_player_turn()
+
+func player_galian_beast() -> void:
+	if state != BattleState.PLAYER_TURN or player_unit == null:
+		return
+	if player_unit.character_class != "DarkWarrior":
+		return
+	if player_unit.galian_turns > 0:
+		battle_log.emit("Vincent est déjà en Galian Beast !")
+		return
+	player_unit.galian_base_atk = player_unit.atk
+	player_unit.atk = int(player_unit.atk * 2.5)
+	player_unit.galian_turns = 2
+	battle_log.emit("Vincent se transforme en Galian Beast !")
+	action_result.emit(player_unit.unit_name, "", 0, false)
 	_after_player_turn()
 
 func player_run() -> void:

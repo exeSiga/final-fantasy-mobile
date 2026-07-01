@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="CombatUnit" load_steps=2 format=3 uid="uid://vincent"]
+
+[ext_resource type="Script" path="res://resources/CombatUnit.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+unit_name = "Vincent"
+hp = 300
+max_hp = 300
+mp = 20
+max_mp = 20
+atk = 50
+def = 18
+spd = 20
+is_player = true
+sprite_color = Color(0.7, 0.05, 0.05, 1)
+level = 1
+xp = 0
+xp_to_next_level = 100
+character_class = "DarkWarrior"
+element_weakness = ""
+spell_paths = []

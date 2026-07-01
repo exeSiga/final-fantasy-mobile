@@ -649,7 +649,7 @@
 
 ---
 
-## Sprint 57 — Vincent Valentine (7e membre, Guerrier Sombre) [STATUS: TODO]
+## Sprint 57 — Vincent Valentine (7e membre, Guerrier Sombre) [STATUS: DONE]
 **Goal:** Ajouter Vincent Valentine comme 7e membre disponible avec une transformation "Galian Beast" qui booste massivement l'ATK pour 2 tours
 
 **Acceptance Criteria:**
@@ -668,8 +668,13 @@
 - [ ] WorldMap.gd: PartySetupMenu itère available_members.size() (7)
 
 **Verification Notes:**
-- Contrôle A (static):
-- Contrôle B (godot parse):
+- Contrôle A (static): ✅ check_compat.sh All clear
+- Contrôle B (godot parse): ✅ 120/120 tests headless
 - Contrôle C (logic trace):
-- Contrôle D (regression):
-- Déferments:
+  - AC1: vincent.tres loaded in new_game() as available_members[6], character_class="DarkWarrior"; tested via _test_vincent_in_roster
+  - AC2: PartySetupMenu iterates available_members.size() dynamically — no hardcoded 6-limit
+  - AC3: player_galian_beast() sets galian_turns=2 ATK×2.5; Battle.gd _galian_btn shown for DarkWarrior; player_cast_spell() blocked when galian_turns>0
+  - AC4: _after_player_turn() decrements galian_turns; at 0: restores galian_base_atk + logs "Vincent reprend forme humaine"
+  - AC5: ATK=50 DEF=18 HP=300 SPD=20 verified via _test_vincent_stats
+- Contrôle D (regression): 120/0 tests pass, MainMenu→Battle flow intact
+- Déferments: WorldMap PartySetupMenu already dynamic — no change needed

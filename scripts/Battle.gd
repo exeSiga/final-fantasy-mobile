@@ -43,6 +43,7 @@ var _bigshot_btn: Button = null
 var _lunatic_btn: Button = null
 var _shuriken_btn: Button = null
 var _steal_btn: Button = null
+var _galian_btn: Button = null
 
 var _active_party_idx: int = -1
 var _pending_cutscene: String = ""
@@ -58,6 +59,7 @@ func _ready() -> void:
 	_create_lunatic_button()
 	_create_shuriken_button()
 	_create_steal_button()
+	_create_galian_button()
 	_fade_in()
 	AudioManager.play_battle_bgm()
 	BattleManager.battle_started.connect(_on_battle_started)
@@ -259,6 +261,16 @@ func _create_steal_button() -> void:
 	_steal_btn.pressed.connect(_on_steal_pressed)
 	action_buttons.add_child(_steal_btn)
 
+func _create_galian_button() -> void:
+	_galian_btn = Button.new()
+	_galian_btn.text = "Galian Beast"
+	_galian_btn.add_theme_font_size_override("font_size", 28)
+	_galian_btn.add_theme_color_override("font_color", Color(0.85, 0.15, 0.15, 1.0))
+	_galian_btn.custom_minimum_size = Vector2(180, 0)
+	_galian_btn.visible = false
+	_galian_btn.pressed.connect(_on_galian_pressed)
+	action_buttons.add_child(_galian_btn)
+
 func _on_turn_changed(unit) -> void:
 	var is_party_turn: bool = unit.is_player
 	action_buttons.visible = false
@@ -270,6 +282,7 @@ func _on_turn_changed(unit) -> void:
 		_update_bigshot_button(unit)
 		_update_lunatic_button(unit)
 		_update_ninja_buttons(unit)
+		_update_galian_button(unit)
 		_update_summon_button()
 		_update_element_indicator(unit)
 	_log("%s's turn" % unit.unit_name)
@@ -299,6 +312,16 @@ func _update_ninja_buttons(unit) -> void:
 		_shuriken_btn.visible = is_ninja
 	if _steal_btn != null:
 		_steal_btn.visible = is_ninja
+
+func _update_galian_button(unit) -> void:
+	if _galian_btn == null:
+		return
+	var is_dark: bool = unit.character_class == "DarkWarrior"
+	_galian_btn.visible = is_dark
+	if is_dark and unit.galian_turns > 0:
+		_galian_btn.text = "Galian (%d)" % unit.galian_turns
+	elif is_dark:
+		_galian_btn.text = "Galian Beast"
 
 func _update_limit_button(unit) -> void:
 	if _limit_btn == null:
@@ -570,6 +593,12 @@ func _on_shuriken_pressed() -> void:
 func _on_steal_pressed() -> void:
 	action_buttons.hide()
 	_show_target_select("enemy", func(t) -> void: BattleManager.player_steal(t))
+
+func _on_galian_pressed() -> void:
+	action_buttons.hide()
+	_shake_screen(20.0)
+	_spawn_popup("Galian Beast!", Color(0.85, 0.15, 0.15, 1))
+	BattleManager.player_galian_beast()
 
 func _on_limit_pressed() -> void:
 	action_buttons.hide()

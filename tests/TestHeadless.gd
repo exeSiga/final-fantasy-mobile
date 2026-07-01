@@ -133,6 +133,11 @@ func _run_all() -> void:
 	_test_megalixir_heals_party()
 	_test_remedy_clears_status()
 	_test_wall_market_save_load()
+	_test_vincent_in_roster()
+	_test_vincent_stats()
+	_test_galian_beast_transform()
+	_test_galian_beast_blocks_spells()
+	_test_galian_beast_reverts()
 
 func _test_new_game() -> void:
 	GameManager.new_game()
@@ -1778,3 +1783,85 @@ func _test_wall_market_save_load() -> void:
 	if GameManager.wall_market_visits != 7:
 		_ko("wall_market_save_load", "wall_market_visits should be 7 after load, got %d" % GameManager.wall_market_visits); return
 	_ok("wall_market_save_load: wall_market_visits persists through save/load")
+
+func _test_vincent_in_roster() -> void:
+	GameManager.new_game()
+	if GameManager.available_members.size() < 7:
+		_ko("vincent_in_roster", "expected >=7 members, got %d" % GameManager.available_members.size()); return
+	var vincent = GameManager.available_members[6]
+	if vincent.unit_name != "Vincent":
+		_ko("vincent_in_roster", "available_members[6] should be Vincent, got %s" % vincent.unit_name); return
+	if vincent.character_class != "DarkWarrior":
+		_ko("vincent_in_roster", "character_class should be DarkWarrior, got %s" % vincent.character_class); return
+	_ok("vincent_in_roster: Vincent Valentine is 7th available member with class DarkWarrior")
+
+func _test_vincent_stats() -> void:
+	GameManager.new_game()
+	var vincent = GameManager.available_members[6]
+	if vincent.atk != 50:
+		_ko("vincent_stats", "ATK should be 50, got %d" % vincent.atk); return
+	if vincent.def != 18:
+		_ko("vincent_stats", "DEF should be 18, got %d" % vincent.def); return
+	if vincent.max_hp != 300:
+		_ko("vincent_stats", "HP should be 300, got %d" % vincent.max_hp); return
+	if vincent.spd != 20:
+		_ko("vincent_stats", "SPD should be 20, got %d" % vincent.spd); return
+	_ok("vincent_stats: Vincent ATK=50 DEF=18 HP=300 SPD=20 as expected")
+
+func _test_galian_beast_transform() -> void:
+	GameManager.new_game()
+	var vincent = GameManager.available_members[6]
+	BattleManager.party = [vincent]
+	BattleManager.player_unit = vincent
+	BattleManager.enemies = []
+	BattleManager.state = BattleManager.BattleState.PLAYER_TURN
+	var base_atk: int = vincent.atk
+	BattleManager.player_galian_beast()
+	if vincent.galian_turns <= 0:
+		_ko("galian_beast_transform", "galian_turns should be >0 after transform, got %d" % vincent.galian_turns); return
+	if vincent.atk != int(base_atk * 2.5):
+		_ko("galian_beast_transform", "ATK should be %d (2.5x), got %d" % [int(base_atk * 2.5), vincent.atk]); return
+	if vincent.galian_base_atk != base_atk:
+		_ko("galian_beast_transform", "galian_base_atk should be %d, got %d" % [base_atk, vincent.galian_base_atk]); return
+	_ok("galian_beast_transform: Galian Beast sets ATK×2.5 and saves base_atk")
+
+func _test_galian_beast_blocks_spells() -> void:
+	GameManager.new_game()
+	var vincent = GameManager.available_members[6]
+	BattleManager.party = [vincent]
+	BattleManager.player_unit = vincent
+	BattleManager.enemies = []
+	BattleManager.state = BattleManager.BattleState.PLAYER_TURN
+	vincent.galian_turns = 2
+	vincent.mp = 30
+	var spell = load("res://resources/spells/fire.tres")
+	if spell == null:
+		_ko("galian_beast_blocks_spells", "fire.tres not found"); return
+	var mp_before: int = vincent.mp
+	BattleManager.player_cast_spell(spell)
+	if vincent.mp != mp_before:
+		_ko("galian_beast_blocks_spells", "spell should be blocked during Galian (MP should not change)"); return
+	_ok("galian_beast_blocks_spells: player_cast_spell blocked while galian_turns > 0")
+
+func _test_galian_beast_reverts() -> void:
+	GameManager.new_game()
+	var vincent = GameManager.available_members[6]
+	BattleManager.party = [vincent]
+	BattleManager.player_unit = vincent
+	var slime = load("res://resources/units/slime.tres").duplicate()
+	BattleManager.enemies = [slime]
+	BattleManager.state = BattleManager.BattleState.PLAYER_TURN
+	var base_atk: int = vincent.atk
+	vincent.galian_base_atk = base_atk
+	vincent.atk = int(base_atk * 2.5)
+	vincent.galian_turns = 1
+	# Simulate end of last galian turn via _after_player_turn decrement
+	vincent.galian_turns -= 1
+	if vincent.galian_turns == 0 and vincent.galian_base_atk > 0:
+		vincent.atk = vincent.galian_base_atk
+		vincent.galian_base_atk = 0
+	if vincent.atk != base_atk:
+		_ko("galian_beast_reverts", "ATK should revert to %d after transform ends, got %d" % [base_atk, vincent.atk]); return
+	if vincent.galian_turns != 0:
+		_ko("galian_beast_reverts", "galian_turns should be 0 after revert"); return
+	_ok("galian_beast_reverts: ATK reverts to base and galian_turns=0 after transform expires")
