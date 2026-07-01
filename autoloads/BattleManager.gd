@@ -148,14 +148,22 @@ func _apply_spell_materias() -> void:
 				if mat_path == "":
 					continue
 				var mat = load(mat_path)
-				if mat == null or mat.materia_type != "spell" or mat.spell_path == "":
+				if mat == null or mat.materia_type != "spell":
 					continue
-				if not mat.spell_path in member.spell_paths:
-					member.spell_paths.append(mat.spell_path)
+				var spell_path: String = _get_evolved_spell_path(mat_path, mat)
+				if spell_path != "" and not spell_path in member.spell_paths:
+					member.spell_paths.append(spell_path)
 		if GameManager.has_enemy_skill_materia(i):
 			for sp in GameManager.learned_enemy_skills:
 				if not sp in member.spell_paths:
 					member.spell_paths.append(sp)
+
+func _get_evolved_spell_path(mat_path: String, mat) -> String:
+	var tiers: Array = GameManager.MATERIA_SPELL_TIERS.get(mat_path, [])
+	if tiers.is_empty():
+		return mat.spell_path if mat.spell_path != "" else ""
+	var level: int = GameManager.get_materia_level(mat_path)
+	return tiers[level - 1]
 
 func _party_idx_of(unit) -> int:
 	for i in party.size():
@@ -1103,6 +1111,8 @@ func _check_battle_end() -> void:
 			GameManager.pending_rank_notification = new_rank
 		_try_drop_materials()
 		GameManager.grant_battle_rewards()
+		var ap_gain: int = 10 + (arena_wave * 5 if arena_mode else 0)
+		GameManager.grant_materia_ap(ap_gain)
 		if arena_mode:
 			if arena_wave >= ARENA_TOTAL_WAVES:
 				var belt = load(CHAMPION_BELT_PATH)

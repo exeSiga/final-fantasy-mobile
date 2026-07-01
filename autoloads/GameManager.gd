@@ -128,6 +128,47 @@ const BESTIARY: Dictionary = {
 }
 var bestiary_milestones_given: Dictionary = {}
 
+const MATERIA_AP_THRESHOLDS: Dictionary = {
+	"res://resources/materias/fire_materia.tres":     [80, 250],
+	"res://resources/materias/blizzard_materia.tres": [80, 250],
+	"res://resources/materias/thunder_materia.tres":  [80, 250],
+}
+const MATERIA_SPELL_TIERS: Dictionary = {
+	"res://resources/materias/fire_materia.tres": [
+		"res://resources/spells/fire.tres",
+		"res://resources/spells/fira.tres",
+		"res://resources/spells/firaga.tres",
+	],
+	"res://resources/materias/blizzard_materia.tres": [
+		"res://resources/spells/blizzard.tres",
+		"res://resources/spells/blizzara.tres",
+		"res://resources/spells/blizzaga.tres",
+	],
+	"res://resources/materias/thunder_materia.tres": [
+		"res://resources/spells/thunder.tres",
+		"res://resources/spells/thundara.tres",
+		"res://resources/spells/thundaga.tres",
+	],
+}
+var materia_ap: Dictionary = {}
+
+func get_materia_level(mat_path: String) -> int:
+	var thresholds: Array = MATERIA_AP_THRESHOLDS.get(mat_path, [])
+	if thresholds.is_empty():
+		return 1
+	var ap: int = materia_ap.get(mat_path, 0)
+	if ap >= thresholds[1]:
+		return 3
+	if ap >= thresholds[0]:
+		return 2
+	return 1
+
+func grant_materia_ap(amount: int) -> void:
+	for key in materia_equipped:
+		var mat_path: String = materia_equipped[key]
+		if mat_path != "" and MATERIA_AP_THRESHOLDS.has(mat_path):
+			materia_ap[mat_path] = materia_ap.get(mat_path, 0) + amount
+
 var dungeon_treasures_found: Array = []
 var ng_plus_unlocked: bool = false
 var ng_plus_mode: bool = false
@@ -245,6 +286,7 @@ func new_game() -> void:
 	bestiary_milestones_given = {}
 	shop_last_rank = "3rd Class"
 	pending_rank_notification = ""
+	materia_ap = {}
 	for m in party:
 		base_party_spell_paths.append(m.spell_paths.duplicate())
 	dungeon_boss_cleared = false

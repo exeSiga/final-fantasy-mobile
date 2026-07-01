@@ -119,6 +119,11 @@ func _run_all() -> void:
 	_test_yuffie_in_roster()
 	_test_shuriken_throw_hits_all_enemies()
 	_test_steal_success()
+	_test_materia_ap_thresholds_defined()
+	_test_grant_materia_ap()
+	_test_materia_level_upgrade()
+	_test_evolved_spells_load()
+	_test_materia_ap_save_load()
 
 func _test_new_game() -> void:
 	GameManager.new_game()
@@ -1569,3 +1574,73 @@ func _test_steal_success() -> void:
 	if inv_after <= inv_before:
 		_ko("steal_success", "add_item did not increment inventory"); return
 	_ok("steal_success: ENEMY_STEAL_POOL[Slime]=potion; add_item increments inventory correctly")
+
+func _test_materia_ap_thresholds_defined() -> void:
+	if GameManager.MATERIA_AP_THRESHOLDS.size() < 3:
+		_ko("materia_ap_thresholds_defined", "expected >=3 entries, got %d" % GameManager.MATERIA_AP_THRESHOLDS.size()); return
+	var fire_t: Array = GameManager.MATERIA_AP_THRESHOLDS.get("res://resources/materias/fire_materia.tres", [])
+	if fire_t.size() < 2 or fire_t[0] != 80 or fire_t[1] != 250:
+		_ko("materia_ap_thresholds_defined", "fire thresholds wrong: %s" % str(fire_t)); return
+	if GameManager.MATERIA_SPELL_TIERS.size() < 3:
+		_ko("materia_ap_thresholds_defined", "MATERIA_SPELL_TIERS has <3 entries"); return
+	var fire_spells: Array = GameManager.MATERIA_SPELL_TIERS.get("res://resources/materias/fire_materia.tres", [])
+	if fire_spells.size() != 3:
+		_ko("materia_ap_thresholds_defined", "fire spell tiers should have 3 entries"); return
+	_ok("materia_ap_thresholds_defined: 3 materias with AP thresholds and spell tiers defined")
+
+func _test_grant_materia_ap() -> void:
+	GameManager.new_game()
+	var fire_path: String = "res://resources/materias/fire_materia.tres"
+	GameManager.materia_equipped["0_weapon_0"] = fire_path
+	GameManager.grant_materia_ap(50)
+	var ap: int = GameManager.materia_ap.get(fire_path, 0)
+	if ap != 50:
+		_ko("grant_materia_ap", "expected 50 AP on fire_materia, got %d" % ap); return
+	_ok("grant_materia_ap: 50 AP granted to equipped fire_materia")
+
+func _test_materia_level_upgrade() -> void:
+	GameManager.new_game()
+	var fire_path: String = "res://resources/materias/fire_materia.tres"
+	if GameManager.get_materia_level(fire_path) != 1:
+		_ko("materia_level_upgrade", "default level should be 1"); return
+	GameManager.materia_ap[fire_path] = 80
+	if GameManager.get_materia_level(fire_path) != 2:
+		_ko("materia_level_upgrade", "at 80 AP should be level 2"); return
+	GameManager.materia_ap[fire_path] = 250
+	if GameManager.get_materia_level(fire_path) != 3:
+		_ko("materia_level_upgrade", "at 250 AP should be level 3"); return
+	var tiers: Array = GameManager.MATERIA_SPELL_TIERS[fire_path]
+	if tiers[2] != "res://resources/spells/firaga.tres":
+		_ko("materia_level_upgrade", "tier 3 spell should be firaga, got %s" % tiers[2]); return
+	_ok("materia_level_upgrade: fire_materia lvl1→lvl2 at 80 AP, lvl3 at 250 AP; tier3=firaga")
+
+func _test_evolved_spells_load() -> void:
+	var paths: Array = [
+		"res://resources/spells/fira.tres",
+		"res://resources/spells/firaga.tres",
+		"res://resources/spells/blizzara.tres",
+		"res://resources/spells/blizzaga.tres",
+		"res://resources/spells/thundaga.tres",
+	]
+	for p in paths:
+		var spell = load(p)
+		if spell == null:
+			_ko("evolved_spells_load", "failed to load %s" % p); return
+		if spell.damage_multiplier < 2.0:
+			_ko("evolved_spells_load", "%s has low multiplier: %f" % [p, spell.damage_multiplier]); return
+	_ok("evolved_spells_load: 5 evolved spells load correctly with damage_multiplier >=2.0")
+
+func _test_materia_ap_save_load() -> void:
+	GameManager.new_game()
+	var fire_path: String = "res://resources/materias/fire_materia.tres"
+	GameManager.materia_ap[fire_path] = 150
+	SaveSystem.save(0)
+	GameManager.new_game()
+	if GameManager.materia_ap.get(fire_path, 0) != 0:
+		_ko("materia_ap_save_load", "new_game should clear materia_ap"); return
+	var ok: bool = SaveSystem.load_save(0)
+	if not ok:
+		_ko("materia_ap_save_load", "load_save returned false"); return
+	if GameManager.materia_ap.get(fire_path, 0) != 150:
+		_ko("materia_ap_save_load", "materia_ap should be 150 after load, got %d" % GameManager.materia_ap.get(fire_path, 0)); return
+	_ok("materia_ap_save_load: materia_ap persists through save/load")

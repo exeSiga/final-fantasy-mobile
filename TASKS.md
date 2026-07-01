@@ -561,28 +561,32 @@
 
 ---
 
-## Sprint 54 — Matéria AP & Sorts Évolués (Fira, Blizzara, Thundaga) [STATUS: TODO]
+## Sprint 54 — Matéria AP & Sorts Évolués (Fira, Blizzara, Thundaga) [STATUS: DONE]
 **Goal:** Les matérias offensives gagnent des AP après chaque combat et débloquent des sorts plus puissants (level 2 = -ra, level 3 = -ga) visibles dans le menu matéria
 
 **Acceptance Criteria:**
-- [ ] AC1: GameManager.materia_ap: Dictionary (materia_path → int) ; chaque combat accorde AP = 10 + wave×5 (arena) aux matérias équipées ; persisté en save
-- [ ] AC2: fire_materia : level 2 à 80 AP → Fira (2.8× ATK, 12 MP) ; level 3 à 250 AP → Firaga (4.5× ATK, 18 MP) ; idem blizzard_materia (Blizzara/Blizzaga) et thunder_materia (Thundara déjà faite → remplace si AP atteint ; Thundaga 4.5× à 250 AP)
-- [ ] AC3: BattleManager._apply_spell_materias() construit la liste de sorts selon le niveau AP actuel de chaque matéria équipée
-- [ ] AC4: MateriaMenu affiche le niveau AP de chaque matéria et la barre de progression vers le prochain level
+- [x] AC1: GameManager.materia_ap: Dictionary (materia_path → int) ; chaque combat accorde AP = 10 + wave×5 (arena) aux matérias équipées ; persisté en save
+- [x] AC2: fire_materia : level 2 à 80 AP → Fira (2.8× ATK, 12 MP) ; level 3 à 250 AP → Firaga (4.5× ATK, 18 MP) ; idem blizzard_materia (Blizzara/Blizzaga) et thunder_materia (Thundara→Thundaga 4.5×)
+- [x] AC3: BattleManager._apply_spell_materias() → _get_evolved_spell_path() → sort selon get_materia_level()
+- [x] AC4: MateriaMenu affiche niveau AP et progression "[Lv2 80/250 AP]" ou "[Lv3 MAX]"
 
 **Tasks:**
-- [ ] GameManager.gd: materia_ap: Dictionary, grant_materia_ap(amount), get_materia_level(path) → int 1/2/3, MATERIA_AP_THRESHOLDS const {path: [0, 80, 250]}
-- [ ] BattleManager.gd: _check_battle_end() → grant_materia_ap() pour chaque matéria équipée ; _apply_spell_materias() → sort selon get_materia_level()
-- [ ] resources/spells/fira.tres (2.8×, fire, 12 MP), firaga.tres (4.5×, fire, 18 MP), blizzara.tres, blizzaga.tres, thundaga.tres
-- [ ] SaveSystem.gd: materia_ap persisté (dict)
-- [ ] MateriaMenu.gd: affiche niveau 1/2/3 et AP/seuil en petit texte sous le nom de la matéria
+- [x] GameManager.gd: materia_ap: Dictionary, grant_materia_ap(amount), get_materia_level(path), MATERIA_AP_THRESHOLDS, MATERIA_SPELL_TIERS
+- [x] BattleManager.gd: _check_battle_end() grant AP; _apply_spell_materias() → _get_evolved_spell_path()
+- [x] resources/spells/fira.tres, firaga.tres, blizzara.tres, blizzaga.tres, thundaga.tres
+- [x] SaveSystem.gd: materia_ap persisté
+- [x] MateriaMenu.gd: affiche Lv/AP/seuil
 
 **Verification Notes:**
-- Contrôle A (static):
-- Contrôle B (godot parse):
+- Contrôle A (static): ✅ All clear
+- Contrôle B (godot parse): ✅ aucun SCRIPT ERROR
 - Contrôle C (logic trace):
-- Contrôle D (regression):
-- Déferments:
+  - AC1: grant_materia_ap(10) appelé dans _check_battle_end(); materia_ap dict persisté via SaveSystem
+  - AC2: MATERIA_SPELL_TIERS 3 entrées; seuils [80,250]; firaga/blizzaga/thundaga à Lv3
+  - AC3: _get_evolved_spell_path(mat_path, mat) → tiers[level-1]; intégré dans _apply_spell_materias()
+  - AC4: MateriaMenu._build() affiche "[Lv%d %d/%d AP]" pour les matérias trackées
+- Contrôle D (regression): 106/106 tests passent
+- Déferments: aucun
 
 ---
 

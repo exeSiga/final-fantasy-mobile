@@ -30,7 +30,17 @@ func _build() -> void:
 				var slot_text: String = "[Empty]"
 				if mat_path != "":
 					var mat = load(mat_path)
-					slot_text = mat.materia_name if mat != null else "[?]"
+					if mat != null:
+						slot_text = mat.materia_name
+						var thresholds: Array = GameManager.MATERIA_AP_THRESHOLDS.get(mat_path, [])
+						if not thresholds.is_empty():
+							var ap: int = GameManager.materia_ap.get(mat_path, 0)
+							var lvl: int = GameManager.get_materia_level(mat_path)
+							if lvl >= 3:
+								slot_text += " [Lv3 MAX]"
+							else:
+								var next_ap: int = thresholds[lvl - 1]
+								slot_text += " [Lv%d %d/%d AP]" % [lvl, ap, next_ap]
 				_add_slot_row(i, slot_name, s, "%s slot %d: %s" % [item_label, s + 1, slot_text], mat_path != "")
 
 func _add_header(text: String) -> void:

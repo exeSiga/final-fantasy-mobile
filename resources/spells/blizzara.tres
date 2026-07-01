@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="Spell" load_steps=2 format=3 uid="uid://blizzara"]
+
+[ext_resource type="Script" path="res://resources/Spell.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+spell_name = "Blizzara"
+mp_cost = 12
+damage_multiplier = 2.8
+effect_type = 0
+description = "Medium ice spell — 2.8x damage"
+element = "ice"
+heal_value = 0

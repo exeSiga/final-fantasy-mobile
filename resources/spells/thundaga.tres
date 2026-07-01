@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="Spell" load_steps=2 format=3 uid="uid://thundaga"]
+
+[ext_resource type="Script" path="res://resources/Spell.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+spell_name = "Thundaga"
+mp_cost = 18
+damage_multiplier = 4.5
+effect_type = 0
+description = "High lightning spell — 4.5x damage"
+element = "lightning"
+heal_value = 0
