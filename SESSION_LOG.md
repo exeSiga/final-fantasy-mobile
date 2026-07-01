@@ -11,3 +11,4 @@
 [2026-07-01] Sprint 53 (Yuffie Kisaragi) — DONE — 6e membre Ninja SPD=45, Shuriken Throw AoE, Steal 60% ENEMY_STEAL_POOL, 14 ennemis, 101/101 tests
 [2026-07-01] Sprint 54 (Matéria AP) — DONE — fira/firaga/blizzara/blizzaga/thundaga, AP thresholds [80/250], _get_evolved_spell_path, MateriaMenu Lv+AP, 106/106 tests
 [2026-07-01] Sprint 55 (Statuts Avancés) — DONE — Stop/Berserk/Confusion, _apply_status, DarkKnight/Shadow/RubyWeapon AI, auto-berserk, confuse redirect, HUD émoji, 110/110 tests
+[2026-07-01] Sprint 56 (Wall Market) — DONE — popup-shop 6 items exclusifs, Affaire Louche 30% (50% bon deal), black_materia_shard unlock visite 5, wall_market_visits persist, 115/115 tests
