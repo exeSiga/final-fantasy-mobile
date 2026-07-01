@@ -12,3 +12,4 @@
 [2026-07-01] Sprint 42 (Scènes narratives Réacteur+Nibelheim) — DONE — scene_reactor/jenova_done, cutscene_reactor/jenova 3 lignes, _pending_cutscene + dialogue_finished, save+load, 58/58 tests
 [2026-07-01] Sprint 43 (Limit Breaks Tier 2) — DONE — limit_damage_taken 200, Meteorain/FinalHeaven/GreatGospel/Catastrophe, nom dynamique bouton, save+load, 62/62 tests
 [2026-07-01] Sprint 44 (Red XIII Beastmaster) — DONE — 5e membre, SPD=40, Lunatic High SPD×2 party, Cosmo Memory AoE Tier2, 66/66 tests
+[2026-07-01] Sprint 45 (Districts de Midgar) — DONE — Secteur 1/5/7 boutons, 3 ennemis, mako_shard+slum_herb+shinra_badge, sector_victories, 70/70 tests
