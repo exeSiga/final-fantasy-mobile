@@ -75,6 +75,7 @@ var is_ruby_weapon_battle: bool = false
 var is_emerald_weapon_battle: bool = false
 var dungeon_mode: bool = false
 var arena_mode: bool = false
+var current_weather: String = "clear"
 var arena_wave: int = 0
 var arena_completed: bool = false
 var _retry_was_arena: bool = false
@@ -92,10 +93,23 @@ signal atb_updated(unit, value)
 signal atb_ready(unit)
 signal enemy_skill_learned(spell_name: String)
 signal arena_wave_cleared(wave: int)
+signal weather_changed(weather_name: String)
 
 const ENEMY_SKILL_MAP := {
 	"Gargoyle":     "res://resources/spells/white_wind.tres",
 	"Dark Knight":  "res://resources/spells/flame_thrower.tres",
+}
+
+const WEATHER_OPTIONS: Array = ["clear", "rain", "storm", "blizzard", "heat"]
+const WEATHER_ICONS: Dictionary = {
+	"clear": "🌤", "rain": "☔", "storm": "⛈", "blizzard": "🌨", "heat": "🔥"
+}
+const WEATHER_SPELL_MOD: Dictionary = {
+	"rain":    {"fire": 0.5, "ice": 1.3},
+	"storm":   {"lightning": 1.5},
+	"blizzard":{"ice": 1.5, "fire": 0.5},
+	"heat":    {"fire": 1.3},
+	"clear":   {},
 }
 
 const MATERIAL_DROPS: Dictionary = {
@@ -215,10 +229,24 @@ func start_battle(dungeon: bool = false, boss: bool = false) -> void:
 		if randi() % 2 == 0:
 			enemies.append(load(pool[randi() % pool.size()]).duplicate())
 	_apply_ng_plus_scaling()
+	_roll_weather()
 	_build_turn_queue()
 	state = BattleState.IDLE
 	battle_started.emit(party, enemies)
 	_advance_turn()
+
+func _roll_weather() -> void:
+	current_weather = WEATHER_OPTIONS[randi() % WEATHER_OPTIONS.size()]
+	weather_changed.emit(current_weather)
+	if current_weather != "clear":
+		battle_log.emit("%s %s" % [WEATHER_ICONS.get(current_weather, ""), current_weather.capitalize()])
+
+func _apply_weather_mod(base_dmg: int, spell_element: String) -> int:
+	if spell_element == "" or current_weather == "clear":
+		return base_dmg
+	var mods: Dictionary = WEATHER_SPELL_MOD.get(current_weather, {})
+	var mult: float = mods.get(spell_element, 1.0)
+	return int(base_dmg * mult)
 
 func _apply_ng_plus_scaling() -> void:
 	if not GameManager.ng_plus_mode:
@@ -612,6 +640,15 @@ func player_cast_spell(spell, target = null) -> void:
 			if spell.element != "" and target.element_weakness == spell.element:
 				dmg = int(dmg * 1.5)
 				battle_log.emit("Weakness! %s takes extra damage!" % target.unit_name)
+			dmg = _apply_weather_mod(dmg, spell.element)
+			if current_weather != "clear" and spell.element != "":
+				var mods: Dictionary = WEATHER_SPELL_MOD.get(current_weather, {})
+				if mods.has(spell.element) and mods[spell.element] != 1.0:
+					var wmod: float = mods[spell.element]
+					if wmod > 1.0:
+						battle_log.emit("🌦 %s amplifie %s (×%.1f) !" % [current_weather.capitalize(), spell.element, wmod])
+					else:
+						battle_log.emit("🌦 %s atténue %s (×%.1f) !" % [current_weather.capitalize(), spell.element, wmod])
 			target.hp = max(0, target.hp - dmg)
 			action_result.emit(player_unit.unit_name, target.unit_name, dmg, false)
 		SPELL_HEAL:

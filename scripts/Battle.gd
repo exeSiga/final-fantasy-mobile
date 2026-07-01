@@ -28,6 +28,7 @@ var _enemy_hp_bars: Array = []
 var _enemy_sprite_list: Array = []
 var _wave_label: Label = null
 var _wave_canvas: CanvasLayer = null
+var _weather_label: Label = null
 var _last_quote_idx: int = -1
 
 # Party panel rows — built dynamically
@@ -75,6 +76,7 @@ func _ready() -> void:
 	BattleManager.atb_ready.connect(_on_atb_ready)
 	BattleManager.enemy_skill_learned.connect(_on_enemy_skill_learned)
 	BattleManager.arena_wave_cleared.connect(_on_arena_wave_cleared)
+	BattleManager.weather_changed.connect(_on_weather_changed)
 	GameManager.level_up.connect(_on_level_up)
 	if BattleManager.arena_mode:
 		BattleManager.start_arena()
@@ -127,6 +129,8 @@ func _on_battle_started(party: Array, enemies: Array) -> void:
 	_build_party_sprites(party)
 	_build_enemy_sprites(enemies)
 	_build_enemy_bars(enemies)
+	_ensure_weather_label()
+	_update_weather_display(BattleManager.current_weather)
 	if BattleManager.arena_mode:
 		_ensure_wave_label()
 		_wave_label.text = "Vague %d/8" % BattleManager.arena_wave
@@ -134,6 +138,25 @@ func _on_battle_started(party: Array, enemies: Array) -> void:
 		_log("Vague %d/8 — En garde !" % BattleManager.arena_wave)
 	else:
 		_log("Battle start!")
+
+func _ensure_weather_label() -> void:
+	if _weather_label != null:
+		return
+	_weather_label = Label.new()
+	_weather_label.add_theme_font_size_override("font_size", 22)
+	_weather_label.add_theme_color_override("font_color", Color(0.9, 0.95, 1.0, 1))
+	_weather_label.position = Vector2(10, 10)
+	add_child(_weather_label)
+
+func _update_weather_display(weather: String) -> void:
+	if _weather_label == null:
+		return
+	var icon: String = BattleManager.WEATHER_ICONS.get(weather, "")
+	_weather_label.text = "%s %s" % [icon, weather.capitalize()]
+	_weather_label.visible = (weather != "clear")
+
+func _on_weather_changed(weather: String) -> void:
+	_update_weather_display(weather)
 
 func _build_party_panel(party: Array) -> void:
 	for child in hero_panel.get_children():

@@ -148,6 +148,11 @@ func _run_all() -> void:
 	_test_forge_stat_applied()
 	_test_forge_get_set_upgrade_level()
 	_test_forge_upgrade_save_load()
+	_test_weather_rolls_valid()
+	_test_rain_weakens_fire()
+	_test_storm_boosts_lightning()
+	_test_blizzard_boosts_ice()
+	_test_heat_boosts_fire()
 
 func _test_new_game() -> void:
 	GameManager.new_game()
@@ -2017,3 +2022,55 @@ func _test_forge_upgrade_save_load() -> void:
 	if GameManager.get_upgrade_level(test_path) != 2:
 		_ko("forge_upgrade_save_load", "upgrade level should be 2 after load, got %d" % GameManager.get_upgrade_level(test_path)); return
 	_ok("forge_upgrade_save_load: upgrade levels persist through save/load")
+
+func _test_weather_rolls_valid() -> void:
+	if BattleManager.WEATHER_OPTIONS.size() != 5:
+		_ko("weather_rolls_valid", "WEATHER_OPTIONS should have 5 entries, got %d" % BattleManager.WEATHER_OPTIONS.size()); return
+	for w in BattleManager.WEATHER_OPTIONS:
+		if not BattleManager.WEATHER_ICONS.has(w):
+			_ko("weather_rolls_valid", "no icon for weather '%s'" % w); return
+		if not BattleManager.WEATHER_SPELL_MOD.has(w):
+			_ko("weather_rolls_valid", "no WEATHER_SPELL_MOD entry for '%s'" % w); return
+	_ok("weather_rolls_valid: 5 weather options each have icons and spell modifiers")
+
+func _test_rain_weakens_fire() -> void:
+	BattleManager.current_weather = "rain"
+	var base_dmg: int = 100
+	var result: int = BattleManager._apply_weather_mod(base_dmg, "fire")
+	if result != 50:
+		_ko("rain_weakens_fire", "rain+fire should give 50 dmg, got %d" % result); return
+	var ice_result: int = BattleManager._apply_weather_mod(base_dmg, "ice")
+	if ice_result != 130:
+		_ko("rain_weakens_fire", "rain+ice should give 130 dmg, got %d" % ice_result); return
+	_ok("rain_weakens_fire: rain reduces fire to 50 and boosts ice to 130 from base 100")
+
+func _test_storm_boosts_lightning() -> void:
+	BattleManager.current_weather = "storm"
+	var result: int = BattleManager._apply_weather_mod(100, "lightning")
+	if result != 150:
+		_ko("storm_boosts_lightning", "storm+lightning should give 150 dmg, got %d" % result); return
+	var fire_result: int = BattleManager._apply_weather_mod(100, "fire")
+	if fire_result != 100:
+		_ko("storm_boosts_lightning", "storm should not modify fire, got %d" % fire_result); return
+	_ok("storm_boosts_lightning: storm boosts lightning to 150, fire unchanged at 100")
+
+func _test_blizzard_boosts_ice() -> void:
+	BattleManager.current_weather = "blizzard"
+	var ice_result: int = BattleManager._apply_weather_mod(100, "ice")
+	if ice_result != 150:
+		_ko("blizzard_boosts_ice", "blizzard+ice should give 150, got %d" % ice_result); return
+	var fire_result: int = BattleManager._apply_weather_mod(100, "fire")
+	if fire_result != 50:
+		_ko("blizzard_boosts_ice", "blizzard+fire should give 50, got %d" % fire_result); return
+	_ok("blizzard_boosts_ice: blizzard boosts ice to 150 and weakens fire to 50")
+
+func _test_heat_boosts_fire() -> void:
+	BattleManager.current_weather = "heat"
+	var result: int = BattleManager._apply_weather_mod(100, "fire")
+	if result != 130:
+		_ko("heat_boosts_fire", "heat+fire should give 130, got %d" % result); return
+	BattleManager.current_weather = "clear"
+	var clear_result: int = BattleManager._apply_weather_mod(100, "fire")
+	if clear_result != 100:
+		_ko("heat_boosts_fire", "clear weather should not modify fire, got %d" % clear_result); return
+	_ok("heat_boosts_fire: heat boosts fire to 130; clear has no modifier")

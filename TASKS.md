@@ -741,7 +741,7 @@
 
 ---
 
-## Sprint 60 — Météo de Combat (Effets Environnementaux) [STATUS: TODO]
+## Sprint 60 — Météo de Combat (Effets Environnementaux) [STATUS: DONE]
 **Goal:** Ajouter un système météo aléatoire en combat qui modifie l'efficacité des sorts élémentaires et est affiché dans l'arène
 
 **Acceptance Criteria:**
@@ -758,11 +758,15 @@
 - [ ] tests/TestHeadless.gd: 5 tests (weather_rolls_valid, rain_weakens_fire, storm_boosts_lightning, blizzard_boosts_ice, heat_boosts_fire)
 
 **Verification Notes:**
-- Contrôle A (static):
-- Contrôle B (godot parse):
+- Contrôle A (static): ✅ check_compat.sh All clear
+- Contrôle B (godot parse): ✅ 135/135 tests headless
 - Contrôle C (logic trace):
-- Contrôle D (regression):
-- Déferments:
+  - AC1: _roll_weather() picks from WEATHER_OPTIONS[5], stores in current_weather, emits weather_changed; called in start_battle()
+  - AC2: _apply_weather_mod() applies WEATHER_SPELL_MOD multipliers per element; applied in player_cast_spell() SPELL_DAMAGE branch
+  - AC3: Battle.gd _weather_label created in _ensure_weather_label(); _update_weather_display() shows icon+name, hides if clear
+  - AC4: enemy element_weakness + spell.element already ×1.5; weather stacks on top for double amplification
+- Contrôle D (regression): 135/0 tests pass, MainMenu→Battle flow intact
+- Déferments: weather only affects player spells (not enemy AI spells) — fair tradeoff for scope
 
 ---
 
