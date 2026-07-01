@@ -42,6 +42,7 @@ var _limit_btn: Button = null
 var _bigshot_btn: Button = null
 
 var _active_party_idx: int = -1
+var _pending_cutscene: String = ""
 
 func _ready() -> void:
 	victory_overlay.hide()
@@ -413,6 +414,12 @@ func _on_battle_ended(victory: bool) -> void:
 	magic_menu.hide()
 	AudioManager.stop_bgm()
 	if victory:
+		if BattleManager.is_boss1_battle and not GameManager.scene_reactor_done:
+			GameManager.scene_reactor_done = true
+			_pending_cutscene = "cutscene_reactor"
+		elif BattleManager.is_boss2_battle and not GameManager.scene_jenova_done:
+			GameManager.scene_jenova_done = true
+			_pending_cutscene = "cutscene_jenova"
 		AudioManager.play_sfx_victory()
 		SaveSystem.save(0)
 		if BattleManager.arena_completed:
@@ -647,6 +654,16 @@ func _on_run_pressed() -> void:
 	BattleManager.player_run()
 
 func _on_victory_continue_pressed() -> void:
+	if _pending_cutscene != "":
+		var scene_id: String = _pending_cutscene
+		_pending_cutscene = ""
+		victory_overlay.hide()
+		DialogueManager.show_dialogue(self, scene_id, "")
+		DialogueManager.dialogue_finished.connect(_on_cutscene_ended, CONNECT_ONE_SHOT)
+	else:
+		GameManager.change_scene(GameManager.return_after_battle)
+
+func _on_cutscene_ended() -> void:
 	GameManager.change_scene(GameManager.return_after_battle)
 
 func _show_gameover() -> void:

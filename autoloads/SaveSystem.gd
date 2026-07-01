@@ -51,6 +51,8 @@ func save(slot: int) -> void:
 		"learned_enemy_skills": GameManager.learned_enemy_skills,
 		"active_zone": GameManager.active_zone,
 		"story_intro_done": GameManager.story_intro_done,
+		"scene_reactor_done": GameManager.scene_reactor_done,
+		"scene_jenova_done": GameManager.scene_jenova_done,
 		"total_kills": GameManager.total_kills,
 		"quest_kills": QuestManager.kill_counts,
 		"quest_completed": QuestManager.completed,
@@ -99,6 +101,8 @@ func load_save(slot: int) -> bool:
 	GameManager.materia_equipped = d.get("materia_equipped", {})
 	GameManager.active_zone = d.get("active_zone", "midgar")
 	GameManager.story_intro_done = d.get("story_intro_done", false)
+	GameManager.scene_reactor_done = d.get("scene_reactor_done", false)
+	GameManager.scene_jenova_done = d.get("scene_jenova_done", false)
 	GameManager.total_kills = d.get("total_kills", 0)
 	GameManager.learned_enemy_skills = d.get("learned_enemy_skills", [])
 	QuestManager.kill_counts = d.get("quest_kills", {})

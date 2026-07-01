@@ -65,6 +65,16 @@ const DIALOGUES := {
 		"Vous êtes l'un de ses membres.",
 		"L'aventure commence maintenant.",
 	],
+	"cutscene_reactor": [
+		"Cloud (narrateur) : Le Réacteur Mako N°1 est tombé.",
+		"Les rues de Midgar brûlent... mais la mission est accomplie.",
+		"Avalanche a frappé ShinRa. Ce n'est que le début.",
+	],
+	"cutscene_jenova": [
+		"Sephiroth : Jenova... notre mère. Elle m'a tout appris.",
+		"Cloud : Non ! Ce n'est pas la réalité — c'est le Mako qui nous piège !",
+		"Le souvenir de Nibelheim resurgit. Sephiroth sourit dans l'ombre.",
+	],
 }
 
 func show_prologue(parent: Node) -> void:

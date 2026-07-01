@@ -50,6 +50,8 @@ var dungeon_boss_cleared = false
 var dungeon_return_room: int = -1
 var active_zone: String = "midgar"
 var story_intro_done: bool = false
+var scene_reactor_done: bool = false
+var scene_jenova_done: bool = false
 var total_kills: int = 0
 var pending_rank_notification: String = ""
 var merchant_discount: float = 1.0
@@ -119,6 +121,8 @@ func new_game() -> void:
 	base_party_spell_paths = []
 	active_zone = "midgar"
 	story_intro_done = false
+	scene_reactor_done = false
+	scene_jenova_done = false
 	total_kills = 0
 	pending_rank_notification = ""
 	for m in party:

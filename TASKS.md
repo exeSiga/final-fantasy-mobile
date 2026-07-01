@@ -236,7 +236,7 @@
 
 ---
 
-## Sprint 42 — Scènes narratives clés (Réacteur + Sephiroth Flashback) [STATUS: TODO]
+## Sprint 42 — Scènes narratives clés (Réacteur + Sephiroth Flashback) [STATUS: DONE]
 **Goal:** Déclencher des cutscenes textuelles automatiques après les boss clés pour enrichir la narration FF7
 
 **Acceptance Criteria:**
@@ -253,8 +253,12 @@
 - [ ] DialogueManager ou Battle.gd: _show_cutscene(lines: Array) → dialogue séquentiel, puis change_scene(return_after_battle)
 
 **Verification Notes:**
-- Contrôle A (static):
-- Contrôle B (godot parse):
+- Contrôle A (static): ✅ All clear
+- Contrôle B (godot parse): ✅ 58/58 tests
 - Contrôle C (logic trace):
-- Contrôle D (regression):
-- Déferments:
+  - AC1: _on_battle_ended(true) + is_boss1_battle + not scene_reactor_done → _pending_cutscene="cutscene_reactor"; bouton Continuer → show_dialogue → dialogue_finished → WorldMap
+  - AC2: même flow avec is_boss2_battle / "cutscene_jenova"
+  - AC3: scene_reactor_done / scene_jenova_done persistés en save (SaveSystem +2 champs); reset en new_game()
+  - AC4: DialogueManager.show_dialogue() existant; dialogue_finished signal → _on_cutscene_ended() → navigate
+- Contrôle D (regression): 58/58 tests, _pending_cutscene="" pour combats normaux → navigate directement, aucune régression
+- Déferments: aucun

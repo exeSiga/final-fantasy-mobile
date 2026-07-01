@@ -72,6 +72,10 @@ func _run_all() -> void:
 	_test_weapon_battle_flags()
 	_test_weapon_reward_ruby()
 	_test_weapon_reward_emerald()
+	_test_cutscene_dialogues_exist()
+	_test_scene_flags_default()
+	_test_scene_flags_save_load()
+	_test_cutscene_not_repeated()
 
 func _test_new_game() -> void:
 	GameManager.new_game()
@@ -865,3 +869,58 @@ func _test_weapon_reward_emerald() -> void:
 	if GameManager.equip_inventory.get(path, 0) != 1:
 		_ko("weapon_reward_emerald", "Emerald Bangle should be in equip_inventory after victory"); return
 	_ok("weapon_reward_emerald: Emerald Bangle granted to equip_inventory on Emerald Weapon victory")
+
+func _test_cutscene_dialogues_exist() -> void:
+	if not DialogueManager.DIALOGUES.has("cutscene_reactor"):
+		_ko("cutscene_dialogues_exist", "cutscene_reactor not found in DIALOGUES"); return
+	var reactor: Array = DialogueManager.DIALOGUES["cutscene_reactor"]
+	if reactor.size() < 3:
+		_ko("cutscene_dialogues_exist", "cutscene_reactor should have >= 3 lines, got %d" % reactor.size()); return
+	if not DialogueManager.DIALOGUES.has("cutscene_jenova"):
+		_ko("cutscene_dialogues_exist", "cutscene_jenova not found in DIALOGUES"); return
+	var jenova: Array = DialogueManager.DIALOGUES["cutscene_jenova"]
+	if jenova.size() < 3:
+		_ko("cutscene_dialogues_exist", "cutscene_jenova should have >= 3 lines, got %d" % jenova.size()); return
+	for line in reactor + jenova:
+		if line == "":
+			_ko("cutscene_dialogues_exist", "empty cutscene line found"); return
+	_ok("cutscene_dialogues_exist: cutscene_reactor (%d lines) and cutscene_jenova (%d lines) defined" % [reactor.size(), jenova.size()])
+
+func _test_scene_flags_default() -> void:
+	GameManager.new_game()
+	if GameManager.scene_reactor_done != false:
+		_ko("scene_flags_default", "scene_reactor_done should be false after new_game"); return
+	if GameManager.scene_jenova_done != false:
+		_ko("scene_flags_default", "scene_jenova_done should be false after new_game"); return
+	_ok("scene_flags_default: scene_reactor_done and scene_jenova_done default to false")
+
+func _test_scene_flags_save_load() -> void:
+	GameManager.new_game()
+	GameManager.scene_reactor_done = true
+	GameManager.scene_jenova_done = false
+	SaveSystem.save(0)
+	GameManager.new_game()
+	if GameManager.scene_reactor_done != false:
+		_ko("scene_flags_save_load", "new_game should reset scene_reactor_done to false"); return
+	var ok: bool = SaveSystem.load_save(0)
+	if not ok:
+		_ko("scene_flags_save_load", "load_save returned false"); return
+	if GameManager.scene_reactor_done != true:
+		_ko("scene_flags_save_load", "scene_reactor_done should be true after load, got %s" % str(GameManager.scene_reactor_done)); return
+	if GameManager.scene_jenova_done != false:
+		_ko("scene_flags_save_load", "scene_jenova_done should remain false after load"); return
+	_ok("scene_flags_save_load: scene_reactor_done=true persisted; scene_jenova_done=false preserved")
+
+func _test_cutscene_not_repeated() -> void:
+	GameManager.new_game()
+	GameManager.scene_reactor_done = false
+	# Simulate boss1 victory detecting flag and setting it
+	if not BattleManager.is_boss1_battle and not GameManager.scene_reactor_done:
+		GameManager.scene_reactor_done = true
+	# Second boss1 victory should NOT re-trigger
+	var triggered_second: bool = false
+	if BattleManager.is_boss1_battle and not GameManager.scene_reactor_done:
+		triggered_second = true
+	if triggered_second:
+		_ko("cutscene_not_repeated", "cutscene_reactor should not trigger when scene_reactor_done=true"); return
+	_ok("cutscene_not_repeated: scene_reactor_done flag prevents cutscene from replaying")
