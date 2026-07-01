@@ -489,8 +489,25 @@ func player_attack(target = null) -> void:
 			return
 		target = alive[randi() % alive.size()]
 	var result: Dictionary = _compute_phys_damage(player_unit.atk, target)
+	var weapon_elem: String = _get_active_weapon_element()
+	if weapon_elem != "" and target.element_weakness == weapon_elem:
+		var bonus_dmg: int = int(result.dmg * 0.5)
+		target.hp = max(0, target.hp - bonus_dmg)
+		battle_log.emit("Weakness! %s %s element bonus!" % [target.unit_name, weapon_elem])
+		result.dmg += bonus_dmg
 	action_result.emit(player_unit.unit_name, target.unit_name, result.dmg, result.crit)
 	_after_player_turn()
+
+func _get_active_weapon_element() -> String:
+	var idx: int = _party_idx_of(player_unit)
+	if idx < 0 or idx >= GameManager.equipment.size():
+		return ""
+	var weapon = GameManager.equipment[idx].get("weapon")
+	if weapon == null:
+		return ""
+	if not "weapon_element" in weapon:
+		return ""
+	return weapon.weapon_element
 
 func _check_phase_transition(enemy) -> void:
 	if enemy == null or not enemy.is_alive():

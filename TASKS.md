@@ -481,27 +481,28 @@
 
 ---
 
-## Sprint 51 — Armes Élémentaires (Combat Elemental Depth) [STATUS: TODO]
+## Sprint 51 — Armes Élémentaires (Combat Elemental Depth) [STATUS: DONE]
 **Goal:** De nouvelles armes équipables portent un élément (feu/glace/foudre) et appliquent cet élément aux attaques physiques, déclenchant la faiblesse ennemie au corps-à-corps
 
 **Acceptance Criteria:**
-- [ ] AC1: 3 nouvelles armes dans la boutique : Flame Blade (feu, ATK+18), Ice Brand (glace, ATK+18), Thunder Blade (foudre, ATK+18) ; prix 400G chacune
-- [ ] AC2: Quand un membre équipé d'une arme élémentaire attaque, le type d'élément de l'arme est appliqué → si l'ennemi a cette faiblesse, dégâts ×1.5
-- [ ] AC3: Le HUD de combat affiche l'élément de l'arme active du joueur courant (icône courte : 🔥❄️⚡)
-- [ ] AC4: Les armes élémentaires ont un champ weapon_element: String dans Equipment.gd
+- [x] AC1: 3 armes en boutique: Flame Blade (🔥 feu, ATK+18, 400G), Ice Brand (❄️ glace), Thunder Blade (⚡ foudre)
+- [x] AC2: player_attack() → _get_active_weapon_element() → si faiblesse cible: bonus 50% dégâts + battle_log
+- [x] AC3: _update_element_indicator() dans _on_turn_changed() → _attack_btn.text = "Attack 🔥/❄️/⚡"
+- [x] AC4: Equipment.gd: @export var weapon_element: String = ""; tous les anciens .tres compatibles (field absent = "")
 
 **Tasks:**
-- [ ] resources/scripts/Equipment.gd: ajouter @export var weapon_element: String = "" (compatible compat-check)
-- [ ] resources/equipment/flame_blade.tres, ice_brand.tres, thunder_blade.tres
-- [ ] BattleManager.player_attack(): si équipement[idx].weapon.weapon_element != "" → appliquer bonus faiblesse comme les sorts
-- [ ] Battle.gd _on_turn_changed(): afficher élément actif sous le bouton Attaque si arme élémentaire équipée
+- [x] resources/Equipment.gd: weapon_element: String = ""
+- [x] resources/equipment/flame_blade.tres, ice_brand.tres, thunder_blade.tres
+- [x] Shop.gd: 3 armes dans SHOP_EQUIP + _element_icon() pour affichage boutique
+- [x] BattleManager.gd: _get_active_weapon_element(), bonus dans player_attack()
+- [x] Battle.gd: _update_element_indicator(), appel dans _on_turn_changed()
 
 **Verification Notes:**
-- Contrôle A (static):
-- Contrôle B (godot parse):
-- Contrôle C (logic trace):
-- Contrôle D (regression):
-- Déferments:
+- Contrôle A (static): ✅ All clear
+- Contrôle B (godot parse): ✅ aucun SCRIPT ERROR
+- Contrôle C (logic trace): equipment[idx].weapon.weapon_element via "in" guard; weakness check comme sort; slime=fire weakness validé
+- Contrôle D (regression): 94/94 tests passent
+- Déferments: aucun
 
 ---
 

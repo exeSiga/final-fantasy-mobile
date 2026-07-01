@@ -246,6 +246,7 @@ func _on_turn_changed(unit) -> void:
 		_update_bigshot_button(unit)
 		_update_lunatic_button(unit)
 		_update_summon_button()
+		_update_element_indicator(unit)
 	_log("%s's turn" % unit.unit_name)
 
 func _on_atb_ready(unit) -> void:
@@ -740,6 +741,25 @@ func _on_gameover_retry_pressed() -> void:
 	gameover_overlay.hide()
 	AudioManager.play_battle_bgm()
 	BattleManager.retry_battle()
+
+func _update_element_indicator(unit) -> void:
+	var idx: int = _party_index_of(unit)
+	if idx < 0 or idx >= GameManager.equipment.size():
+		return
+	var weapon = GameManager.equipment[idx].get("weapon")
+	var elem: String = ""
+	if weapon != null and "weapon_element" in weapon:
+		elem = weapon.weapon_element
+	if elem == "":
+		_attack_btn.text = "Attack"
+		return
+	var icon: String
+	match elem:
+		"fire":      icon = "🔥"
+		"ice":       icon = "❄️"
+		"lightning": icon = "⚡"
+		_:           icon = ""
+	_attack_btn.text = "Attack %s" % icon
 
 func _on_ng_plus_pressed() -> void:
 	GameManager.new_game()

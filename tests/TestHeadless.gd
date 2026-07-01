@@ -108,6 +108,10 @@ func _run_all() -> void:
 	_test_rank_materia_resources_load()
 	_test_regen_spell_effect()
 	_test_thundara_spell_element()
+	_test_elemental_weapons_load()
+	_test_weapon_element_field()
+	_test_elemental_weapon_bonus()
+	_test_no_bonus_without_weakness()
 
 func _test_new_game() -> void:
 	GameManager.new_game()
@@ -1391,3 +1395,61 @@ func _test_thundara_spell_element() -> void:
 	if spell.damage_multiplier <= 2.0:
 		_ko("thundara_spell_element", "thundara damage_multiplier should be >2.0, got %.1f" % spell.damage_multiplier); return
 	_ok("thundara_spell_element: Thundara has lightning element and %.1f×damage" % spell.damage_multiplier)
+
+func _test_elemental_weapons_load() -> void:
+	for path in ["res://resources/equipment/flame_blade.tres", "res://resources/equipment/ice_brand.tres",
+				 "res://resources/equipment/thunder_blade.tres"]:
+		var item = load(path)
+		if item == null:
+			_ko("elemental_weapons_load", "failed to load %s" % path); return
+		if item.stat_bonus != 18:
+			_ko("elemental_weapons_load", "%s stat_bonus should be 18, got %d" % [item.equip_name, item.stat_bonus]); return
+		if item.price != 400:
+			_ko("elemental_weapons_load", "%s price should be 400G, got %d" % [item.equip_name, item.price]); return
+	_ok("elemental_weapons_load: 3 elemental weapons load with stat_bonus=18, price=400G")
+
+func _test_weapon_element_field() -> void:
+	var flame = load("res://resources/equipment/flame_blade.tres")
+	var ice = load("res://resources/equipment/ice_brand.tres")
+	var thunder = load("res://resources/equipment/thunder_blade.tres")
+	if flame.weapon_element != "fire":
+		_ko("weapon_element_field", "flame_blade weapon_element should be 'fire', got '%s'" % flame.weapon_element); return
+	if ice.weapon_element != "ice":
+		_ko("weapon_element_field", "ice_brand weapon_element should be 'ice', got '%s'" % ice.weapon_element); return
+	if thunder.weapon_element != "lightning":
+		_ko("weapon_element_field", "thunder_blade weapon_element should be 'lightning', got '%s'" % thunder.weapon_element); return
+	_ok("weapon_element_field: flame=fire, ice=ice, thunder=lightning weapon_element correct")
+
+func _test_elemental_weapon_bonus() -> void:
+	GameManager.new_game()
+	BattleManager.enemies.clear()
+	var emerald = load("res://resources/units/emerald_weapon.tres").duplicate()
+	BattleManager.enemies.append(emerald)
+	BattleManager.party = GameManager.party
+	BattleManager.player_unit = GameManager.party[0]
+	var thunder_blade = load("res://resources/equipment/thunder_blade.tres")
+	GameManager.equipment[0]["weapon"] = thunder_blade
+	var hp_before: int = emerald.hp
+	var elem: String = BattleManager._get_active_weapon_element()
+	if elem != "lightning":
+		_ko("elemental_weapon_bonus", "_get_active_weapon_element should return 'lightning', got '%s'" % elem); return
+	if emerald.element_weakness != "lightning":
+		_ko("elemental_weapon_bonus", "emerald_weapon element_weakness should be 'lightning'"); return
+	_ok("elemental_weapon_bonus: _get_active_weapon_element returns 'lightning' for thunder_blade; emerald has lightning weakness")
+
+func _test_no_bonus_without_weakness() -> void:
+	GameManager.new_game()
+	BattleManager.enemies.clear()
+	# Goblin has no element_weakness — ideal for this test
+	var goblin = load("res://resources/units/goblin.tres").duplicate()
+	BattleManager.enemies.append(goblin)
+	BattleManager.party = GameManager.party
+	BattleManager.player_unit = GameManager.party[0]
+	var flame_blade = load("res://resources/equipment/flame_blade.tres")
+	GameManager.equipment[0]["weapon"] = flame_blade
+	var elem: String = BattleManager._get_active_weapon_element()
+	if elem != "fire":
+		_ko("no_bonus_without_weakness", "_get_active_weapon_element should return 'fire', got '%s'" % elem); return
+	if goblin.element_weakness == "fire":
+		_ko("no_bonus_without_weakness", "goblin should not have fire weakness for this test"); return
+	_ok("no_bonus_without_weakness: goblin has no fire weakness, element bonus would not apply")

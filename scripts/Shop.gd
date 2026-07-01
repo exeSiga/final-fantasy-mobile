@@ -52,6 +52,9 @@ const SHOP_EQUIP: Array[String] = [
 	"res://resources/equipment/leather_armor.tres",
 	"res://resources/equipment/chain_mail.tres",
 	"res://resources/equipment/silk_robe.tres",
+	"res://resources/equipment/flame_blade.tres",
+	"res://resources/equipment/ice_brand.tres",
+	"res://resources/equipment/thunder_blade.tres",
 ]
 
 @onready var gold_label: Label = $Panel/VBox/GoldLabel
@@ -80,7 +83,8 @@ func _build_shop() -> void:
 	for path in SHOP_EQUIP:
 		var item = load(path)
 		var bonus_stat: String = "ATK" if item.slot == 0 else "DEF"
-		var lbl_extra: String = " [+%d %s]" % [item.stat_bonus, bonus_stat]
+		var elem_icon: String = _element_icon(item.get("weapon_element", ""))
+		var lbl_extra: String = " [+%d %s%s]" % [item.stat_bonus, bonus_stat, elem_icon]
 		_add_item_row(item.equip_name + lbl_extra, item.price, _on_buy_equip.bind(item))
 	# --- Materia section ---
 	_add_section_header("⚡ Materia")
@@ -193,6 +197,13 @@ func _on_buy_materia(mat) -> void:
 	status_label.text = ""
 	await get_tree().create_timer(1.5).timeout
 	status_label.text = ""
+
+func _element_icon(element: String) -> String:
+	match element:
+		"fire":      return " 🔥"
+		"ice":       return " ❄️"
+		"lightning": return " ⚡"
+	return ""
 
 func _on_close() -> void:
 	queue_free()

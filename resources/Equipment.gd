@@ -7,3 +7,4 @@ extends Resource
 @export var allowed_classes: Array = []   # e.g. ["Warrior"] — empty = all
 @export var description: String = ""
 @export var materia_slots: int = 0
+@export var weapon_element: String = ""   # "fire", "ice", "lightning", or ""

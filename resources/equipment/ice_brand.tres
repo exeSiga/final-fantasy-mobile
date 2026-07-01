@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="" load_steps=2 format=3 uid="uid://equip_ice_brand"]
+
+[ext_resource type="Script" path="res://resources/Equipment.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+equip_name = "Ice Brand"
+slot = 0
+stat_bonus = 18
+price = 400
+allowed_classes = []
+description = "Blade cooled in crystallized Mako. Shatters ice-weak foes."
+materia_slots = 1
+weapon_element = "ice"
