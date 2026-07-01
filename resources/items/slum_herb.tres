@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="Item" load_steps=2 format=3 uid="uid://slum_herb"]
+
+[ext_resource type="Script" path="res://resources/Item.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+item_name = "Slum Herb"
+description = "Medicinal herb from Secteur 5 slums — restores 90 HP"
+effect_type = 0
+effect_value = 90
+price = 0
+max_stack = 9

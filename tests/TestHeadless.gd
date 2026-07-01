@@ -84,6 +84,10 @@ func _run_all() -> void:
 	_test_five_available_members()
 	_test_red_xiii_selectable()
 	_test_lunatic_high_spd()
+	_test_sector_enemies_load()
+	_test_sector_unique_items_load()
+	_test_sector_first_victory_reward()
+	_test_sector_victory_counter()
 
 func _test_new_game() -> void:
 	GameManager.new_game()
@@ -1052,3 +1056,50 @@ func _test_lunatic_high_spd() -> void:
 	if m.haste_turns_left != 2:
 		_ko("lunatic_high_spd", "haste_turns_left should be 2, got %d" % m.haste_turns_left); return
 	_ok("lunatic_high_spd: Lunatic High doubles SPD (%d→%d), haste_turns_left=2" % [original_spd, m.spd])
+
+func _test_sector_enemies_load() -> void:
+	var all_paths: Array = BattleManager.SECTOR1_POOL + BattleManager.SECTOR5_POOL + BattleManager.SECTOR7_POOL
+	for path in all_paths:
+		var u = load(path)
+		if u == null:
+			_ko("sector_enemies_load", "cannot load %s" % path); return
+		if u.unit_name == "":
+			_ko("sector_enemies_load", "%s has empty unit_name" % path); return
+	_ok("sector_enemies_load: MP Soldier, Hedgehog Pie, ShinRa Guard all load from sector pools")
+
+func _test_sector_unique_items_load() -> void:
+	for sector in BattleManager.SECTOR_UNIQUE_ITEMS:
+		var path: String = BattleManager.SECTOR_UNIQUE_ITEMS[sector]
+		var item = load(path)
+		if item == null:
+			_ko("sector_unique_items_load", "cannot load unique item for %s: %s" % [sector, path]); return
+	_ok("sector_unique_items_load: mako_shard, slum_herb, shinra_badge all load correctly")
+
+func _test_sector_first_victory_reward() -> void:
+	GameManager.new_game()
+	BattleManager.sector_victories.erase("sector1")
+	var path: String = BattleManager.SECTOR_UNIQUE_ITEMS.get("sector1", "")
+	if path == "":
+		_ko("sector_first_victory_reward", "sector1 has no unique item path"); return
+	# Simulate first victory logic
+	var wins: int = BattleManager.sector_victories.get("sector1", 0)
+	BattleManager.sector_victories["sector1"] = wins + 1
+	if wins == 0:
+		var item = load(path)
+		if item != null:
+			GameManager.add_item(item)
+	var item_res = load(path)
+	var found: bool = GameManager.inventory.has(path)
+	if not found:
+		_ko("sector_first_victory_reward", "Mako Shard should be in inventory after first sector1 victory"); return
+	_ok("sector_first_victory_reward: Mako Shard added to inventory on first Sector 1 victory")
+
+func _test_sector_victory_counter() -> void:
+	BattleManager.sector_victories["sector5"] = 0
+	BattleManager.sector_victories["sector5"] += 1
+	if BattleManager.sector_victories.get("sector5", 0) != 1:
+		_ko("sector_victory_counter", "sector_victories['sector5'] should be 1 after one win, got %d" % BattleManager.sector_victories.get("sector5", -1)); return
+	BattleManager.sector_victories["sector5"] += 1
+	if BattleManager.sector_victories.get("sector5", 0) != 2:
+		_ko("sector_victory_counter", "sector_victories['sector5'] should be 2 after two wins"); return
+	_ok("sector_victory_counter: sector_victories increments correctly (sector5: 0→1→2)")

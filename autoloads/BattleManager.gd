@@ -27,6 +27,25 @@ const EMERALD_WEAPON_PATH    := "res://resources/units/emerald_weapon.tres"
 const CHAMPION_BELT_PATH     := "res://resources/equipment/champion_belt.tres"
 const RUBY_RING_PATH         := "res://resources/equipment/ruby_ring.tres"
 const EMERALD_BANGLE_PATH    := "res://resources/equipment/emerald_bangle.tres"
+const SHINRA_BADGE_PATH      := "res://resources/equipment/shinra_badge.tres"
+
+const SECTOR1_POOL := [
+	"res://resources/units/mp_soldier.tres",
+	"res://resources/units/mp_soldier.tres",
+]
+const SECTOR5_POOL := [
+	"res://resources/units/hedgehog_pie.tres",
+	"res://resources/units/goblin.tres",
+]
+const SECTOR7_POOL := [
+	"res://resources/units/shinra_guard.tres",
+	"res://resources/units/mp_soldier.tres",
+]
+const SECTOR_UNIQUE_ITEMS := {
+	"sector1": "res://resources/items/mako_shard.tres",
+	"sector5": "res://resources/items/slum_herb.tres",
+	"sector7": "res://resources/equipment/shinra_badge.tres",
+}
 const ARENA_TOTAL_WAVES   := 8
 const SEPHIROTH_QUOTES: Array = [
 	"Pitoyable...",
@@ -59,6 +78,8 @@ var arena_mode: bool = false
 var arena_wave: int = 0
 var arena_completed: bool = false
 var _retry_was_arena: bool = false
+var sector_mode: String = ""
+var sector_victories: Dictionary = {}
 
 signal battle_started(party, enemies)
 signal turn_changed(unit)
@@ -909,6 +930,39 @@ func retry_battle() -> void:
 	else:
 		start_battle(dungeon_mode, is_boss_battle)
 
+func _sector_pool(sector: String) -> Array:
+	match sector:
+		"sector1": return SECTOR1_POOL
+		"sector5": return SECTOR5_POOL
+		"sector7": return SECTOR7_POOL
+		_: return ENEMY_POOL
+
+func start_sector_battle(sector: String) -> void:
+	sector_mode = sector
+	is_boss_battle = false
+	is_boss1_battle = false
+	is_boss2_battle = false
+	is_boss_sephiroth_battle = false
+	is_ruby_weapon_battle = false
+	is_emerald_weapon_battle = false
+	arena_mode = false
+	dungeon_mode = false
+	if GameManager.party.is_empty():
+		GameManager.new_game()
+	party = GameManager.party
+	_apply_spell_materias()
+	GameManager.reset_summon_charges()
+	player_unit = null
+	enemies.clear()
+	var pool: Array = _sector_pool(sector)
+	enemies.append(load(pool[randi() % pool.size()]).duplicate())
+	if randi() % 2 == 0 and pool.size() > 1:
+		enemies.append(load(pool[randi() % pool.size()]).duplicate())
+	_build_turn_queue()
+	state = BattleState.IDLE
+	battle_started.emit(party, enemies)
+	_advance_turn()
+
 func start_arena() -> void:
 	arena_mode = true
 	arena_wave = 1
@@ -919,6 +973,7 @@ func start_arena() -> void:
 	is_boss_sephiroth_battle = false
 	is_ruby_weapon_battle = false
 	is_emerald_weapon_battle = false
+	sector_mode = ""
 	dungeon_mode = false
 	if GameManager.party.is_empty():
 		GameManager.new_game()
@@ -1012,6 +1067,22 @@ func _check_battle_end() -> void:
 			if bangle != null:
 				GameManager.equip_inventory[EMERALD_BANGLE_PATH] = GameManager.equip_inventory.get(EMERALD_BANGLE_PATH, 0) + 1
 				battle_log.emit("★ Emerald Bangle obtenu !")
+		if sector_mode != "":
+			var wins: int = sector_victories.get(sector_mode, 0)
+			sector_victories[sector_mode] = wins + 1
+			if wins == 0:
+				var item_path: String = SECTOR_UNIQUE_ITEMS.get(sector_mode, "")
+				if item_path != "":
+					var unique_item = load(item_path)
+					if unique_item != null:
+						var is_equip: bool = item_path.contains("/equipment/")
+						if is_equip:
+							GameManager.equip_inventory[item_path] = GameManager.equip_inventory.get(item_path, 0) + 1
+							battle_log.emit("★ Trouvé : %s !" % unique_item.equip_name)
+						else:
+							GameManager.add_item(unique_item)
+							battle_log.emit("★ Trouvé : %s !" % unique_item.item_name)
+			sector_mode = ""
 		battle_ended.emit(true)
 		return
 	var all_party_dead: bool = party.all(func(m) -> bool: return not m.is_alive())

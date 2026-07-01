@@ -41,6 +41,7 @@ func _ready() -> void:
 	_add_zone_buttons()
 	_add_boss_buttons()
 	_add_weapon_buttons()
+	_add_sector_buttons()
 	_add_arena_button()
 	_add_party_button()
 	_add_npc_buttons()
@@ -238,6 +239,46 @@ func _add_boss_buttons() -> void:
 	boss2_btn.offset_bottom = -5.0
 	boss2_btn.pressed.connect(_on_boss2_pressed)
 	layer.add_child(boss2_btn)
+
+func _add_sector_buttons() -> void:
+	var layer := CanvasLayer.new()
+	layer.layer = 4
+	add_child(layer)
+	var sectors := [
+		{"id": "sector1", "label": "🏭 Secteur 1\nRéacteur", "color": Color(0.2, 0.5, 1.0, 1)},
+		{"id": "sector5", "label": "🏚 Secteur 5\nSlums",    "color": Color(0.7, 0.5, 0.2, 1)},
+		{"id": "sector7", "label": "🍺 Secteur 7\n7th Heaven","color": Color(0.3, 0.8, 0.4, 1)},
+	]
+	for i in sectors.size():
+		var s: Dictionary = sectors[i]
+		var btn := Button.new()
+		btn.text = s.label
+		btn.add_theme_font_size_override("font_size", 20)
+		btn.add_theme_color_override("font_color", s.color)
+		btn.custom_minimum_size = Vector2(160, 80)
+		btn.anchor_left = 0.5
+		btn.anchor_right = 0.5
+		btn.anchor_top = 0.0
+		btn.anchor_bottom = 0.0
+		btn.offset_left = -240.0 + i * 170.0
+		btn.offset_right = -75.0 + i * 170.0
+		btn.offset_top = 10.0
+		btn.offset_bottom = 95.0
+		btn.pressed.connect(_on_sector_pressed.bind(s.id))
+		layer.add_child(btn)
+
+func _on_sector_pressed(sector: String) -> void:
+	GameManager.return_after_battle = "res://scenes/world/WorldMap.tscn"
+	BattleManager.sector_mode = sector
+	BattleManager.is_boss_battle = false
+	BattleManager.is_boss1_battle = false
+	BattleManager.is_boss2_battle = false
+	BattleManager.is_boss_sephiroth_battle = false
+	BattleManager.is_ruby_weapon_battle = false
+	BattleManager.is_emerald_weapon_battle = false
+	BattleManager.arena_mode = false
+	BattleManager.dungeon_mode = false
+	GameManager.change_scene("res://scenes/combat/Battle.tscn")
 
 func _add_weapon_buttons() -> void:
 	var layer := CanvasLayer.new()
@@ -621,5 +662,6 @@ func _on_encounter() -> void:
 	BattleManager.is_boss_sephiroth_battle = false
 	BattleManager.is_ruby_weapon_battle = false
 	BattleManager.is_emerald_weapon_battle = false
+	BattleManager.sector_mode = ""
 	BattleManager.dungeon_mode = false
 	GameManager.change_scene("res://scenes/combat/Battle.tscn")

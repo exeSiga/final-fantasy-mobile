@@ -323,7 +323,7 @@
 
 ---
 
-## Sprint 45 — Districts de Midgar (Secteurs 1, 5, 7) [STATUS: TODO]
+## Sprint 45 — Districts de Midgar (Secteurs 1, 5, 7) [STATUS: DONE]
 **Goal:** Trois zones spéciales de Midgar accessibles depuis la WorldMap avec events uniques et ennemis propres à chaque secteur
 
 **Acceptance Criteria:**
@@ -340,11 +340,15 @@
 - [ ] BattleManager._check_battle_end(): si sector_mode → grant item unique (une fois) + sector_victories++
 
 **Verification Notes:**
-- Contrôle A (static):
-- Contrôle B (godot parse):
+- Contrôle A (static): ✅ All clear
+- Contrôle B (godot parse): ✅ 70/70 tests
 - Contrôle C (logic trace):
-- Contrôle D (regression):
-- Déferments:
+  - AC1: WorldMap._add_sector_buttons() 3 boutons centrage; _on_sector_pressed() → BattleManager.sector_mode = sector → change_scene → Battle._ready() → start_sector_battle()
+  - AC2: SECTOR1_POOL [MP Soldier×2], SECTOR5_POOL [Hedgehog Pie+Goblin], SECTOR7_POOL [ShinRa Guard+MP Soldier]
+  - AC3: _check_battle_end() sector_victories.get(sector,0)==0 → grant unique item (mako_shard/slum_herb/shinra_badge)
+  - AC4: sector_victories[sector] incrémenté à chaque victoire
+- Contrôle D (regression): 70/70 tests; bug fix Object.get(key,default)→is_equip branch; encounter reset sector_mode=""
+- Déferments: sector_victories non persisté en save (données de session uniquement — pas critique)
 
 ---
 

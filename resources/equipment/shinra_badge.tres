@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="" load_steps=2 format=3 uid="uid://shinra_badge"]
+
+[ext_resource type="Script" path="res://resources/Equipment.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+equip_name = "ShinRa Badge"
+slot = 1
+stat_bonus = 8
+price = 0
+allowed_classes = []
+description = "ShinRa officer insignia — DEF +8. Found in Secteur 7."
+materia_slots = 0

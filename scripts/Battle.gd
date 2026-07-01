@@ -70,6 +70,8 @@ func _ready() -> void:
 	GameManager.level_up.connect(_on_level_up)
 	if BattleManager.arena_mode:
 		BattleManager.start_arena()
+	elif BattleManager.sector_mode != "":
+		BattleManager.start_sector_battle(BattleManager.sector_mode)
 	else:
 		BattleManager.start_battle(BattleManager.dungeon_mode, BattleManager.is_boss_battle)
 
