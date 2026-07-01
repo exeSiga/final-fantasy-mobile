@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="Equipment" load_steps=2 format=3 uid="uid://carbon_bangle"]
+[ext_resource type="Script" path="res://resources/Equipment.gd" id="1"]
+[resource]
+script = ExtResource("1")
+equip_name = "Carbon Bangle"
+slot = 1
+stat_bonus = 15
+price = 1200
+description = "High-grade alloy bangle. DEF+15."
+materia_slots = 0
+weapon_element = ""

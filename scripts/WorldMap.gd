@@ -47,6 +47,7 @@ func _ready() -> void:
 	_add_npc_buttons()
 	_add_quest_button()
 	_add_bestiary_button()
+	_add_wall_market_button()
 	if GameManager.pending_rank_notification != "":
 		var rn: String = GameManager.pending_rank_notification
 		GameManager.pending_rank_notification = ""
@@ -107,6 +108,25 @@ func _on_quest_pressed() -> void:
 	var menu := load("res://scenes/ui/QuestMenu.tscn").instantiate()
 	add_child(menu)
 	menu.closed.connect(func(): _quest_open = false)
+
+func _add_wall_market_button() -> void:
+	var layer := CanvasLayer.new()
+	layer.layer = 8
+	add_child(layer)
+	var btn := Button.new()
+	btn.text = "🏪 Wall Market"
+	btn.add_theme_font_size_override("font_size", 26)
+	btn.custom_minimum_size = Vector2(200, 70)
+	btn.anchor_left = 0.5
+	btn.anchor_right = 0.5
+	btn.anchor_top = 0.0
+	btn.anchor_bottom = 0.0
+	btn.offset_left = -310.0
+	btn.offset_right = -110.0
+	btn.offset_top = 10.0
+	btn.offset_bottom = 80.0
+	btn.pressed.connect(func() -> void: GameManager.show_wall_market())
+	layer.add_child(btn)
 
 func _add_bestiary_button() -> void:
 	var layer := CanvasLayer.new()

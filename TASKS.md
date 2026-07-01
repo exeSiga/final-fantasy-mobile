@@ -620,7 +620,7 @@
 
 ---
 
-## Sprint 56 — Wall Market (Marché Noir de Midgar) [STATUS: TODO]
+## Sprint 56 — Wall Market (Marché Noir de Midgar) [STATUS: DONE]
 **Goal:** Un marché spécial accessible depuis WorldMap propose des items rares à prix élevé et un event aléatoire "Affaire Louche" (bon deal ou arnaque)
 
 **Acceptance Criteria:**
@@ -638,11 +638,14 @@
 - [ ] SaveSystem.gd: wall_market_visits persisté
 
 **Verification Notes:**
-- Contrôle A (static):
-- Contrôle B (godot parse):
+- Contrôle A (static): ✅ check_compat.sh All clear
+- Contrôle B (godot parse): ✅ 115/115 tests headless
 - Contrôle C (logic trace):
-- Contrôle D (regression):
-- Déferments:
+  - AC1: show_wall_market() in GameManager.gd:L~590 creates CanvasLayer layer=92 with 6 items list + Buy buttons; tested via _test_wall_market_items_defined
+  - AC2: 30% chance branch in show_wall_market() shows Affaire Louche section; _on_louche_accepted() deducts 100G, 50% grants item; wall_market_visits increments each call
+  - AC3: _check_wall_market_unlock() at visit 5 triggers add_shinra_file with "black_materia_shard" message; black_materia_shard.tres created (slot=0 weapon, ATK+20)
+  - AC4: _on_wall_market_buy() calls add_item()/equip_inventory; wall_market_visits persisted through SaveSystem; tested via _test_wall_market_save_load
+- Contrôle D (regression): 115/0 tests pass, MainMenu→Battle flow intact
 
 ---
 

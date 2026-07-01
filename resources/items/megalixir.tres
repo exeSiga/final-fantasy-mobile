@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="Item" load_steps=2 format=3 uid="uid://megalixir"]
+[ext_resource type="Script" path="res://resources/Item.gd" id="1"]
+[resource]
+script = ExtResource("1")
+item_name = "Megalixir"
+description = "Restores all HP and MP for entire party"
+effect_type = 4
+effect_value = 9999
+price = 2000
+max_stack = 3

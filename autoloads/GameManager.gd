@@ -169,6 +169,22 @@ func grant_materia_ap(amount: int) -> void:
 		if mat_path != "" and MATERIA_AP_THRESHOLDS.has(mat_path):
 			materia_ap[mat_path] = materia_ap.get(mat_path, 0) + amount
 
+const WALL_MARKET_ITEMS: Array = [
+	{"path": "res://resources/items/hi_potion.tres",         "price": 300,  "type": "item"},
+	{"path": "res://resources/items/x_potion.tres",          "price": 800,  "type": "item"},
+	{"path": "res://resources/items/ether.tres",             "price": 500,  "type": "item"},
+	{"path": "res://resources/items/megalixir.tres",         "price": 2000, "type": "item"},
+	{"path": "res://resources/items/remedy.tres",            "price": 400,  "type": "item"},
+	{"path": "res://resources/equipment/carbon_bangle.tres", "price": 1200, "type": "equip"},
+]
+const WALL_MARKET_DEAL_ITEMS: Array = [
+	"res://resources/items/phoenix_down.tres",
+	"res://resources/items/mako_shard.tres",
+	"res://resources/items/magic_ore.tres",
+	"res://resources/items/ether.tres",
+]
+const WALL_MARKET_UNLOCK_ITEM: String = "res://resources/equipment/black_materia_shard.tres"
+var wall_market_visits: int = 0
 var dungeon_treasures_found: Array = []
 var ng_plus_unlocked: bool = false
 var ng_plus_mode: bool = false
@@ -287,6 +303,7 @@ func new_game() -> void:
 	shop_last_rank = "3rd Class"
 	pending_rank_notification = ""
 	materia_ap = {}
+	wall_market_visits = 0
 	for m in party:
 		base_party_spell_paths.append(m.spell_paths.duplicate())
 	dungeon_boss_cleared = false
@@ -510,6 +527,21 @@ func use_item(item: Resource) -> bool:
 			if target == null:
 				return false
 			target.hp = item.effect_value
+			used = true
+		4:  # HEAL_ALL — restore all HP and MP for entire alive party
+			var targets: Array = alive_party()
+			if targets.is_empty():
+				return false
+			for m in targets:
+				m.hp = m.max_hp
+				m.mp = m.max_mp
+			used = true
+		5:  # CLEAR_STATUS — clear all statuses from alive party
+			var targets: Array = alive_party()
+			if targets.is_empty():
+				return false
+			for m in targets:
+				m.clear_status()
 			used = true
 	if used:
 		inventory[key] -= 1
@@ -776,3 +808,110 @@ func grant_battle_rewards() -> void:
 	for m in party:
 		if m.max_mp > 0:
 			m.mp = min(m.max_mp, m.mp + int(m.max_mp * 0.20))
+
+func show_wall_market() -> void:
+	wall_market_visits += 1
+	_check_wall_market_unlock()
+	var canvas := CanvasLayer.new()
+	canvas.layer = 92
+	get_tree().root.add_child(canvas)
+	var panel := PanelContainer.new()
+	panel.set_anchors_preset(Control.PRESET_CENTER)
+	panel.offset_left = -320.0
+	panel.offset_top = -420.0
+	panel.offset_right = 320.0
+	panel.offset_bottom = 420.0
+	canvas.add_child(panel)
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 10)
+	panel.add_child(vbox)
+	var title := Label.new()
+	title.text = "🏪 Wall Market"
+	title.add_theme_font_size_override("font_size", 32)
+	title.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2, 1.0))
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(title)
+	var gold_lbl := Label.new()
+	gold_lbl.text = "Or : %d G" % gold
+	gold_lbl.add_theme_font_size_override("font_size", 24)
+	gold_lbl.add_theme_color_override("font_color", Color(0.9, 0.9, 0.4, 1.0))
+	vbox.add_child(gold_lbl)
+	if wall_market_visits <= 1 or randf() < 0.30:
+		var louche_lbl := Label.new()
+		louche_lbl.text = "🤫 Affaire Louche disponible !"
+		louche_lbl.add_theme_font_size_override("font_size", 22)
+		louche_lbl.add_theme_color_override("font_color", Color(0.5, 1.0, 0.5, 1.0))
+		vbox.add_child(louche_lbl)
+		var louche_btn := Button.new()
+		louche_btn.text = "Accepter (100 G)"
+		louche_btn.add_theme_font_size_override("font_size", 22)
+		louche_btn.pressed.connect(_on_louche_accepted.bind(louche_btn, gold_lbl))
+		vbox.add_child(louche_btn)
+	var scroll := ScrollContainer.new()
+	scroll.custom_minimum_size = Vector2(0, 200)
+	vbox.add_child(scroll)
+	var items_vbox := VBoxContainer.new()
+	scroll.add_child(items_vbox)
+	var shop_items: Array = WALL_MARKET_ITEMS.duplicate()
+	if wall_market_visits >= 5:
+		shop_items.append({"path": WALL_MARKET_UNLOCK_ITEM, "price": 3000, "type": "equip"})
+	for entry in shop_items:
+		var res = load(entry.path)
+		if res == null:
+			continue
+		var name_str: String = res.item_name if entry.type == "item" else res.equip_name
+		var row := HBoxContainer.new()
+		var item_lbl := Label.new()
+		item_lbl.text = "%s — %d G" % [name_str, entry.price]
+		item_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		item_lbl.add_theme_font_size_override("font_size", 20)
+		row.add_child(item_lbl)
+		var buy_btn := Button.new()
+		buy_btn.text = "Acheter"
+		buy_btn.add_theme_font_size_override("font_size", 20)
+		buy_btn.pressed.connect(_on_wall_market_buy.bind(entry, gold_lbl, buy_btn))
+		row.add_child(buy_btn)
+		items_vbox.add_child(row)
+	var close_btn := Button.new()
+	close_btn.text = "Fermer"
+	close_btn.add_theme_font_size_override("font_size", 26)
+	close_btn.pressed.connect(canvas.queue_free)
+	vbox.add_child(close_btn)
+
+func _check_wall_market_unlock() -> void:
+	if wall_market_visits == 5:
+		var file_id: String = "wall_market_unlock"
+		if not file_id in shinra_files_seen:
+			shinra_files_seen.append(file_id)
+			_show_shinra_popup("🏪 Wall Market — Débloqué !", "Un mystérieux marchand du Wall Market propose désormais la Black Materia Shard...")
+
+func _on_louche_accepted(btn: Button, gold_lbl: Label) -> void:
+	if gold < 100:
+		btn.text = "Pas assez d'or !"
+		return
+	gold -= 100
+	gold_lbl.text = "Or : %d G" % gold
+	btn.disabled = true
+	if randf() < 0.5:
+		var idx: int = randi() % WALL_MARKET_DEAL_ITEMS.size()
+		var item = load(WALL_MARKET_DEAL_ITEMS[idx])
+		if item != null:
+			add_item(item)
+			btn.text = "✅ Bonne affaire ! +%s" % item.item_name
+		else:
+			btn.text = "✅ Bonne affaire !"
+	else:
+		btn.text = "❌ Arnaqué ! -100 G"
+
+func _on_wall_market_buy(entry: Dictionary, gold_lbl: Label, btn: Button) -> void:
+	if gold < entry.price:
+		btn.text = "Pas assez d'or !"
+		return
+	gold -= entry.price
+	gold_lbl.text = "Or : %d G" % gold
+	if entry.type == "item":
+		var item = load(entry.path)
+		if item != null:
+			add_item(item)
+	else:
+		equip_inventory[entry.path] = equip_inventory.get(entry.path, 0) + 1

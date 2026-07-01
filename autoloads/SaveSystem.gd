@@ -64,6 +64,7 @@ func save(slot: int) -> void:
 		"shop_last_rank": GameManager.shop_last_rank,
 		"dungeon_treasures_found": GameManager.dungeon_treasures_found,
 		"materia_ap": GameManager.materia_ap,
+		"wall_market_visits": GameManager.wall_market_visits,
 		"total_kills": GameManager.total_kills,
 		"quest_kills": QuestManager.kill_counts,
 		"quest_completed": QuestManager.completed,
@@ -125,6 +126,7 @@ func load_save(slot: int) -> bool:
 	GameManager.shop_last_rank = d.get("shop_last_rank", "3rd Class")
 	GameManager.dungeon_treasures_found = d.get("dungeon_treasures_found", [])
 	GameManager.materia_ap = d.get("materia_ap", {})
+	GameManager.wall_market_visits = d.get("wall_market_visits", 0)
 	GameManager.total_kills = d.get("total_kills", 0)
 	GameManager.learned_enemy_skills = d.get("learned_enemy_skills", [])
 	QuestManager.kill_counts = d.get("quest_kills", {})

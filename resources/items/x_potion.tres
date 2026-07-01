@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="Item" load_steps=2 format=3 uid="uid://xpotion"]
+[ext_resource type="Script" path="res://resources/Item.gd" id="1"]
+[resource]
+script = ExtResource("1")
+item_name = "X-Potion"
+description = "Restores HP to maximum"
+effect_type = 0
+effect_value = 9999
+price = 800
+max_stack = 9

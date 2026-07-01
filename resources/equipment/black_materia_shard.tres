@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="Equipment" load_steps=2 format=3 uid="uid://black_materia_shard"]
+[ext_resource type="Script" path="res://resources/Equipment.gd" id="1"]
+[resource]
+script = ExtResource("1")
+equip_name = "Black Materia Shard"
+slot = 0
+stat_bonus = 20
+price = 3000
+description = "A fragment of ultimate power. ATK+20."
+materia_slots = 1
+weapon_element = ""

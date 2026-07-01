@@ -128,6 +128,11 @@ func _run_all() -> void:
 	_test_stop_skips_turn()
 	_test_confuse_redirects_attack()
 	_test_apply_status_sets_field()
+	_test_wall_market_items_defined()
+	_test_wall_market_visits_increment()
+	_test_megalixir_heals_party()
+	_test_remedy_clears_status()
+	_test_wall_market_save_load()
 
 func _test_new_game() -> void:
 	GameManager.new_game()
@@ -1702,3 +1707,74 @@ func _test_apply_status_sets_field() -> void:
 	if unit.confuse_turns != 1:
 		_ko("apply_status_sets_field", "confuse_turns should be 1, got %d" % unit.confuse_turns); return
 	_ok("apply_status_sets_field: _apply_status sets stop/berserk/confuse correctly")
+
+func _test_wall_market_items_defined() -> void:
+	if GameManager.WALL_MARKET_ITEMS.size() < 6:
+		_ko("wall_market_items_defined", "expected >=6 items, got %d" % GameManager.WALL_MARKET_ITEMS.size()); return
+	for entry in GameManager.WALL_MARKET_ITEMS:
+		var res = load(entry.path)
+		if res == null:
+			_ko("wall_market_items_defined", "failed to load %s" % entry.path); return
+	var megalixir = load("res://resources/items/megalixir.tres")
+	if megalixir == null:
+		_ko("wall_market_items_defined", "megalixir not found"); return
+	if megalixir.effect_type != 4:
+		_ko("wall_market_items_defined", "megalixir effect_type should be 4, got %d" % megalixir.effect_type); return
+	var carbon = load("res://resources/equipment/carbon_bangle.tres")
+	if carbon == null:
+		_ko("wall_market_items_defined", "carbon_bangle not found"); return
+	if carbon.stat_bonus != 15:
+		_ko("wall_market_items_defined", "carbon_bangle stat_bonus should be 15, got %d" % carbon.stat_bonus); return
+	_ok("wall_market_items_defined: 6 Wall Market items defined; megalixir effect_type=4; carbon_bangle DEF+15")
+
+func _test_wall_market_visits_increment() -> void:
+	GameManager.new_game()
+	if GameManager.wall_market_visits != 0:
+		_ko("wall_market_visits_increment", "new_game should reset wall_market_visits to 0"); return
+	GameManager.wall_market_visits += 1
+	if GameManager.wall_market_visits != 1:
+		_ko("wall_market_visits_increment", "wall_market_visits should be 1, got %d" % GameManager.wall_market_visits); return
+	_ok("wall_market_visits_increment: wall_market_visits resets in new_game and increments correctly")
+
+func _test_megalixir_heals_party() -> void:
+	GameManager.new_game()
+	var megalixir = load("res://resources/items/megalixir.tres")
+	GameManager.add_item(megalixir)
+	for m in GameManager.party:
+		m.hp = 1
+		m.mp = 0
+	var ok: bool = GameManager.use_item(megalixir)
+	if not ok:
+		_ko("megalixir_heals_party", "use_item returned false for megalixir"); return
+	for m in GameManager.party:
+		if m.hp != m.max_hp:
+			_ko("megalixir_heals_party", "%s hp not restored to max (%d/%d)" % [m.unit_name, m.hp, m.max_hp]); return
+	_ok("megalixir_heals_party: Megalixir restores all party HP to max")
+
+func _test_remedy_clears_status() -> void:
+	GameManager.new_game()
+	var remedy = load("res://resources/items/remedy.tres")
+	GameManager.add_item(remedy)
+	GameManager.party[0].inflict_status("poison")
+	if GameManager.party[0].status != "poison":
+		_ko("remedy_clears_status", "inflict_status failed"); return
+	var ok: bool = GameManager.use_item(remedy)
+	if not ok:
+		_ko("remedy_clears_status", "use_item returned false for remedy"); return
+	if GameManager.party[0].status != "":
+		_ko("remedy_clears_status", "party[0] status should be cleared, got '%s'" % GameManager.party[0].status); return
+	_ok("remedy_clears_status: Remedy clears all status effects from party")
+
+func _test_wall_market_save_load() -> void:
+	GameManager.new_game()
+	GameManager.wall_market_visits = 7
+	SaveSystem.save(0)
+	GameManager.new_game()
+	if GameManager.wall_market_visits != 0:
+		_ko("wall_market_save_load", "new_game should reset wall_market_visits"); return
+	var ok: bool = SaveSystem.load_save(0)
+	if not ok:
+		_ko("wall_market_save_load", "load_save returned false"); return
+	if GameManager.wall_market_visits != 7:
+		_ko("wall_market_save_load", "wall_market_visits should be 7 after load, got %d" % GameManager.wall_market_visits); return
+	_ok("wall_market_save_load: wall_market_visits persists through save/load")
