@@ -10,3 +10,4 @@
 [2026-07-01] Sprint 52 (Trésors Donjon) — DONE — 4 rares, DUNGEON_TREASURE_POOL, try_show_dungeon_treasure popup 💎, dungeon_treasures_found, 98/98 tests
 [2026-07-01] Sprint 53 (Yuffie Kisaragi) — DONE — 6e membre Ninja SPD=45, Shuriken Throw AoE, Steal 60% ENEMY_STEAL_POOL, 14 ennemis, 101/101 tests
 [2026-07-01] Sprint 54 (Matéria AP) — DONE — fira/firaga/blizzara/blizzaga/thundaga, AP thresholds [80/250], _get_evolved_spell_path, MateriaMenu Lv+AP, 106/106 tests
+[2026-07-01] Sprint 55 (Statuts Avancés) — DONE — Stop/Berserk/Confusion, _apply_status, DarkKnight/Shadow/RubyWeapon AI, auto-berserk, confuse redirect, HUD émoji, 110/110 tests
