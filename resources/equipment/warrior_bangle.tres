@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="" load_steps=2 format=3 uid="uid://equip_warrior_bangle"]
+
+[ext_resource type="Script" path="res://resources/Equipment.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+equip_name = "Warrior Bangle"
+slot = 1
+stat_bonus = 24
+price = 0
+allowed_classes = ["Warrior", "Gunner", "Beastmaster"]
+description = "Ancient bangle worn by legendary warriors. Toughened by countless battles."
+materia_slots = 1
+weapon_element = ""

@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="" load_steps=2 format=3 uid="uid://equip_gigas_armlet"]
+
+[ext_resource type="Script" path="res://resources/Equipment.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+equip_name = "Gigas Armlet"
+slot = 1
+stat_bonus = 32
+price = 0
+allowed_classes = []
+description = "Gauntlet of the Gigas—a race of ancient giants. Almost impenetrable."
+materia_slots = 2
+weapon_element = ""

@@ -88,6 +88,13 @@ const SHINRA_FILES: Array = [
 		"lore": "Sephiroth... ce nom ne doit plus jamais être prononcé dans les rangs de ShinRa. Dossier scellé.",
 	},
 ]
+const DUNGEON_TREASURE_POOL: Array = [
+	"res://resources/equipment/dark_matter_armlet.tres",
+	"res://resources/equipment/warrior_bangle.tres",
+	"res://resources/equipment/gigas_armlet.tres",
+	"res://resources/equipment/crystal_sword.tres",
+]
+
 const BESTIARY: Dictionary = {
 	"Slime":          {"lore": "Résidu de Mako muté. La base de l'écosystème hostile des réacteurs.", "base_hp": 30,  "base_atk": 8,  "milestone": 10, "milestone_item": "res://resources/items/potion.tres"},
 	"Goblin":         {"lore": "Creature agressive des bas-fonds. Adepte des coups sournois et de la paralysie.", "base_hp": 45,  "base_atk": 12, "milestone": 10, "milestone_item": "res://resources/items/hi_potion.tres"},
@@ -105,6 +112,7 @@ const BESTIARY: Dictionary = {
 }
 var bestiary_milestones_given: Dictionary = {}
 
+var dungeon_treasures_found: Array = []
 var ng_plus_unlocked: bool = false
 var ng_plus_mode: bool = false
 var npc_flags: Dictionary = {}
@@ -213,6 +221,7 @@ func new_game() -> void:
 	sephiroth_defeated = false
 	shinra_files_seen = []
 	total_kills = 0
+	dungeon_treasures_found = []
 	ng_plus_unlocked = false
 	ng_plus_mode = false
 	npc_flags = {}
@@ -276,6 +285,58 @@ func _show_shinra_popup(title: String, lore: String) -> void:
 	await get_tree().create_timer(4.0).timeout
 	if is_instance_valid(canvas):
 		canvas.queue_free()
+
+func try_show_dungeon_treasure() -> Node:
+	var available: Array = DUNGEON_TREASURE_POOL.filter(func(p) -> bool: return p not in dungeon_treasures_found)
+	if available.is_empty():
+		return null
+	var item_path: String = available[randi() % available.size()]
+	dungeon_treasures_found.append(item_path)
+	var item = load(item_path)
+	if item == null:
+		return null
+	equip_inventory[item_path] = equip_inventory.get(item_path, 0) + 1
+	var canvas := CanvasLayer.new()
+	canvas.layer = 91
+	get_tree().root.add_child(canvas)
+	var panel := PanelContainer.new()
+	panel.set_anchors_preset(Control.PRESET_CENTER)
+	panel.offset_left = -300.0
+	panel.offset_right = 300.0
+	panel.offset_top = -220.0
+	panel.offset_bottom = 220.0
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 20)
+	var icon_lbl := Label.new()
+	icon_lbl.text = "💎"
+	icon_lbl.add_theme_font_size_override("font_size", 64)
+	icon_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var title_lbl := Label.new()
+	title_lbl.text = "Trésor !"
+	title_lbl.add_theme_font_size_override("font_size", 36)
+	title_lbl.add_theme_color_override("font_color", Color(1.0, 0.9, 0.3, 1))
+	title_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var item_lbl := Label.new()
+	var bonus_stat: String = "ATK" if item.slot == 0 else "DEF"
+	item_lbl.text = "%s\n[+%d %s]" % [item.equip_name, item.stat_bonus, bonus_stat]
+	item_lbl.add_theme_font_size_override("font_size", 28)
+	item_lbl.add_theme_color_override("font_color", Color(0.4, 1.0, 0.7, 1))
+	item_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var ok_btn := Button.new()
+	ok_btn.text = "Prendre !"
+	ok_btn.add_theme_font_size_override("font_size", 30)
+	ok_btn.custom_minimum_size = Vector2(200, 70)
+	ok_btn.pressed.connect(canvas.queue_free)
+	var btn_row := HBoxContainer.new()
+	btn_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	btn_row.add_child(ok_btn)
+	vbox.add_child(icon_lbl)
+	vbox.add_child(title_lbl)
+	vbox.add_child(item_lbl)
+	vbox.add_child(btn_row)
+	panel.add_child(vbox)
+	canvas.add_child(panel)
+	return canvas
 
 func show_npc_choice(npc_id: String) -> void:
 	var data: Dictionary = NPC_CHOICES.get(npc_id, {})

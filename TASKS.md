@@ -506,24 +506,24 @@
 
 ---
 
-## Sprint 52 — Trésors de Donjon Uniques [STATUS: TODO]
+## Sprint 52 — Trésors de Donjon Uniques [STATUS: DONE]
 **Goal:** Le donjon génère aléatoirement 1 salle "trésor" par run (entre les salles de combat) contenant un équipement rare introuvable en boutique
 
 **Acceptance Criteria:**
-- [ ] AC1: À l'entrée dans une salle de donjon non-boss, 25% de chance qu'une salle "Chambre au Trésor" s'intercale avant le combat (popup avec coffre)
-- [ ] AC2: Le coffre contient 1 équipement choisi dans un pool de 4 rares (ex: Dark Matter Armlet, Warrior Bangle, Gigas Armlet, Crystal Sword) — jamais disponibles en shop
-- [ ] AC3: Chaque rare peut n'être trouvé qu'une seule fois par run (flag GameManager.dungeon_treasures_found: Array)
-- [ ] AC4: L'animation du coffre (popup "Trésor !" + item name) est distincte des récompenses normales
+- [x] AC1: Dungeon._trigger_dungeon_battle(): 25% → try_show_dungeon_treasure() → await canvas.tree_exited → battle
+- [x] AC2: DUNGEON_TREASURE_POOL: 4 rares (dark_matter_armlet, warrior_bangle, gigas_armlet, crystal_sword), price=0
+- [x] AC3: dungeon_treasures_found: Array, pré-marqué avant popup, filter available items
+- [x] AC4: Popup 💎 "Trésor !" avec item name, stats, bouton "Prendre !", CanvasLayer layer=91
 
 **Tasks:**
-- [ ] resources/equipment/dark_matter_armlet.tres, warrior_bangle.tres, gigas_armlet.tres, crystal_sword.tres
-- [ ] GameManager.gd: dungeon_treasures_found: Array; reset dans new_game()
-- [ ] scripts/Dungeon.gd ou WorldMap.gd: avant change_scene vers Battle en mode donjon, 25% → _show_treasure_popup(item) → equip_inventory + flag
-- [ ] SaveSystem.gd: persister dungeon_treasures_found
+- [x] resources/equipment/dark_matter_armlet.tres, warrior_bangle.tres, gigas_armlet.tres, crystal_sword.tres (price=0)
+- [x] GameManager.gd: DUNGEON_TREASURE_POOL const, dungeon_treasures_found: Array, try_show_dungeon_treasure() → CanvasLayer
+- [x] scripts/Dungeon.gd: _trigger_dungeon_battle() await sur canvas.tree_exited
+- [x] SaveSystem.gd: dungeon_treasures_found persisté
 
 **Verification Notes:**
-- Contrôle A (static):
-- Contrôle B (godot parse):
-- Contrôle C (logic trace):
-- Contrôle D (regression):
-- Déferments:
+- Contrôle A (static): ✅ All clear
+- Contrôle B (godot parse): ✅ aucun SCRIPT ERROR
+- Contrôle C (logic trace): available = pool.filter not in found; pré-marqué avant popup; await tree_exited bloque battle; null si pool vide
+- Contrôle D (regression): 98/98 tests passent
+- Déferments: aucun

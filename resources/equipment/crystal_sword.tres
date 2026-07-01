@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="" load_steps=2 format=3 uid="uid://equip_crystal_sword"]
+
+[ext_resource type="Script" path="res://resources/Equipment.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+equip_name = "Crystal Sword"
+slot = 0
+stat_bonus = 42
+price = 0
+allowed_classes = ["Warrior"]
+description = "Blade crystallized from pure condensed Mako. The pinnacle of swordsmanship."
+materia_slots = 3
+weapon_element = ""

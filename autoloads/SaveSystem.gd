@@ -62,6 +62,7 @@ func save(slot: int) -> void:
 		"npc_flags": GameManager.npc_flags,
 		"bestiary_milestones_given": GameManager.bestiary_milestones_given,
 		"shop_last_rank": GameManager.shop_last_rank,
+		"dungeon_treasures_found": GameManager.dungeon_treasures_found,
 		"total_kills": GameManager.total_kills,
 		"quest_kills": QuestManager.kill_counts,
 		"quest_completed": QuestManager.completed,
@@ -121,6 +122,7 @@ func load_save(slot: int) -> bool:
 	GameManager.npc_flags = d.get("npc_flags", {})
 	GameManager.bestiary_milestones_given = d.get("bestiary_milestones_given", {})
 	GameManager.shop_last_rank = d.get("shop_last_rank", "3rd Class")
+	GameManager.dungeon_treasures_found = d.get("dungeon_treasures_found", [])
 	GameManager.total_kills = d.get("total_kills", 0)
 	GameManager.learned_enemy_skills = d.get("learned_enemy_skills", [])
 	QuestManager.kill_counts = d.get("quest_kills", {})

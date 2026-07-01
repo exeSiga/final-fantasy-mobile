@@ -96,6 +96,10 @@ func _physics_process(_delta: float) -> void:
 			_trigger_dungeon_battle()
 
 func _trigger_dungeon_battle() -> void:
+	if randf() < 0.25:
+		var canvas = GameManager.try_show_dungeon_treasure()
+		if canvas != null:
+			await canvas.tree_exited
 	GameManager.return_after_battle = "res://scenes/world/Dungeon.tscn"
 	BattleManager.is_boss_battle = false
 	BattleManager.dungeon_mode = true

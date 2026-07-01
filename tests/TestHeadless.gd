@@ -112,6 +112,10 @@ func _run_all() -> void:
 	_test_weapon_element_field()
 	_test_elemental_weapon_bonus()
 	_test_no_bonus_without_weakness()
+	_test_dungeon_treasure_pool_defined()
+	_test_dungeon_treasure_grants_item()
+	_test_dungeon_treasure_no_repeat()
+	_test_dungeon_treasures_save_load()
 
 func _test_new_game() -> void:
 	GameManager.new_game()
@@ -1453,3 +1457,57 @@ func _test_no_bonus_without_weakness() -> void:
 	if goblin.element_weakness == "fire":
 		_ko("no_bonus_without_weakness", "goblin should not have fire weakness for this test"); return
 	_ok("no_bonus_without_weakness: goblin has no fire weakness, element bonus would not apply")
+
+func _test_dungeon_treasure_pool_defined() -> void:
+	if GameManager.DUNGEON_TREASURE_POOL.size() < 4:
+		_ko("dungeon_treasure_pool_defined", "expected ≥4 items in DUNGEON_TREASURE_POOL, got %d" % GameManager.DUNGEON_TREASURE_POOL.size()); return
+	for path in GameManager.DUNGEON_TREASURE_POOL:
+		var item = load(path)
+		if item == null:
+			_ko("dungeon_treasure_pool_defined", "failed to load %s" % path); return
+		if item.price != 0:
+			_ko("dungeon_treasure_pool_defined", "%s should be price=0 (rare, not sold in shop)" % item.equip_name); return
+	_ok("dungeon_treasure_pool_defined: 4 rare equipment items defined with price=0")
+
+func _test_dungeon_treasure_grants_item() -> void:
+	GameManager.new_game()
+	GameManager.dungeon_treasures_found = []
+	var inv_before: int = 0
+	for p in GameManager.DUNGEON_TREASURE_POOL:
+		inv_before += GameManager.equip_inventory.get(p, 0)
+	var canvas = GameManager.try_show_dungeon_treasure()
+	if canvas == null:
+		_ko("dungeon_treasure_grants_item", "try_show_dungeon_treasure() returned null when pool is full"); return
+	canvas.queue_free()
+	var inv_after: int = 0
+	for p in GameManager.DUNGEON_TREASURE_POOL:
+		inv_after += GameManager.equip_inventory.get(p, 0)
+	if inv_after != inv_before + 1:
+		_ko("dungeon_treasure_grants_item", "expected equip_inventory to increase by 1, got before=%d after=%d" % [inv_before, inv_after]); return
+	if GameManager.dungeon_treasures_found.size() != 1:
+		_ko("dungeon_treasure_grants_item", "dungeon_treasures_found should have 1 entry"); return
+	_ok("dungeon_treasure_grants_item: try_show_dungeon_treasure grants item and marks as found")
+
+func _test_dungeon_treasure_no_repeat() -> void:
+	GameManager.new_game()
+	GameManager.dungeon_treasures_found = GameManager.DUNGEON_TREASURE_POOL.duplicate()
+	var canvas = GameManager.try_show_dungeon_treasure()
+	if canvas != null:
+		canvas.queue_free()
+		_ko("dungeon_treasure_no_repeat", "try_show_dungeon_treasure should return null when all found"); return
+	_ok("dungeon_treasure_no_repeat: returns null when all treasures already found")
+
+func _test_dungeon_treasures_save_load() -> void:
+	GameManager.new_game()
+	var first_item: String = GameManager.DUNGEON_TREASURE_POOL[0]
+	GameManager.dungeon_treasures_found = [first_item]
+	SaveSystem.save(0)
+	GameManager.new_game()
+	if GameManager.dungeon_treasures_found.size() != 0:
+		_ko("dungeon_treasures_save_load", "new_game should clear dungeon_treasures_found"); return
+	var ok: bool = SaveSystem.load_save(0)
+	if not ok:
+		_ko("dungeon_treasures_save_load", "load_save returned false"); return
+	if first_item not in GameManager.dungeon_treasures_found:
+		_ko("dungeon_treasures_save_load", "dungeon_treasures_found should persist after load"); return
+	_ok("dungeon_treasures_save_load: dungeon_treasures_found persists through save/load")

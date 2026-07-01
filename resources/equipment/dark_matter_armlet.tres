@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="" load_steps=2 format=3 uid="uid://equip_dark_matter_armlet"]
+
+[ext_resource type="Script" path="res://resources/Equipment.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+equip_name = "Dark Matter Armlet"
+slot = 1
+stat_bonus = 28
+price = 0
+allowed_classes = []
+description = "Forged from dark matter found in Sephiroth's wake. Exceptional protection."
+materia_slots = 2
+weapon_element = ""
