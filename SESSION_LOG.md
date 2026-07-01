@@ -10,3 +10,4 @@
 [2026-06-30] Sprint 40 (Barret + Party Setup) — DONE — available_members[4], active_party_indices, set_active_party_indices(), Big Shot AoE, sprite Gunner, 47/47 tests
 [2026-07-01] Sprint 41 (Ruby & Emerald Weapon) — DONE — boss Lv.20+, counter-attack 30%, AoE chaque tour, Ruby Ring + Emerald Bangle, 54/54 tests
 [2026-07-01] Sprint 42 (Scènes narratives Réacteur+Nibelheim) — DONE — scene_reactor/jenova_done, cutscene_reactor/jenova 3 lignes, _pending_cutscene + dialogue_finished, save+load, 58/58 tests
+[2026-07-01] Sprint 43 (Limit Breaks Tier 2) — DONE — limit_damage_taken 200, Meteorain/FinalHeaven/GreatGospel/Catastrophe, nom dynamique bouton, save+load, 62/62 tests
