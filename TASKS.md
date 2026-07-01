@@ -527,3 +527,138 @@
 - Contrôle C (logic trace): available = pool.filter not in found; pré-marqué avant popup; await tree_exited bloque battle; null si pool vide
 - Contrôle D (regression): 98/98 tests passent
 - Déferments: aucun
+
+---
+
+## Sprint 53 — Yuffie Kisaragi (6e membre, Ninja) [STATUS: DONE]
+**Goal:** Ajouter Yuffie comme 6e membre avec une attaque spéciale "Shuriken Throw" (AoE) et une capacité "Steal" qui vole un item à un ennemi
+
+**Acceptance Criteria:**
+- [x] AC1: Yuffie (character_class="Ninja", sprite jaune/vert) ajoutée dans available_members — 6 membres disponibles au total
+- [x] AC2: Le menu Party sur WorldMap permet de sélectionner 3 membres parmi 6
+- [x] AC3: Attaque spéciale "Shuriken Throw" : frappe tous les ennemis vivants pour 0.8×ATK chacun, bouton visible quand Yuffie est active et c'est son tour
+- [x] AC4: Capacité "Steal" : 60% de chance de voler un item aléatoire à l'ennemi cible (item ajouté à l'inventaire GameManager), affichage dans battle_log ; bouton visible comme Shuriken
+- [x] AC5: Yuffie a des stats distinctives : AGI élevée (SPD=45), ATK modérée (ATK=35), HP faible (HP=280)
+
+**Tasks:**
+- [x] resources/units/yuffie.tres (Ninja, SPD=45, HP=280, ATK=35, DEF=22, sprite yellow/green)
+- [x] GameManager.new_game(): available_members[5] = Yuffie; ENEMY_STEAL_POOL const (liste items volables par ennemi_type)
+- [x] BattleManager.gd: player_shuriken_throw() — dégâts 0.8×ATK AoE ; player_steal(target_idx) — roll 60%, item dans ENEMY_STEAL_POOL
+- [x] Battle.gd: _shuriken_btn et _steal_btn visibles si character_class=="Ninja" et c'est le tour du joueur
+- [x] WorldMap.gd: PartySetupMenu mise à jour pour 6 membres (validation toujours 3 actifs)
+
+**Verification Notes:**
+- Contrôle A (static): ✅ All clear
+- Contrôle B (godot parse): ✅ aucun SCRIPT ERROR
+- Contrôle C (logic trace):
+  - AC1: yuffie.tres Ninja SPD=45 HP=280 ATK=35; new_game() available_members[5]=yuffie
+  - AC2: WorldMap._on_party_pressed() itère available_members.size() (6) automatiquement
+  - AC3: player_shuriken_throw() → filter(alive) → 0.8×ATK AoE; _shuriken_btn visible si Ninja
+  - AC4: player_steal(idx) → ENEMY_STEAL_POOL.get(unit_name) → 60% roll → add_item(); _steal_btn visible si Ninja
+  - AC5: SPD=45 plus élevé de tous (Red XIII=40, Tifa=32, Cloud=28)
+- Contrôle D (regression): 101/101 tests passent
+- Déferments: aucun
+
+---
+
+## Sprint 54 — Matéria AP & Sorts Évolués (Fira, Blizzara, Thundaga) [STATUS: TODO]
+**Goal:** Les matérias offensives gagnent des AP après chaque combat et débloquent des sorts plus puissants (level 2 = -ra, level 3 = -ga) visibles dans le menu matéria
+
+**Acceptance Criteria:**
+- [ ] AC1: GameManager.materia_ap: Dictionary (materia_path → int) ; chaque combat accorde AP = 10 + wave×5 (arena) aux matérias équipées ; persisté en save
+- [ ] AC2: fire_materia : level 2 à 80 AP → Fira (2.8× ATK, 12 MP) ; level 3 à 250 AP → Firaga (4.5× ATK, 18 MP) ; idem blizzard_materia (Blizzara/Blizzaga) et thunder_materia (Thundara déjà faite → remplace si AP atteint ; Thundaga 4.5× à 250 AP)
+- [ ] AC3: BattleManager._apply_spell_materias() construit la liste de sorts selon le niveau AP actuel de chaque matéria équipée
+- [ ] AC4: MateriaMenu affiche le niveau AP de chaque matéria et la barre de progression vers le prochain level
+
+**Tasks:**
+- [ ] GameManager.gd: materia_ap: Dictionary, grant_materia_ap(amount), get_materia_level(path) → int 1/2/3, MATERIA_AP_THRESHOLDS const {path: [0, 80, 250]}
+- [ ] BattleManager.gd: _check_battle_end() → grant_materia_ap() pour chaque matéria équipée ; _apply_spell_materias() → sort selon get_materia_level()
+- [ ] resources/spells/fira.tres (2.8×, fire, 12 MP), firaga.tres (4.5×, fire, 18 MP), blizzara.tres, blizzaga.tres, thundaga.tres
+- [ ] SaveSystem.gd: materia_ap persisté (dict)
+- [ ] MateriaMenu.gd: affiche niveau 1/2/3 et AP/seuil en petit texte sous le nom de la matéria
+
+**Verification Notes:**
+- Contrôle A (static):
+- Contrôle B (godot parse):
+- Contrôle C (logic trace):
+- Contrôle D (regression):
+- Déferments:
+
+---
+
+## Sprint 55 — Statuts de Combat Avancés (Stop, Berserk, Confusion) [STATUS: TODO]
+**Goal:** Trois nouveaux statuts altèrent les comportements en combat : Stop fige l'unité, Berserk force l'attaque physique et boost l'ATK, Confusion retourne les cibles
+
+**Acceptance Criteria:**
+- [ ] AC1: CombatUnit a trois nouveaux booléens : stop_turns: int (tours restants figé), berserk_turns: int, confuse_turns: int ; ces champs doivent être remis à 0 dans reset_for_battle()
+- [ ] AC2: Stop (appliqué par Dark Knight) : l'unité affectée passe son tour automatiquement pendant stop_turns tours (BattleManager saute son action)
+- [ ] AC3: Berserk (appliqué par Ruby Weapon) : l'unité attaque toujours la cible aléatoire, ATK ×1.5, ne peut pas lancer de sort ou item
+- [ ] AC4: Confusion (appliqué par Shadow ou Gargoyle) : 50% de chance d'attaquer un allié aléatoire au lieu de la cible choisie
+- [ ] AC5: HUD Battle affiche une icône de statut (🔴 Stop, 🟡 Berserk, 🔵 Confusion) sous la HP bar de l'unité affectée
+
+**Tasks:**
+- [ ] CombatUnit.gd: stop_turns: int, berserk_turns: int, confuse_turns: int ; reset_for_battle() les met à 0
+- [ ] BattleManager.gd: _apply_status(unit, status, turns) ; _ai_dark_knight: 25% infliger Stop ; _ai_shadow: 30% infliger Confusion ; _ai_ruby_weapon: 20% infliger Berserk au lieu de counter
+- [ ] BattleManager._execute_turn_for(): si stop_turns > 0 → skip et décrémenter ; player_attack(): si confuse_turns > 0 → 50% retourner cible vers allié ; si berserk_turns > 0 → force attaque physique
+- [ ] Battle.gd: _update_status_icons(unit_idx) → HUD icône sous HPBar selon statuts actifs
+- [ ] SaveSystem.gd: ces 3 champs non persistés (combat only, reset à chaque bataille — pas besoin)
+
+**Verification Notes:**
+- Contrôle A (static):
+- Contrôle B (godot parse):
+- Contrôle C (logic trace):
+- Contrôle D (regression):
+- Déferments:
+
+---
+
+## Sprint 56 — Wall Market (Marché Noir de Midgar) [STATUS: TODO]
+**Goal:** Un marché spécial accessible depuis WorldMap propose des items rares à prix élevé et un event aléatoire "Affaire Louche" (bon deal ou arnaque)
+
+**Acceptance Criteria:**
+- [ ] AC1: Bouton "🏪 Wall Market" sur WorldMap (accessible dès Lv.1) ouvre un popup-shop avec 6 items exclusifs : Hi-Potion (300G, soin 150 HP), X-Potion (800G, soin total), Ether (500G, soin 50 MP), Megalixir (2000G, soin party totale), Remedy (400G, soigne tous statuts), Carbon Bangle (equip DEF+15, 1200G)
+- [ ] AC2: Chaque visite au Wall Market a 30% de chance de déclencher un event "Affaire Louche" : popup avec description + choix "Accepter" (100G) → 50% bon deal (item rare gratuit) ou arnaque (perd 100G sans item)
+- [ ] AC3: wall_market_visits: int incrémenté à chaque visite ; après 5 visites : déblocage permanent d'un 7e item "Black Materia Shard" (équipement spécial MAG+20, 3000G) avec notification ShinRa
+- [ ] AC4: Items Wall Market achetés persistent via système d'inventaire existant (GameManager.add_item / equip_inventory)
+
+**Tasks:**
+- [ ] resources/items/hi_potion.tres (heal 150), x_potion.tres (heal 9999), ether.tres (mp +50), megalixir.tres (HEAL_ALL party, effect_type=4), remedy.tres (clear_status, effect_type=5)
+- [ ] resources/equipment/carbon_bangle.tres (DEF+15, price=1200), black_materia_shard.tres (MAG+20, price=3000)
+- [ ] GameManager.gd: wall_market_visits: int, WALL_MARKET_ITEMS const, WALL_MARKET_DEAL_ITEMS const (items bons deals), show_wall_market() → popup CanvasLayer layer=92
+- [ ] GameManager.gd: _roll_louche_deal() → popup choix + résolution ; _check_wall_market_unlock() → shinra_files check
+- [ ] WorldMap.gd: _add_wall_market_button() → _on_wall_market_pressed() → GameManager.show_wall_market()
+- [ ] SaveSystem.gd: wall_market_visits persisté
+
+**Verification Notes:**
+- Contrôle A (static):
+- Contrôle B (godot parse):
+- Contrôle C (logic trace):
+- Contrôle D (regression):
+- Déferments:
+
+---
+
+## Sprint 57 — Vincent Valentine (7e membre, Guerrier Sombre) [STATUS: TODO]
+**Goal:** Ajouter Vincent Valentine comme 7e membre disponible avec une transformation "Galian Beast" qui booste massivement l'ATK pour 2 tours
+
+**Acceptance Criteria:**
+- [ ] AC1: Vincent Valentine (character_class="DarkWarrior", sprite rouge/noir) ajouté dans available_members — 7 membres au total
+- [ ] AC2: Le menu Party sur WorldMap permet de sélectionner 3 membres parmi 7
+- [ ] AC3: Transformation "Galian Beast" (bouton visible quand DarkWarrior est actif et c'est son tour) : ATK ×2.5 pendant 2 tours, ne peut pas utiliser de matéria pendant la transformation, battle_log "Vincent se transforme en Galian Beast !"
+- [ ] AC4: Après la transformation (2 tours), retour à la normale automatiquement avec battle_log "Vincent reprend forme humaine"
+- [ ] AC5: Vincent a des stats distinctives : ATK très élevé (ATK=50), DEF faible (DEF=18), HP moyen (HP=300), SPD lent (SPD=20)
+
+**Tasks:**
+- [ ] resources/units/vincent.tres (DarkWarrior, ATK=50, HP=300, DEF=18, SPD=20, sprite rouge/noir)
+- [ ] GameManager.new_game(): available_members[6] = Vincent
+- [ ] CombatUnit.gd: galian_turns: int (0 = normal, >0 = transformé), galian_atk_bonus: float
+- [ ] BattleManager.gd: player_galian_beast() — galian_turns=2, galian_atk_bonus=2.5 ; player_attack() / player_spell() check galian_turns pour bloquer sorts ; _execute_turn_for() décrémenter galian_turns après action
+- [ ] Battle.gd: _galian_btn visible si DarkWarrior et tour joueur ; _update_turn_ui() texte bouton "Attack (Galian)" si transformé
+- [ ] WorldMap.gd: PartySetupMenu itère available_members.size() (7)
+
+**Verification Notes:**
+- Contrôle A (static):
+- Contrôle B (godot parse):
+- Contrôle C (logic trace):
+- Contrôle D (regression):
+- Déferments:

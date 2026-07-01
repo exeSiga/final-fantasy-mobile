@@ -41,6 +41,8 @@ var _party_atb_bars: Array = []
 var _limit_btn: Button = null
 var _bigshot_btn: Button = null
 var _lunatic_btn: Button = null
+var _shuriken_btn: Button = null
+var _steal_btn: Button = null
 
 var _active_party_idx: int = -1
 var _pending_cutscene: String = ""
@@ -54,6 +56,8 @@ func _ready() -> void:
 	_create_limit_button()
 	_create_bigshot_button()
 	_create_lunatic_button()
+	_create_shuriken_button()
+	_create_steal_button()
 	_fade_in()
 	AudioManager.play_battle_bgm()
 	BattleManager.battle_started.connect(_on_battle_started)
@@ -235,6 +239,26 @@ func _create_lunatic_button() -> void:
 	_lunatic_btn.pressed.connect(_on_lunatic_pressed)
 	action_buttons.add_child(_lunatic_btn)
 
+func _create_shuriken_button() -> void:
+	_shuriken_btn = Button.new()
+	_shuriken_btn.text = "Shuriken"
+	_shuriken_btn.add_theme_font_size_override("font_size", 28)
+	_shuriken_btn.add_theme_color_override("font_color", Color(0.9, 0.85, 0.1, 1.0))
+	_shuriken_btn.custom_minimum_size = Vector2(160, 0)
+	_shuriken_btn.visible = false
+	_shuriken_btn.pressed.connect(_on_shuriken_pressed)
+	action_buttons.add_child(_shuriken_btn)
+
+func _create_steal_button() -> void:
+	_steal_btn = Button.new()
+	_steal_btn.text = "Steal"
+	_steal_btn.add_theme_font_size_override("font_size", 28)
+	_steal_btn.add_theme_color_override("font_color", Color(0.6, 0.9, 0.3, 1.0))
+	_steal_btn.custom_minimum_size = Vector2(130, 0)
+	_steal_btn.visible = false
+	_steal_btn.pressed.connect(_on_steal_pressed)
+	action_buttons.add_child(_steal_btn)
+
 func _on_turn_changed(unit) -> void:
 	var is_party_turn: bool = unit.is_player
 	action_buttons.visible = false
@@ -245,6 +269,7 @@ func _on_turn_changed(unit) -> void:
 		_update_limit_button(unit)
 		_update_bigshot_button(unit)
 		_update_lunatic_button(unit)
+		_update_ninja_buttons(unit)
 		_update_summon_button()
 		_update_element_indicator(unit)
 	_log("%s's turn" % unit.unit_name)
@@ -267,6 +292,13 @@ func _update_lunatic_button(unit) -> void:
 	if _lunatic_btn == null:
 		return
 	_lunatic_btn.visible = (unit.character_class == "Beastmaster")
+
+func _update_ninja_buttons(unit) -> void:
+	var is_ninja: bool = unit.character_class == "Ninja"
+	if _shuriken_btn != null:
+		_shuriken_btn.visible = is_ninja
+	if _steal_btn != null:
+		_steal_btn.visible = is_ninja
 
 func _update_limit_button(unit) -> void:
 	if _limit_btn == null:
@@ -526,6 +558,15 @@ func _on_lunatic_pressed() -> void:
 	action_buttons.hide()
 	_spawn_popup("★ Lunatic High!", Color(0.85, 0.35, 0.1, 1))
 	BattleManager.player_lunatic_high()
+
+func _on_shuriken_pressed() -> void:
+	action_buttons.hide()
+	_shake_screen(16.0)
+	BattleManager.player_shuriken_throw()
+
+func _on_steal_pressed() -> void:
+	action_buttons.hide()
+	_show_target_select("enemy", func(t) -> void: BattleManager.player_steal(t))
 
 func _on_limit_pressed() -> void:
 	action_buttons.hide()

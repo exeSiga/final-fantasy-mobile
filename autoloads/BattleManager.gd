@@ -643,6 +643,37 @@ func player_bigshot() -> void:
 		action_result.emit(player_unit.unit_name, e.unit_name, dmg, false)
 	_after_player_turn()
 
+func player_shuriken_throw() -> void:
+	if state != BattleState.PLAYER_TURN or player_unit == null:
+		return
+	battle_log.emit("Shuriken Throw !")
+	var alive: Array = enemies.filter(func(e) -> bool: return e.is_alive())
+	for e in alive:
+		var dmg: int = int(player_unit.atk * 0.8 * randf_range(0.85, 1.15))
+		e.hp = max(0, e.hp - dmg)
+		action_result.emit(player_unit.unit_name, e.unit_name, dmg, false)
+	_after_player_turn()
+
+func player_steal(target_idx: int) -> void:
+	if state != BattleState.PLAYER_TURN or player_unit == null:
+		return
+	if target_idx < 0 or target_idx >= enemies.size() or not enemies[target_idx].is_alive():
+		return
+	var target = enemies[target_idx]
+	var item_path: String = GameManager.ENEMY_STEAL_POOL.get(target.unit_name, "")
+	if item_path == "":
+		battle_log.emit("Yuffie ne trouve rien à voler !")
+		_after_player_turn()
+		return
+	if randf() < 0.6:
+		var item = load(item_path)
+		GameManager.add_item(item)
+		battle_log.emit("Yuffie vole %s à %s !" % [item.item_name, target.unit_name])
+		action_result.emit(player_unit.unit_name, target.unit_name, 0, false)
+	else:
+		battle_log.emit("Le vol a échoué !")
+	_after_player_turn()
+
 func player_run() -> void:
 	if state != BattleState.PLAYER_TURN:
 		return

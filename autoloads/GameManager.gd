@@ -29,7 +29,7 @@ const CRAFT_RECIPES: Array = [
 var current_state: GameState = GameState.MAIN_MENU
 var current_scene: Node = null
 var party: Array = []              # 3 active CombatUnit
-var available_members: Array = []  # 5 CombatUnit: [Cloud, Tifa, Aerith, Barret, Red XIII]
+var available_members: Array = []  # 6+ CombatUnit: [Cloud, Tifa, Aerith, Barret, Red XIII, Yuffie]
 var active_party_indices: Array = [0, 1, 2]  # which 3 of 4 are active
 var player_unit = null             # alias for party[0] — kept for compatibility
 var gold: int = 0
@@ -88,6 +88,22 @@ const SHINRA_FILES: Array = [
 		"lore": "Sephiroth... ce nom ne doit plus jamais être prononcé dans les rangs de ShinRa. Dossier scellé.",
 	},
 ]
+const ENEMY_STEAL_POOL: Dictionary = {
+	"Slime":          "res://resources/items/potion.tres",
+	"Goblin":         "res://resources/items/potion.tres",
+	"Skeleton":       "res://resources/items/phoenix_down.tres",
+	"Bat":            "res://resources/items/potion.tres",
+	"Orc":            "res://resources/items/mako_crystal.tres",
+	"Shadow":         "res://resources/items/ether.tres",
+	"Troll":          "res://resources/items/monster_fang.tres",
+	"Gargoyle":       "res://resources/items/magic_ore.tres",
+	"Dark Knight":    "res://resources/items/ether.tres",
+	"Guard Scorpion": "res://resources/items/mako_shard.tres",
+	"Jenova":         "res://resources/items/phoenix_down.tres",
+	"Sephiroth":      "res://resources/items/hi_potion.tres",
+	"Ruby Weapon":    "res://resources/items/hi_potion.tres",
+	"Emerald Weapon": "res://resources/items/hi_potion.tres",
+}
 const DUNGEON_TREASURE_POOL: Array = [
 	"res://resources/equipment/dark_matter_armlet.tres",
 	"res://resources/equipment/warrior_bangle.tres",
@@ -195,7 +211,8 @@ func new_game() -> void:
 	var white_mage = load("res://resources/units/white_mage.tres").duplicate()
 	var barret = load("res://resources/units/barret.tres").duplicate()
 	var red_xiii = load("res://resources/units/red_xiii.tres").duplicate()
-	available_members = [warrior, black_mage, white_mage, barret, red_xiii]
+	var yuffie = load("res://resources/units/yuffie.tres").duplicate()
+	available_members = [warrior, black_mage, white_mage, barret, red_xiii, yuffie]
 	active_party_indices = [0, 1, 2]
 	party.append(warrior)
 	party.append(black_mage)

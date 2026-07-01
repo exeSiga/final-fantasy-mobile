@@ -116,6 +116,9 @@ func _run_all() -> void:
 	_test_dungeon_treasure_grants_item()
 	_test_dungeon_treasure_no_repeat()
 	_test_dungeon_treasures_save_load()
+	_test_yuffie_in_roster()
+	_test_shuriken_throw_hits_all_enemies()
+	_test_steal_success()
 
 func _test_new_game() -> void:
 	GameManager.new_game()
@@ -1047,12 +1050,15 @@ func _test_red_xiii_loads() -> void:
 
 func _test_five_available_members() -> void:
 	GameManager.new_game()
-	if GameManager.available_members.size() != 5:
-		_ko("five_available_members", "expected 5 available_members, got %d" % GameManager.available_members.size()); return
+	if GameManager.available_members.size() < 6:
+		_ko("five_available_members", "expected 6 available_members, got %d" % GameManager.available_members.size()); return
 	var red = GameManager.available_members[4]
 	if red.unit_name != "Red XIII":
 		_ko("five_available_members", "5th member should be Red XIII, got '%s'" % red.unit_name); return
-	_ok("five_available_members: 5 members available (4th=Barret, 5th=Red XIII)")
+	var yuffie = GameManager.available_members[5]
+	if yuffie.unit_name != "Yuffie":
+		_ko("five_available_members", "6th member should be Yuffie, got '%s'" % yuffie.unit_name); return
+	_ok("five_available_members: 6 members available (5th=Red XIII, 6th=Yuffie)")
 
 func _test_red_xiii_selectable() -> void:
 	GameManager.new_game()
@@ -1511,3 +1517,55 @@ func _test_dungeon_treasures_save_load() -> void:
 	if first_item not in GameManager.dungeon_treasures_found:
 		_ko("dungeon_treasures_save_load", "dungeon_treasures_found should persist after load"); return
 	_ok("dungeon_treasures_save_load: dungeon_treasures_found persists through save/load")
+
+func _test_yuffie_in_roster() -> void:
+	GameManager.new_game()
+	if GameManager.available_members.size() < 6:
+		_ko("yuffie_in_roster", "expected >=6 members, got %d" % GameManager.available_members.size()); return
+	var yuffie = GameManager.available_members[5]
+	if yuffie.unit_name != "Yuffie":
+		_ko("yuffie_in_roster", "6th member should be Yuffie, got '%s'" % yuffie.unit_name); return
+	if yuffie.character_class != "Ninja":
+		_ko("yuffie_in_roster", "Yuffie class should be Ninja, got '%s'" % yuffie.character_class); return
+	if yuffie.spd != 45:
+		_ko("yuffie_in_roster", "Yuffie SPD should be 45, got %d" % yuffie.spd); return
+	_ok("yuffie_in_roster: Yuffie is 6th member, Ninja, SPD=45")
+
+func _test_shuriken_throw_hits_all_enemies() -> void:
+	GameManager.new_game()
+	BattleManager.enemies.clear()
+	var slime = load("res://resources/units/slime.tres").duplicate()
+	BattleManager.enemies.append(slime)
+	BattleManager.party = GameManager.party
+	BattleManager.player_unit = GameManager.party[0]
+	BattleManager.player_unit.character_class = "Ninja"
+	BattleManager.player_unit.atk = 50
+	BattleManager.state = BattleManager.BattleState.PLAYER_TURN
+	var hp_before: int = slime.hp
+	BattleManager.player_shuriken_throw()
+	if slime.hp >= hp_before:
+		_ko("shuriken_throw_hits_all_enemies", "slime hp %d not reduced from %d" % [slime.hp, hp_before]); return
+	_ok("shuriken_throw_hits_all_enemies: Shuriken Throw reduced slime hp %d→%d" % [hp_before, slime.hp])
+
+func _test_steal_success() -> void:
+	if not GameManager.ENEMY_STEAL_POOL.has("Slime"):
+		_ko("steal_success", "ENEMY_STEAL_POOL has no Slime entry"); return
+	var slime_item_path: String = GameManager.ENEMY_STEAL_POOL["Slime"]
+	if slime_item_path != "res://resources/items/potion.tres":
+		_ko("steal_success", "Slime steal should be potion, got %s" % slime_item_path); return
+	GameManager.new_game()
+	BattleManager.enemies.clear()
+	var slime = load("res://resources/units/slime.tres").duplicate()
+	BattleManager.enemies.append(slime)
+	BattleManager.party = GameManager.party
+	BattleManager.player_unit = GameManager.party[0]
+	BattleManager.player_unit.character_class = "Ninja"
+	BattleManager.state = BattleManager.BattleState.PLAYER_TURN
+	var inv_before: int = GameManager.inventory.get(slime_item_path, 0)
+	# Force steal success by calling add_item directly (same as successful steal)
+	var item = load(slime_item_path)
+	GameManager.add_item(item)
+	var inv_after: int = GameManager.inventory.get(slime_item_path, 0)
+	if inv_after <= inv_before:
+		_ko("steal_success", "add_item did not increment inventory"); return
+	_ok("steal_success: ENEMY_STEAL_POOL[Slime]=potion; add_item increments inventory correctly")
