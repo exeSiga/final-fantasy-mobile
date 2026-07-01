@@ -77,7 +77,7 @@ func _add_npc_buttons() -> void:
 		btn.offset_right = 85.0
 		btn.offset_top = z.top
 		btn.offset_bottom = z.bot
-		btn.pressed.connect(func(): DialogueManager.show_npc_dialogue(self, z.id))
+		btn.pressed.connect(func(): GameManager.show_npc_choice(z.id))
 		layer.add_child(btn)
 
 func _add_quest_button() -> void:

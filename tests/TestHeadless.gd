@@ -96,6 +96,10 @@ func _run_all() -> void:
 	_test_ng_plus_rewards()
 	_test_ng_plus_enemy_scaling()
 	_test_ng_plus_save_load()
+	_test_npc_choices_defined()
+	_test_npc_gold_reward()
+	_test_npc_item_reward()
+	_test_npc_flags_save_load()
 
 func _test_new_game() -> void:
 	GameManager.new_game()
@@ -1230,3 +1234,51 @@ func _test_ng_plus_save_load() -> void:
 	if GameManager.ng_plus_mode != true:
 		_ko("ng_plus_save_load", "ng_plus_mode should be true after load"); return
 	_ok("ng_plus_save_load: ng_plus_unlocked and ng_plus_mode persist through save/load")
+
+func _test_npc_choices_defined() -> void:
+	if GameManager.NPC_CHOICES.size() < 3:
+		_ko("npc_choices_defined", "expected at least 3 NPC_CHOICES, got %d" % GameManager.NPC_CHOICES.size()); return
+	for npc_id in ["npc_guide", "npc_soldier", "npc_innkeeper"]:
+		if not GameManager.NPC_CHOICES.has(npc_id):
+			_ko("npc_choices_defined", "missing NPC_CHOICES entry for %s" % npc_id); return
+		var data: Dictionary = GameManager.NPC_CHOICES[npc_id]
+		if not data.has("title") or not data.has("text") or not data.has("choices"):
+			_ko("npc_choices_defined", "%s missing title/text/choices" % npc_id); return
+		if data.choices.size() < 2:
+			_ko("npc_choices_defined", "%s should have 2 choices" % npc_id); return
+	_ok("npc_choices_defined: 3 NPCs defined with title/text/2 choices each")
+
+func _test_npc_gold_reward() -> void:
+	GameManager.new_game()
+	var gold_before: int = GameManager.gold
+	var choice: Dictionary = {"reward": "gold", "value": 250}
+	GameManager._apply_npc_reward(choice)
+	if GameManager.gold != gold_before + 250:
+		_ko("npc_gold_reward", "expected %d gold, got %d" % [gold_before + 250, GameManager.gold]); return
+	_ok("npc_gold_reward: gold reward +250G applied correctly")
+
+func _test_npc_item_reward() -> void:
+	GameManager.new_game()
+	var inv_before: int = GameManager.inventory.get("res://resources/items/potion.tres", 0)
+	var choice: Dictionary = {"reward": "item", "path": "res://resources/items/potion.tres"}
+	GameManager._apply_npc_reward(choice)
+	var inv_after: int = GameManager.inventory.get("res://resources/items/potion.tres", 0)
+	if inv_after != inv_before + 1:
+		_ko("npc_item_reward", "expected potion count %d, got %d" % [inv_before + 1, inv_after]); return
+	_ok("npc_item_reward: item reward adds potion to inventory")
+
+func _test_npc_flags_save_load() -> void:
+	GameManager.new_game()
+	GameManager.npc_flags = {"npc_guide": true, "npc_soldier": true}
+	SaveSystem.save(0)
+	GameManager.new_game()
+	if GameManager.npc_flags.size() != 0:
+		_ko("npc_flags_save_load", "new_game should clear npc_flags"); return
+	var ok: bool = SaveSystem.load_save(0)
+	if not ok:
+		_ko("npc_flags_save_load", "load_save returned false"); return
+	if not GameManager.npc_flags.get("npc_guide", false):
+		_ko("npc_flags_save_load", "npc_guide flag should be true after load"); return
+	if not GameManager.npc_flags.get("npc_soldier", false):
+		_ko("npc_flags_save_load", "npc_soldier flag should be true after load"); return
+	_ok("npc_flags_save_load: npc_flags persist through save/load")

@@ -406,3 +406,122 @@
   - AC4: SaveSystem.save()/load_save() sérialisent ng_plus_unlocked et ng_plus_mode avec fallback false
 - Contrôle D (regression): 78/78 tests passent; flags false par défaut = aucun impact sur le jeu normal
 - Déferments: aucun
+
+---
+
+## Sprint 48 — Dialogues à Choix (PNJ Interactifs) [STATUS: DONE]
+**Goal:** Des PNJ sur la WorldMap proposent un dialogue à choix : répondre déclenche une récompense ou un malus (or, objet, info de lore)
+
+**Acceptance Criteria:**
+- [x] AC1: 3 PNJ (npc_guide/npc_soldier/npc_innkeeper) sur WorldMap avec boutons; NPC_CHOICES const avec 3 entrées
+- [x] AC2: 2 choix par PNJ → gold, item, ou lore ; _apply_npc_reward() dispatche par type
+- [x] AC3: npc_flags Dictionary persisté en save; guard `npc_flags.get(id, false)` → done popup si déjà vu
+- [x] AC4: popup PanelContainer CanvasLayer layer=90, titre + texte + 2 Button choix
+
+**Tasks:**
+- [x] GameManager.gd: NPC_CHOICES const, npc_flags: Dictionary, show_npc_choice(), _apply_npc_reward(), _show_npc_done_popup()
+- [x] WorldMap.gd: bouton pressed → GameManager.show_npc_choice(id)
+- [x] SaveSystem.gd: npc_flags persisté
+
+**Verification Notes:**
+- Contrôle A (static): ✅ All clear
+- Contrôle B (godot parse): ✅ aucun SCRIPT ERROR
+- Contrôle C (logic trace): AC1-AC4 tracés et validés
+- Contrôle D (regression): 82/82 tests passent
+- Déferments: aucun
+
+---
+
+## Sprint 49 — Bestiaire (Compendium des Monstres) [STATUS: TODO]
+**Goal:** Un menu Bestiaire accessible depuis WorldMap liste tous les types d'ennemis rencontrés avec stats de base, nb de kills, et une ligne de lore FF7
+
+**Acceptance Criteria:**
+- [ ] AC1: Menu Bestiaire accessible via bouton sur la WorldMap (ou StatusMenu) ; liste scrollable des ennemis découverts (QuestManager.kill_counts > 0)
+- [ ] AC2: Chaque entrée affiche : nom ennemi, kills, HP/ATK de base, une ligne de description lore FF7
+- [ ] AC3: Les ennemis non encore rencontrés affichent "???" (nom masqué, stats masquées)
+- [ ] AC4: Milestone reward : à 10 kills d'un même ennemi, obtenir un item bonus (ex: 10 Slimes → Potion ; 10 Goblins → Antidote)
+
+**Tasks:**
+- [ ] GameManager.gd: BESTIARY const (dict ennemi → {lore, kill_reward_item_path, kill_reward_threshold})
+- [ ] scripts/BestiaryMenu.gd: ScrollContainer + VBoxContainer ; itère ENEMY_POOL + DUNGEON_POOL + tous les ennemis connus ; pour chaque: label nom/stats/kills/lore
+- [ ] WorldMap.gd: bouton "Bestiaire" → instancie BestiaryMenu en popup (CanvasLayer)
+- [ ] QuestManager.gd: après notify_kill(), vérifier milestone reward via GameManager.BESTIARY
+
+**Verification Notes:**
+- Contrôle A (static):
+- Contrôle B (godot parse):
+- Contrôle C (logic trace):
+- Contrôle D (regression):
+- Déferments:
+
+---
+
+## Sprint 50 — Boutique Évolutive (Items selon le Rang) [STATUS: TODO]
+**Goal:** La boutique débloque de nouvelles lignes d'équipements et de matérias en fonction du rang SOLDIER du joueur (3rd/2nd/1st Class)
+
+**Acceptance Criteria:**
+- [ ] AC1: En rang 3rd Class : catalogue de base (équipements niveau 1, matérias Fire/Ice)
+- [ ] AC2: En rang 2nd Class (≥50 kills) : +2 équipements de niveau 2 débloqués (ex: Mithril Sword, Guard Bangle), +Materia Lightning
+- [ ] AC3: En rang 1st Class (≥150 kills) : +2 équipements endgame débloqués (ex: Hardedge, Wizard Rod), +Materia Restore 2 (Regen)
+- [ ] AC4: Un badge visuel "NOUVEAU" (couleur dorée) marque les articles fraîchement débloqués à chaque montée de rang
+
+**Tasks:**
+- [ ] resources/equipment/mithril_sword.tres, guard_bangle.tres, hardedge.tres, wizard_rod.tres: nouveaux équipements avec slot/stat_bonus
+- [ ] resources/spells/regen.tres: soin continu par tick (SPELL_HEAL sur la cible la moins chère en MP, 5 MP) ; effect_type=1, heal_value=30
+- [ ] Shop.gd: _get_rank_items() retourne la liste d'items selon GameManager.get_soldier_rank() ; badge "NEW" sur items débloqués depuis dernière visite
+- [ ] BattleManager.gd: dans _tick_status() ajouter support "regen" status (heal 5% max_hp/turn)
+
+**Verification Notes:**
+- Contrôle A (static):
+- Contrôle B (godot parse):
+- Contrôle C (logic trace):
+- Contrôle D (regression):
+- Déferments:
+
+---
+
+## Sprint 51 — Armes Élémentaires (Combat Elemental Depth) [STATUS: TODO]
+**Goal:** De nouvelles armes équipables portent un élément (feu/glace/foudre) et appliquent cet élément aux attaques physiques, déclenchant la faiblesse ennemie au corps-à-corps
+
+**Acceptance Criteria:**
+- [ ] AC1: 3 nouvelles armes dans la boutique : Flame Blade (feu, ATK+18), Ice Brand (glace, ATK+18), Thunder Blade (foudre, ATK+18) ; prix 400G chacune
+- [ ] AC2: Quand un membre équipé d'une arme élémentaire attaque, le type d'élément de l'arme est appliqué → si l'ennemi a cette faiblesse, dégâts ×1.5
+- [ ] AC3: Le HUD de combat affiche l'élément de l'arme active du joueur courant (icône courte : 🔥❄️⚡)
+- [ ] AC4: Les armes élémentaires ont un champ weapon_element: String dans Equipment.gd
+
+**Tasks:**
+- [ ] resources/scripts/Equipment.gd: ajouter @export var weapon_element: String = "" (compatible compat-check)
+- [ ] resources/equipment/flame_blade.tres, ice_brand.tres, thunder_blade.tres
+- [ ] BattleManager.player_attack(): si équipement[idx].weapon.weapon_element != "" → appliquer bonus faiblesse comme les sorts
+- [ ] Battle.gd _on_turn_changed(): afficher élément actif sous le bouton Attaque si arme élémentaire équipée
+
+**Verification Notes:**
+- Contrôle A (static):
+- Contrôle B (godot parse):
+- Contrôle C (logic trace):
+- Contrôle D (regression):
+- Déferments:
+
+---
+
+## Sprint 52 — Trésors de Donjon Uniques [STATUS: TODO]
+**Goal:** Le donjon génère aléatoirement 1 salle "trésor" par run (entre les salles de combat) contenant un équipement rare introuvable en boutique
+
+**Acceptance Criteria:**
+- [ ] AC1: À l'entrée dans une salle de donjon non-boss, 25% de chance qu'une salle "Chambre au Trésor" s'intercale avant le combat (popup avec coffre)
+- [ ] AC2: Le coffre contient 1 équipement choisi dans un pool de 4 rares (ex: Dark Matter Armlet, Warrior Bangle, Gigas Armlet, Crystal Sword) — jamais disponibles en shop
+- [ ] AC3: Chaque rare peut n'être trouvé qu'une seule fois par run (flag GameManager.dungeon_treasures_found: Array)
+- [ ] AC4: L'animation du coffre (popup "Trésor !" + item name) est distincte des récompenses normales
+
+**Tasks:**
+- [ ] resources/equipment/dark_matter_armlet.tres, warrior_bangle.tres, gigas_armlet.tres, crystal_sword.tres
+- [ ] GameManager.gd: dungeon_treasures_found: Array; reset dans new_game()
+- [ ] scripts/Dungeon.gd ou WorldMap.gd: avant change_scene vers Battle en mode donjon, 25% → _show_treasure_popup(item) → equip_inventory + flag
+- [ ] SaveSystem.gd: persister dungeon_treasures_found
+
+**Verification Notes:**
+- Contrôle A (static):
+- Contrôle B (godot parse):
+- Contrôle C (logic trace):
+- Contrôle D (regression):
+- Déferments:

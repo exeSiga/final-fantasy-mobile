@@ -90,7 +90,38 @@ const SHINRA_FILES: Array = [
 ]
 var ng_plus_unlocked: bool = false
 var ng_plus_mode: bool = false
+var npc_flags: Dictionary = {}
 var pending_rank_notification: String = ""
+
+const NPC_CHOICES: Dictionary = {
+	"npc_guide": {
+		"title": "Habitant de Midgar",
+		"text": "Aventurier ! Tu m'as l'air courageux. Que veux-tu que je t'offre ?",
+		"choices": [
+			{"label": "De l'or.", "reward": "gold", "value": 200},
+			{"label": "Une Potion.", "reward": "item", "path": "res://resources/items/potion.tres"},
+		],
+		"done_text": "Reviens si tu as besoin, aventurier.",
+	},
+	"npc_soldier": {
+		"title": "Soldat ShinRa",
+		"text": "Halt ! Quel est l'ennemi le plus dangereux de Midgar ?",
+		"choices": [
+			{"label": "Le Guard Scorpion.", "reward": "gold", "value": 300},
+			{"label": "Un simple Slime.", "reward": "lore", "message": "Mauvaise réponse... Mais je t'offre quand même 50G. La prochaine fois, lis les rapports ShinRa."},
+		],
+		"done_text": "Tu peux passer. ShinRa t'a à l'œil.",
+	},
+	"npc_innkeeper": {
+		"title": "Vendeur Ambulant",
+		"text": "Pssst ! J'ai quelque chose de spécial. Tu veux un tuyau ou un objet rare ?",
+		"choices": [
+			{"label": "L'objet rare.", "reward": "item", "path": "res://resources/items/ether.tres"},
+			{"label": "Le tuyau.", "reward": "lore", "message": "Le tuyau : les Matérias de type Sorts augmentent l'ATK magique. Équipe-en plusieurs !"},
+		],
+		"done_text": "On a déjà fait affaire. À plus !",
+	},
+}
 var merchant_discount: float = 1.0
 
 signal gold_changed(new_amount: int)
@@ -166,6 +197,7 @@ func new_game() -> void:
 	total_kills = 0
 	ng_plus_unlocked = false
 	ng_plus_mode = false
+	npc_flags = {}
 	pending_rank_notification = ""
 	for m in party:
 		base_party_spell_paths.append(m.spell_paths.duplicate())
@@ -222,6 +254,92 @@ func _show_shinra_popup(title: String, lore: String) -> void:
 	canvas.add_child(panel)
 	panel.gui_input.connect(func(ev): if ev is InputEventScreenTouch and ev.pressed: canvas.queue_free())
 	await get_tree().create_timer(4.0).timeout
+	if is_instance_valid(canvas):
+		canvas.queue_free()
+
+func show_npc_choice(npc_id: String) -> void:
+	var data: Dictionary = NPC_CHOICES.get(npc_id, {})
+	if data.is_empty():
+		return
+	if npc_flags.get(npc_id, false):
+		_show_npc_done_popup(data.get("done_text", "..."))
+		return
+	var canvas := CanvasLayer.new()
+	canvas.layer = 90
+	get_tree().root.add_child(canvas)
+	var panel := PanelContainer.new()
+	panel.set_anchors_preset(Control.PRESET_CENTER)
+	panel.offset_left = -320.0
+	panel.offset_right = 320.0
+	panel.offset_top = -200.0
+	panel.offset_bottom = 200.0
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 16)
+	var title_lbl := Label.new()
+	title_lbl.text = data.title
+	title_lbl.add_theme_font_size_override("font_size", 30)
+	title_lbl.add_theme_color_override("font_color", Color(1.0, 0.9, 0.4, 1))
+	title_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var text_lbl := Label.new()
+	text_lbl.text = data.text
+	text_lbl.add_theme_font_size_override("font_size", 24)
+	text_lbl.add_theme_color_override("font_color", Color(0.9, 0.9, 0.9, 1))
+	text_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	text_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(title_lbl)
+	vbox.add_child(text_lbl)
+	var choices: Array = data.get("choices", [])
+	for choice in choices:
+		var btn := Button.new()
+		btn.text = choice.label
+		btn.add_theme_font_size_override("font_size", 26)
+		btn.custom_minimum_size = Vector2(0, 60)
+		btn.pressed.connect(func():
+			npc_flags[npc_id] = true
+			canvas.queue_free()
+			_apply_npc_reward(choice)
+		)
+		vbox.add_child(btn)
+	panel.add_child(vbox)
+	canvas.add_child(panel)
+
+func _apply_npc_reward(choice: Dictionary) -> void:
+	match choice.get("reward", ""):
+		"gold":
+			var amount: int = choice.get("value", 0)
+			add_gold(amount)
+			_show_npc_done_popup("+%d G !" % amount)
+		"item":
+			var item_path: String = choice.get("path", "")
+			if item_path != "":
+				var item = load(item_path)
+				if item != null:
+					add_item(item)
+					_show_npc_done_popup("Reçu : %s !" % item.item_name)
+		"lore":
+			var msg: String = choice.get("message", "Merci de ton écoute.")
+			_show_npc_done_popup(msg)
+
+func _show_npc_done_popup(text: String) -> void:
+	var canvas := CanvasLayer.new()
+	canvas.layer = 90
+	get_tree().root.add_child(canvas)
+	var panel := PanelContainer.new()
+	panel.set_anchors_preset(Control.PRESET_CENTER)
+	panel.offset_left = -280.0
+	panel.offset_right = 280.0
+	panel.offset_top = -100.0
+	panel.offset_bottom = 100.0
+	var lbl := Label.new()
+	lbl.text = text
+	lbl.add_theme_font_size_override("font_size", 26)
+	lbl.add_theme_color_override("font_color", Color(0.9, 0.95, 1.0, 1))
+	lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	panel.add_child(lbl)
+	canvas.add_child(panel)
+	panel.gui_input.connect(func(ev): if ev is InputEventScreenTouch and ev.pressed: canvas.queue_free())
+	await get_tree().create_timer(3.0).timeout
 	if is_instance_valid(canvas):
 		canvas.queue_free()
 
