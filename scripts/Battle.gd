@@ -40,6 +40,7 @@ var _party_atb_bars: Array = []
 
 var _limit_btn: Button = null
 var _bigshot_btn: Button = null
+var _lunatic_btn: Button = null
 
 var _active_party_idx: int = -1
 var _pending_cutscene: String = ""
@@ -52,6 +53,7 @@ func _ready() -> void:
 	_summon_menu.hide()
 	_create_limit_button()
 	_create_bigshot_button()
+	_create_lunatic_button()
 	_fade_in()
 	AudioManager.play_battle_bgm()
 	BattleManager.battle_started.connect(_on_battle_started)
@@ -221,6 +223,16 @@ func _create_bigshot_button() -> void:
 	_bigshot_btn.pressed.connect(_on_bigshot_pressed)
 	action_buttons.add_child(_bigshot_btn)
 
+func _create_lunatic_button() -> void:
+	_lunatic_btn = Button.new()
+	_lunatic_btn.text = "Lunatic High"
+	_lunatic_btn.add_theme_font_size_override("font_size", 28)
+	_lunatic_btn.add_theme_color_override("font_color", Color(0.85, 0.35, 0.1, 1.0))
+	_lunatic_btn.custom_minimum_size = Vector2(180, 0)
+	_lunatic_btn.visible = false
+	_lunatic_btn.pressed.connect(_on_lunatic_pressed)
+	action_buttons.add_child(_lunatic_btn)
+
 func _on_turn_changed(unit) -> void:
 	var is_party_turn: bool = unit.is_player
 	action_buttons.visible = false
@@ -230,6 +242,7 @@ func _on_turn_changed(unit) -> void:
 		_rebuild_magic_button(unit)
 		_update_limit_button(unit)
 		_update_bigshot_button(unit)
+		_update_lunatic_button(unit)
 		_update_summon_button()
 	_log("%s's turn" % unit.unit_name)
 
@@ -246,6 +259,11 @@ func _update_bigshot_button(unit) -> void:
 	if _bigshot_btn == null:
 		return
 	_bigshot_btn.visible = (unit.character_class == "Gunner")
+
+func _update_lunatic_button(unit) -> void:
+	if _lunatic_btn == null:
+		return
+	_lunatic_btn.visible = (unit.character_class == "Beastmaster")
 
 func _update_limit_button(unit) -> void:
 	if _limit_btn == null:
@@ -490,6 +508,11 @@ func _on_bigshot_pressed() -> void:
 	action_buttons.hide()
 	_shake_screen(24.0)
 	BattleManager.player_bigshot()
+
+func _on_lunatic_pressed() -> void:
+	action_buttons.hide()
+	_spawn_popup("★ Lunatic High!", Color(0.85, 0.35, 0.1, 1))
+	BattleManager.player_lunatic_high()
 
 func _on_limit_pressed() -> void:
 	action_buttons.hide()

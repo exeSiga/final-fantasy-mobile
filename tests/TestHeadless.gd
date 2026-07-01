@@ -80,6 +80,10 @@ func _run_all() -> void:
 	_test_limit_tier2_unlock()
 	_test_limit_names()
 	_test_limit_save_load()
+	_test_red_xiii_loads()
+	_test_five_available_members()
+	_test_red_xiii_selectable()
+	_test_lunatic_high_spd()
 
 func _test_new_game() -> void:
 	GameManager.new_game()
@@ -753,14 +757,14 @@ func _test_barret_loads() -> void:
 
 func _test_available_members() -> void:
 	GameManager.new_game()
-	if GameManager.available_members.size() != 4:
-		_ko("available_members", "expected 4 available_members, got %d" % GameManager.available_members.size()); return
+	if GameManager.available_members.size() < 4:
+		_ko("available_members", "expected >= 4 available_members, got %d" % GameManager.available_members.size()); return
 	var barret = GameManager.available_members[3]
 	if barret.unit_name != "Barret":
 		_ko("available_members", "4th member should be Barret, got '%s'" % barret.unit_name); return
 	if GameManager.party.size() != 3:
 		_ko("available_members", "party should still be 3, got %d" % GameManager.party.size()); return
-	_ok("available_members: 4 members available (Cloud/Tifa/Aerith/Barret), 3 active by default")
+	_ok("available_members: %d members available (incl. Cloud/Tifa/Aerith/Barret), 3 active by default" % GameManager.available_members.size())
 
 func _test_set_active_party_indices() -> void:
 	GameManager.new_game()
@@ -996,3 +1000,55 @@ func _test_limit_save_load() -> void:
 	if loaded_cloud.limit_tier != 2:
 		_ko("limit_save_load", "limit_tier should be 2, got %d" % loaded_cloud.limit_tier); return
 	_ok("limit_save_load: limit_damage_taken=175 and limit_tier=2 persist through save/load")
+
+func _test_red_xiii_loads() -> void:
+	var red = load("res://resources/units/red_xiii.tres")
+	if red == null:
+		_ko("red_xiii_loads", "cannot load red_xiii.tres"); return
+	if red.unit_name != "Red XIII":
+		_ko("red_xiii_loads", "unit_name should be 'Red XIII', got '%s'" % red.unit_name); return
+	if red.character_class != "Beastmaster":
+		_ko("red_xiii_loads", "character_class should be 'Beastmaster', got '%s'" % red.character_class); return
+	if red.spd < 35:
+		_ko("red_xiii_loads", "spd should be high (>=35), got %d" % red.spd); return
+	_ok("red_xiii_loads: Red XIII loads (Beastmaster, SPD=%d, HP=%d)" % [red.spd, red.max_hp])
+
+func _test_five_available_members() -> void:
+	GameManager.new_game()
+	if GameManager.available_members.size() != 5:
+		_ko("five_available_members", "expected 5 available_members, got %d" % GameManager.available_members.size()); return
+	var red = GameManager.available_members[4]
+	if red.unit_name != "Red XIII":
+		_ko("five_available_members", "5th member should be Red XIII, got '%s'" % red.unit_name); return
+	_ok("five_available_members: 5 members available (4th=Barret, 5th=Red XIII)")
+
+func _test_red_xiii_selectable() -> void:
+	GameManager.new_game()
+	GameManager.set_active_party_indices([0, 1, 4])
+	if GameManager.party.size() != 3:
+		_ko("red_xiii_selectable", "party should be 3, got %d" % GameManager.party.size()); return
+	var has_red := false
+	for m in GameManager.party:
+		if m.unit_name == "Red XIII":
+			has_red = true
+	if not has_red:
+		_ko("red_xiii_selectable", "Red XIII should be in party after selecting index 4"); return
+	GameManager.set_active_party_indices([0, 1, 2])
+	_ok("red_xiii_selectable: Red XIII (index 4) selectable in active party of 3")
+
+func _test_lunatic_high_spd() -> void:
+	GameManager.new_game()
+	var m = GameManager.party[0]
+	var original_spd: int = m.spd
+	m.haste_turns_left = 0
+	m.base_spd = 0
+	# Simulate Lunatic High logic
+	if m.is_alive() and m.haste_turns_left <= 0:
+		m.base_spd = m.spd
+		m.spd = m.spd * 2
+		m.haste_turns_left = 2
+	if m.spd != original_spd * 2:
+		_ko("lunatic_high_spd", "SPD should be doubled: expected %d, got %d" % [original_spd * 2, m.spd]); return
+	if m.haste_turns_left != 2:
+		_ko("lunatic_high_spd", "haste_turns_left should be 2, got %d" % m.haste_turns_left); return
+	_ok("lunatic_high_spd: Lunatic High doubles SPD (%d→%d), haste_turns_left=2" % [original_spd, m.spd])

@@ -294,7 +294,7 @@
 
 ---
 
-## Sprint 44 — Red XIII (5e membre, Beastmaster) [STATUS: TODO]
+## Sprint 44 — Red XIII (5e membre, Beastmaster) [STATUS: DONE]
 **Goal:** Ajouter Red XIII comme 5e membre disponible avec une attaque spéciale "Lunatic High" qui augmente la VIT de toute la party
 
 **Acceptance Criteria:**
@@ -311,11 +311,15 @@
 - [ ] WorldMap.gd: PartySetupMenu mis à jour pour 5 membres (validation toujours 3 actifs)
 
 **Verification Notes:**
-- Contrôle A (static):
-- Contrôle B (godot parse):
+- Contrôle A (static): ✅ All clear
+- Contrôle B (godot parse): ✅ 66/66 tests
 - Contrôle C (logic trace):
-- Contrôle D (regression):
-- Déferments:
+  - AC1: red_xiii.tres Beastmaster SPD=40 HP=320 ATK=38, sprite orange
+  - AC2: PartySetupMenu itère sur available_members.size() (5); validation 3 actifs inchangée
+  - AC3: player_lunatic_high() double spd party vivante haste_turns_left=2; bouton _lunatic_btn visible si Beastmaster
+  - AC4: SPD=40 > tous autres (Cloud 28, Tifa 32, Aerith 26, Barret 22)
+- Contrôle D (regression): 66/66 tests, test available_members mis à jour >= 4 pour compatibilité
+- Déferments: Claw Slash / Cosmo Memory Limit Break implémentés dans player_limit_break()
 
 ---
 

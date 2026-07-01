@@ -307,11 +307,12 @@ func _compute_phys_damage(atk: int, target) -> Dictionary:
 
 func _limit_name(unit) -> String:
 	match unit.character_class:
-		"Warrior":   return "BLADE FURY"  if unit.limit_tier == 1 else "METEORAIN"
-		"Black Mage": return "METEOR"     if unit.limit_tier == 1 else "FINAL HEAVEN"
-		"White Mage": return "HOLY LIGHT" if unit.limit_tier == 1 else "GREAT GOSPEL"
-		"Gunner":    return "CANNONBALL"  if unit.limit_tier == 1 else "CATASTROPHE"
-		_:           return "LIMIT BREAK"
+		"Warrior":    return "BLADE FURY"    if unit.limit_tier == 1 else "METEORAIN"
+		"Black Mage": return "METEOR"        if unit.limit_tier == 1 else "FINAL HEAVEN"
+		"White Mage": return "HOLY LIGHT"    if unit.limit_tier == 1 else "GREAT GOSPEL"
+		"Gunner":     return "CANNONBALL"    if unit.limit_tier == 1 else "CATASTROPHE"
+		"Beastmaster": return "CLAW SLASH"   if unit.limit_tier == 1 else "COSMO MEMORY"
+		_:            return "LIMIT BREAK"
 
 func player_limit_break() -> void:
 	if state != BattleState.PLAYER_TURN or player_unit == null:
@@ -390,6 +391,22 @@ func player_limit_break() -> void:
 				var alive: Array = enemies.filter(func(e) -> bool: return e.is_alive())
 				for e in alive:
 					var dmg: int = int(player_unit.atk * 3.0 * randf_range(0.90, 1.10))
+					e.take_damage_ignore_def(dmg)
+					action_result.emit(player_unit.unit_name, e.unit_name, dmg, true)
+		"Beastmaster":
+			if tier == 1:
+				# Claw Slash: physical ×2.2 single target
+				var alive: Array = enemies.filter(func(e) -> bool: return e.is_alive())
+				if alive.size() > 0:
+					var e = alive[randi() % alive.size()]
+					var dmg: int = int(player_unit.atk * 2.2 * randf_range(0.90, 1.10))
+					e.take_damage_ignore_def(dmg)
+					action_result.emit(player_unit.unit_name, e.unit_name, dmg, true)
+			else:
+				# Cosmo Memory: AoE ×3.5, ignore DEF
+				var alive: Array = enemies.filter(func(e) -> bool: return e.is_alive())
+				for e in alive:
+					var dmg: int = int(player_unit.atk * 3.5 * randf_range(0.90, 1.10))
 					e.take_damage_ignore_def(dmg)
 					action_result.emit(player_unit.unit_name, e.unit_name, dmg, true)
 		_:
@@ -554,6 +571,18 @@ func _after_player_turn() -> void:
 			player_unit.base_spd = 0
 	_rebuild_queue()
 	_advance_turn()
+
+func player_lunatic_high() -> void:
+	if state != BattleState.PLAYER_TURN or player_unit == null:
+		return
+	battle_log.emit("Lunatic High! SPD ×2 pour toute la party !")
+	for m in party:
+		if m.is_alive() and m.haste_turns_left <= 0:
+			m.base_spd = m.spd
+			m.spd = m.spd * 2
+			m.haste_turns_left = 2
+			action_result.emit(player_unit.unit_name, m.unit_name, 0, false)
+	_after_player_turn()
 
 func player_bigshot() -> void:
 	if state != BattleState.PLAYER_TURN or player_unit == null:

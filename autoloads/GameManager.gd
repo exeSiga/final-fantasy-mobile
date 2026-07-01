@@ -29,7 +29,7 @@ const CRAFT_RECIPES: Array = [
 var current_state: GameState = GameState.MAIN_MENU
 var current_scene: Node = null
 var party: Array = []              # 3 active CombatUnit
-var available_members: Array = []  # 4 CombatUnit: [Cloud, Tifa, Aerith, Barret]
+var available_members: Array = []  # 5 CombatUnit: [Cloud, Tifa, Aerith, Barret, Red XIII]
 var active_party_indices: Array = [0, 1, 2]  # which 3 of 4 are active
 var player_unit = null             # alias for party[0] — kept for compatibility
 var gold: int = 0
@@ -100,7 +100,8 @@ func new_game() -> void:
 	var black_mage = load("res://resources/units/black_mage.tres").duplicate()
 	var white_mage = load("res://resources/units/white_mage.tres").duplicate()
 	var barret = load("res://resources/units/barret.tres").duplicate()
-	available_members = [warrior, black_mage, white_mage, barret]
+	var red_xiii = load("res://resources/units/red_xiii.tres").duplicate()
+	available_members = [warrior, black_mage, white_mage, barret, red_xiii]
 	active_party_indices = [0, 1, 2]
 	party.append(warrior)
 	party.append(black_mage)
