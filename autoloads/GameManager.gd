@@ -52,7 +52,42 @@ var active_zone: String = "midgar"
 var story_intro_done: bool = false
 var scene_reactor_done: bool = false
 var scene_jenova_done: bool = false
+var sephiroth_defeated: bool = false
 var total_kills: int = 0
+var shinra_files_seen: Array = []
+
+const SHINRA_FILES: Array = [
+	{
+		"id": "first_slime",
+		"title": "Fichier ShinRa #001 — Créature Mako",
+		"lore": "Les Slimes sont des résidus de Mako qui mutent dans les conduits des réacteurs abandonnés.",
+	},
+	{
+		"id": "guard_scorpion",
+		"title": "Fichier ShinRa #002 — Unité Guard Scorpion",
+		"lore": "Le Guard Scorpion est un proto-arme ShinRa déployé dans les réacteurs Mako prioritaires.",
+	},
+	{
+		"id": "rank_2nd",
+		"title": "Fichier ShinRa #003 — Rang SOLDIER 2nd Class",
+		"lore": "Un SOLDIER de 2nd Class a prouvé sa valeur au combat. ShinRa note ces agents pour promotion.",
+	},
+	{
+		"id": "jenova",
+		"title": "Fichier ShinRa #004 — Projet Jenova [CLASSIFIÉ]",
+		"lore": "Le projet J. implique un être extraterrestre découvert sous Nibelheim. Dossier top secret — accès refusé.",
+	},
+	{
+		"id": "kills_25",
+		"title": "Fichier ShinRa #005 — Rapport d'engagements",
+		"lore": "25 ennemis neutralisés. Ce soldat est opérationnel. Recommandation : promotion à l'étude.",
+	},
+	{
+		"id": "sephiroth",
+		"title": "Fichier ShinRa #006 — Incident Sephiroth [ULTRA-CLASSIFIÉ]",
+		"lore": "Sephiroth... ce nom ne doit plus jamais être prononcé dans les rangs de ShinRa. Dossier scellé.",
+	},
+]
 var pending_rank_notification: String = ""
 var merchant_discount: float = 1.0
 
@@ -124,6 +159,8 @@ func new_game() -> void:
 	story_intro_done = false
 	scene_reactor_done = false
 	scene_jenova_done = false
+	sephiroth_defeated = false
+	shinra_files_seen = []
 	total_kills = 0
 	pending_rank_notification = ""
 	for m in party:
@@ -133,6 +170,56 @@ func new_game() -> void:
 
 func alive_party() -> Array:
 	return party.filter(func(m) -> bool: return m.is_alive())
+
+func check_shinra_files() -> void:
+	for entry in SHINRA_FILES:
+		if entry.id in shinra_files_seen:
+			continue
+		if _check_shinra_condition(entry.id):
+			shinra_files_seen.append(entry.id)
+			_show_shinra_popup(entry.title, entry.lore)
+
+func _check_shinra_condition(file_id: String) -> bool:
+	match file_id:
+		"first_slime":    return QuestManager.kill_counts.get("Slime", 0) >= 1
+		"guard_scorpion": return scene_reactor_done
+		"rank_2nd":       return total_kills >= 50
+		"jenova":         return scene_jenova_done
+		"kills_25":       return total_kills >= 25
+		"sephiroth":      return sephiroth_defeated
+	return false
+
+func _show_shinra_popup(title: String, lore: String) -> void:
+	var canvas := CanvasLayer.new()
+	canvas.layer = 88
+	get_tree().root.add_child(canvas)
+	var panel := PanelContainer.new()
+	panel.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+	panel.offset_top = -220.0
+	panel.offset_bottom = -10.0
+	panel.offset_left = 10.0
+	panel.offset_right = -10.0
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 8)
+	var header := Label.new()
+	header.text = "📁 " + title
+	header.add_theme_font_size_override("font_size", 24)
+	header.add_theme_color_override("font_color", Color(0.4, 0.8, 1.0, 1))
+	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var lore_lbl := Label.new()
+	lore_lbl.text = lore
+	lore_lbl.add_theme_font_size_override("font_size", 20)
+	lore_lbl.add_theme_color_override("font_color", Color(0.85, 0.9, 1.0, 1))
+	lore_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	lore_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(header)
+	vbox.add_child(lore_lbl)
+	panel.add_child(vbox)
+	canvas.add_child(panel)
+	panel.gui_input.connect(func(ev): if ev is InputEventScreenTouch and ev.pressed: canvas.queue_free())
+	await get_tree().create_timer(4.0).timeout
+	if is_instance_valid(canvas):
+		canvas.queue_free()
 
 func add_item(item: Resource, qty: int = 1) -> void:
 	var key: String = item.resource_path

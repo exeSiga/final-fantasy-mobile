@@ -1067,6 +1067,8 @@ func _check_battle_end() -> void:
 			if bangle != null:
 				GameManager.equip_inventory[EMERALD_BANGLE_PATH] = GameManager.equip_inventory.get(EMERALD_BANGLE_PATH, 0) + 1
 				battle_log.emit("★ Emerald Bangle obtenu !")
+		if is_boss_sephiroth_battle:
+			GameManager.sephiroth_defeated = true
 		if sector_mode != "":
 			var wins: int = sector_victories.get(sector_mode, 0)
 			sector_victories[sector_mode] = wins + 1
@@ -1083,6 +1085,7 @@ func _check_battle_end() -> void:
 							GameManager.add_item(unique_item)
 							battle_log.emit("★ Trouvé : %s !" % unique_item.item_name)
 			sector_mode = ""
+		GameManager.check_shinra_files()
 		battle_ended.emit(true)
 		return
 	var all_party_dead: bool = party.all(func(m) -> bool: return not m.is_alive())

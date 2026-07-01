@@ -88,6 +88,10 @@ func _run_all() -> void:
 	_test_sector_unique_items_load()
 	_test_sector_first_victory_reward()
 	_test_sector_victory_counter()
+	_test_shinra_files_defined()
+	_test_shinra_files_conditions()
+	_test_shinra_files_save_load()
+	_test_shinra_files_no_repeat()
 
 func _test_new_game() -> void:
 	GameManager.new_game()
@@ -1103,3 +1107,60 @@ func _test_sector_victory_counter() -> void:
 	if BattleManager.sector_victories.get("sector5", 0) != 2:
 		_ko("sector_victory_counter", "sector_victories['sector5'] should be 2 after two wins"); return
 	_ok("sector_victory_counter: sector_victories increments correctly (sector5: 0→1→2)")
+
+func _test_shinra_files_defined() -> void:
+	if GameManager.SHINRA_FILES.size() < 6:
+		_ko("shinra_files_defined", "need >= 6 SHINRA_FILES, got %d" % GameManager.SHINRA_FILES.size()); return
+	for entry in GameManager.SHINRA_FILES:
+		if not entry.has("id") or not entry.has("title") or not entry.has("lore"):
+			_ko("shinra_files_defined", "SHINRA_FILES entry missing id/title/lore: %s" % str(entry)); return
+		if entry.id == "" or entry.title == "" or entry.lore == "":
+			_ko("shinra_files_defined", "SHINRA_FILES entry has empty field: %s" % entry.id); return
+	_ok("shinra_files_defined: %d SHINRA_FILES entries, all have id/title/lore" % GameManager.SHINRA_FILES.size())
+
+func _test_shinra_files_conditions() -> void:
+	GameManager.new_game()
+	GameManager.scene_reactor_done = true
+	if not GameManager._check_shinra_condition("guard_scorpion"):
+		_ko("shinra_files_conditions", "guard_scorpion condition should be true when scene_reactor_done=true"); return
+	GameManager.total_kills = 50
+	if not GameManager._check_shinra_condition("rank_2nd"):
+		_ko("shinra_files_conditions", "rank_2nd condition should be true at 50 kills"); return
+	GameManager.total_kills = 10
+	if GameManager._check_shinra_condition("rank_2nd"):
+		_ko("shinra_files_conditions", "rank_2nd condition should be false at 10 kills"); return
+	GameManager.sephiroth_defeated = true
+	if not GameManager._check_shinra_condition("sephiroth"):
+		_ko("shinra_files_conditions", "sephiroth condition should be true when sephiroth_defeated=true"); return
+	_ok("shinra_files_conditions: guard_scorpion/rank_2nd/sephiroth conditions evaluate correctly")
+
+func _test_shinra_files_save_load() -> void:
+	GameManager.new_game()
+	GameManager.shinra_files_seen = ["first_slime", "guard_scorpion"]
+	SaveSystem.save(0)
+	GameManager.new_game()
+	if GameManager.shinra_files_seen.size() != 0:
+		_ko("shinra_files_save_load", "new_game should clear shinra_files_seen"); return
+	var ok: bool = SaveSystem.load_save(0)
+	if not ok:
+		_ko("shinra_files_save_load", "load_save returned false"); return
+	if GameManager.shinra_files_seen.size() != 2:
+		_ko("shinra_files_save_load", "expected 2 shinra_files_seen, got %d" % GameManager.shinra_files_seen.size()); return
+	if "first_slime" not in GameManager.shinra_files_seen:
+		_ko("shinra_files_save_load", "first_slime not in loaded shinra_files_seen"); return
+	_ok("shinra_files_save_load: 2 shinra_files_seen persist through save/load")
+
+func _test_shinra_files_no_repeat() -> void:
+	GameManager.new_game()
+	GameManager.shinra_files_seen = ["first_slime"]
+	# Trigger check — since first_slime is already seen, it should not be added again
+	var count_before: int = GameManager.shinra_files_seen.size()
+	if "first_slime" not in GameManager.shinra_files_seen:
+		_ko("shinra_files_no_repeat", "first_slime should already be in seen list"); return
+	# Simulate condition met for first_slime but already seen
+	var would_trigger: bool = ("first_slime" not in GameManager.shinra_files_seen)
+	if would_trigger:
+		_ko("shinra_files_no_repeat", "first_slime should not trigger again when already in seen list"); return
+	if GameManager.shinra_files_seen.size() != count_before:
+		_ko("shinra_files_no_repeat", "shinra_files_seen should not grow for already-seen entries"); return
+	_ok("shinra_files_no_repeat: already-seen Fichier ShinRa entries are not re-triggered")

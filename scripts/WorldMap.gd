@@ -50,6 +50,7 @@ func _ready() -> void:
 		var rn: String = GameManager.pending_rank_notification
 		GameManager.pending_rank_notification = ""
 		_show_inn_feedback("Rang atteint : %s SOLDIER !" % rn)
+	GameManager.check_shinra_files()
 	if not GameManager.story_intro_done:
 		GameManager.story_intro_done = true
 		DialogueManager.show_prologue(self)

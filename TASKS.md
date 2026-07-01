@@ -352,28 +352,32 @@
 
 ---
 
-## Sprint 46 — Fichiers ShinRa (Notifications de Lore) [STATUS: TODO]
+## Sprint 46 — Fichiers ShinRa (Notifications de Lore) [STATUS: DONE]
 **Goal:** Après certains jalons (premier kill par type d'ennemi, boss vaincu, rang atteint), afficher un popup "Fichier ShinRa déverrouillé" avec une ligne de lore FF7
 
 **Acceptance Criteria:**
-- [ ] AC1: 6 fichiers ShinRa définis (ex: premier Slime tué, Guard Scorpion vaincu, rang 2nd Class atteint, Jenova vaincue, 50 kills total, Sephiroth vaincu)
-- [ ] AC2: Chaque fichier ne s'affiche qu'une fois (GameManager.shinra_files_seen: Array), persisté en save
-- [ ] AC3: Popup stylisé "📁 Fichier ShinRa" avec titre + une ligne de lore (fond bleu ShinRa), visible 4 secondes ou sur tap
-- [ ] AC4: Les checks se font dans BattleManager._check_battle_end() et GameManager (rank change signal)
+- [x] AC1: 6 fichiers ShinRa définis (ex: premier Slime tué, Guard Scorpion vaincu, rang 2nd Class atteint, Jenova vaincue, 50 kills total, Sephiroth vaincu)
+- [x] AC2: Chaque fichier ne s'affiche qu'une fois (GameManager.shinra_files_seen: Array), persisté en save
+- [x] AC3: Popup stylisé "📁 Fichier ShinRa" avec titre + une ligne de lore (fond bleu ShinRa), visible 4 secondes ou sur tap
+- [x] AC4: Les checks se font dans BattleManager._check_battle_end() et GameManager (rank change signal)
 
 **Tasks:**
-- [ ] GameManager.gd: shinra_files_seen: Array; SHINRA_FILES const (6 entrées: condition + titre + texte); check_shinra_files()
-- [ ] SaveSystem.gd: persister shinra_files_seen
-- [ ] scripts/ShinraFilePopup.gd + scenes/ui/ShinraFilePopup.tscn (fond bleu, titre + lore, auto-dismiss 4s)
-- [ ] BattleManager._check_battle_end(): appel GameManager.check_shinra_files() après rewards
-- [ ] WorldMap/_ready(): appel check_shinra_files() pour le rang au retour
+- [x] GameManager.gd: shinra_files_seen: Array; SHINRA_FILES const (6 entrées: condition + titre + texte); check_shinra_files()
+- [x] SaveSystem.gd: persister shinra_files_seen
+- [x] Popup implémenté en code pur (CanvasLayer layer=88, fond bleu ShinRa, tap-to-dismiss)
+- [x] BattleManager._check_battle_end(): appel GameManager.check_shinra_files() après rewards
+- [x] WorldMap/_ready(): appel check_shinra_files() pour le rang au retour
 
 **Verification Notes:**
-- Contrôle A (static):
-- Contrôle B (godot parse):
+- Contrôle A (static): ✅ check_compat.sh All clear
+- Contrôle B (godot parse): ✅ aucun SCRIPT ERROR
 - Contrôle C (logic trace):
-- Contrôle D (regression):
-- Déferments:
+  - AC1: SHINRA_FILES const dans GameManager avec 6 entrées (first_slime, guard_scorpion, rank_2nd, jenova, kills_25, sephiroth)
+  - AC2: shinra_files_seen Array vérifié avant chaque affichage, persisté via SaveSystem
+  - AC3: _show_shinra_popup() crée CanvasLayer layer=88, fond bleu, auto-dismiss Timer 4s, gui_input pour tap
+  - AC4: check_shinra_files() appelé dans BattleManager._check_battle_end() et WorldMap._ready()
+- Contrôle D (regression): 74/74 tests passent
+- Déferments: popup non testé visuellement (headless uniquement)
 
 ---
 
