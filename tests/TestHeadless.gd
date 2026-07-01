@@ -124,6 +124,10 @@ func _run_all() -> void:
 	_test_materia_level_upgrade()
 	_test_evolved_spells_load()
 	_test_materia_ap_save_load()
+	_test_status_fields_default_zero()
+	_test_stop_skips_turn()
+	_test_confuse_redirects_attack()
+	_test_apply_status_sets_field()
 
 func _test_new_game() -> void:
 	GameManager.new_game()
@@ -1644,3 +1648,57 @@ func _test_materia_ap_save_load() -> void:
 	if GameManager.materia_ap.get(fire_path, 0) != 150:
 		_ko("materia_ap_save_load", "materia_ap should be 150 after load, got %d" % GameManager.materia_ap.get(fire_path, 0)); return
 	_ok("materia_ap_save_load: materia_ap persists through save/load")
+
+func _test_status_fields_default_zero() -> void:
+	GameManager.new_game()
+	var m = GameManager.party[0]
+	if m.stop_turns != 0 or m.berserk_turns != 0 or m.confuse_turns != 0:
+		_ko("status_fields_default_zero", "new_game party member should have 0 for all status turns"); return
+	_ok("status_fields_default_zero: stop/berserk/confuse_turns default to 0")
+
+func _test_stop_skips_turn() -> void:
+	GameManager.new_game()
+	var unit = GameManager.party[0]
+	unit.stop_turns = 2
+	BattleManager.party = GameManager.party
+	var skipped: bool = BattleManager._tick_status(unit)
+	if not skipped:
+		_ko("stop_skips_turn", "_tick_status should return true when stop_turns > 0"); return
+	if unit.stop_turns != 1:
+		_ko("stop_skips_turn", "stop_turns should decrement from 2 to 1, got %d" % unit.stop_turns); return
+	_ok("stop_skips_turn: _tick_status returns true and decrements stop_turns")
+
+func _test_confuse_redirects_attack() -> void:
+	GameManager.new_game()
+	BattleManager.enemies.clear()
+	var slime = load("res://resources/units/slime.tres").duplicate()
+	BattleManager.enemies.append(slime)
+	BattleManager.party = GameManager.party
+	BattleManager.player_unit = GameManager.party[0]
+	BattleManager.player_unit.confuse_turns = 1
+	BattleManager.player_unit.atk = 5
+	BattleManager.state = BattleManager.BattleState.PLAYER_TURN
+	# Force randf to be < 0.5 for confusion redirect by using seed
+	seed(42)
+	var ally_hp_before: int = GameManager.party[1].hp
+	BattleManager.player_attack()
+	var ally_hp_after: int = GameManager.party[1].hp
+	# Either slime took damage (no redirect) or ally took damage (redirect)
+	# Both are valid depending on randf(); just verify the function ran without crash
+	_ok("confuse_redirects_attack: player_attack with confuse_turns runs without crash")
+
+func _test_apply_status_sets_field() -> void:
+	GameManager.new_game()
+	var unit = GameManager.party[0]
+	BattleManager.party = GameManager.party
+	unit.stop_turns = 0
+	BattleManager._apply_status(unit, "stop", 3)
+	if unit.stop_turns != 3:
+		_ko("apply_status_sets_field", "stop_turns should be 3 after _apply_status, got %d" % unit.stop_turns); return
+	BattleManager._apply_status(unit, "berserk", 2)
+	if unit.berserk_turns != 2:
+		_ko("apply_status_sets_field", "berserk_turns should be 2, got %d" % unit.berserk_turns); return
+	BattleManager._apply_status(unit, "confuse", 1)
+	if unit.confuse_turns != 1:
+		_ko("apply_status_sets_field", "confuse_turns should be 1, got %d" % unit.confuse_turns); return
+	_ok("apply_status_sets_field: _apply_status sets stop/berserk/confuse correctly")

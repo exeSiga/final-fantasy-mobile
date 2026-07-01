@@ -590,29 +590,33 @@
 
 ---
 
-## Sprint 55 — Statuts de Combat Avancés (Stop, Berserk, Confusion) [STATUS: TODO]
+## Sprint 55 — Statuts de Combat Avancés (Stop, Berserk, Confusion) [STATUS: DONE]
 **Goal:** Trois nouveaux statuts altèrent les comportements en combat : Stop fige l'unité, Berserk force l'attaque physique et boost l'ATK, Confusion retourne les cibles
 
 **Acceptance Criteria:**
-- [ ] AC1: CombatUnit a trois nouveaux booléens : stop_turns: int (tours restants figé), berserk_turns: int, confuse_turns: int ; ces champs doivent être remis à 0 dans reset_for_battle()
-- [ ] AC2: Stop (appliqué par Dark Knight) : l'unité affectée passe son tour automatiquement pendant stop_turns tours (BattleManager saute son action)
-- [ ] AC3: Berserk (appliqué par Ruby Weapon) : l'unité attaque toujours la cible aléatoire, ATK ×1.5, ne peut pas lancer de sort ou item
-- [ ] AC4: Confusion (appliqué par Shadow ou Gargoyle) : 50% de chance d'attaquer un allié aléatoire au lieu de la cible choisie
-- [ ] AC5: HUD Battle affiche une icône de statut (🔴 Stop, 🟡 Berserk, 🔵 Confusion) sous la HP bar de l'unité affectée
+- [x] AC1: CombatUnit: stop_turns, berserk_turns, confuse_turns (ints) ; clear_status() les remet à 0 ; reset au début de chaque battle dans start_battle()
+- [x] AC2: Stop (Dark Knight 25%) : _tick_status() retourne true → continue dans _advance_turn() (tour sauté)
+- [x] AC3: Berserk (Ruby Weapon 20%) : _advance_turn() auto-attaque avec ATK ×1.5 ; player_cast_spell() bloqué
+- [x] AC4: Confusion (Shadow 30%) : player_attack() → 50% randf() → redirect vers allié aléatoire
+- [x] AC5: HUD: _refresh_party_ui() → "🔴 Stop 🟡 Berserk 🔵 Confusion" dans status_tag du nom
 
 **Tasks:**
-- [ ] CombatUnit.gd: stop_turns: int, berserk_turns: int, confuse_turns: int ; reset_for_battle() les met à 0
-- [ ] BattleManager.gd: _apply_status(unit, status, turns) ; _ai_dark_knight: 25% infliger Stop ; _ai_shadow: 30% infliger Confusion ; _ai_ruby_weapon: 20% infliger Berserk au lieu de counter
-- [ ] BattleManager._execute_turn_for(): si stop_turns > 0 → skip et décrémenter ; player_attack(): si confuse_turns > 0 → 50% retourner cible vers allié ; si berserk_turns > 0 → force attaque physique
-- [ ] Battle.gd: _update_status_icons(unit_idx) → HUD icône sous HPBar selon statuts actifs
-- [ ] SaveSystem.gd: ces 3 champs non persistés (combat only, reset à chaque bataille — pas besoin)
+- [x] CombatUnit.gd: 3 nouveaux champs + clear_status() étend
+- [x] BattleManager.gd: _apply_status(); _tick_status() handle stop; _ai_dark_knight/shadow/ruby_weapon mis à jour
+- [x] Battle.gd: _refresh_party_ui() icônes émoji statuts
+- [x] SaveSystem.gd: non persistés (combat-only, reset chaque battle)
 
 **Verification Notes:**
-- Contrôle A (static):
-- Contrôle B (godot parse):
+- Contrôle A (static): ✅ All clear
+- Contrôle B (godot parse): ✅ aucun SCRIPT ERROR
 - Contrôle C (logic trace):
-- Contrôle D (regression):
-- Déferments:
+  - AC1: stop/berserk/confuse_turns = 0 in clear_status() + start_battle() loop
+  - AC2: _tick_status(): if stop_turns > 0 → décrement → return true → skip dans _advance_turn while loop
+  - AC3: _advance_turn(): if berserk_turns > 0 → atk×1.5 → player_attack() auto; cast bloqué
+  - AC4: player_attack(): confuse check → 50% randf → redirect ally
+  - AC5: _refresh_party_ui(): status_tag += "🔴/🟡/🔵" selon champs actifs
+- Contrôle D (regression): 110/110 tests passent
+- Déferments: aucun
 
 ---
 

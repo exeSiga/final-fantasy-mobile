@@ -189,6 +189,10 @@ func start_battle(dungeon: bool = false, boss: bool = false) -> void:
 	if GameManager.party.is_empty():
 		GameManager.new_game()
 	party = GameManager.party
+	for m in party:
+		m.stop_turns = 0
+		m.berserk_turns = 0
+		m.confuse_turns = 0
 	_apply_spell_materias()
 	GameManager.reset_summon_charges()
 	player_unit = null
@@ -287,6 +291,12 @@ func _advance_turn() -> void:
 				continue
 			state = BattleState.PLAYER_TURN
 			atb_ready.emit(current)
+			if current.berserk_turns > 0:
+				battle_log.emit("%s est berserk — attaque forcée !" % current.unit_name)
+				var old_atk: int = current.atk
+				current.atk = int(current.atk * 1.5)
+				player_attack()
+				current.atk = old_atk
 			return
 		else:
 			state = BattleState.ENEMY_TURN
@@ -297,8 +307,28 @@ func _advance_turn() -> void:
 			await _enemy_act(current)
 			return
 
-# Returns true if the unit's turn should be skipped (sleep, or died from poison)
+func _apply_status(unit, status_name: String, turns: int) -> void:
+	match status_name:
+		"stop":
+			unit.stop_turns = turns
+			battle_log.emit("%s est figé (Stop) !" % unit.unit_name)
+		"berserk":
+			unit.berserk_turns = turns
+			battle_log.emit("%s entre en furie (Berserk) !" % unit.unit_name)
+		"confuse":
+			unit.confuse_turns = turns
+			battle_log.emit("%s est confus !" % unit.unit_name)
+
+# Returns true if the unit's turn should be skipped (sleep, stop, or died from poison)
 func _tick_status(unit) -> bool:
+	if unit.stop_turns > 0:
+		battle_log.emit("%s est figé — tour sauté !" % unit.unit_name)
+		unit.stop_turns -= 1
+		return true
+	if unit.berserk_turns > 0:
+		unit.berserk_turns -= 1
+	if unit.confuse_turns > 0:
+		unit.confuse_turns -= 1
 	if unit.status == "":
 		return false
 	if unit.status == "sleep":
@@ -491,6 +521,16 @@ func player_summon(mat_path: String) -> void:
 func player_attack(target = null) -> void:
 	if state != BattleState.PLAYER_TURN or player_unit == null:
 		return
+	if player_unit.confuse_turns > 0 and randf() < 0.5:
+		var allies: Array = party.filter(func(m) -> bool: return m.is_alive() and m != player_unit)
+		if not allies.is_empty():
+			var ally = allies[randi() % allies.size()]
+			battle_log.emit("Confusion ! %s attaque son allié %s !" % [player_unit.unit_name, ally.unit_name])
+			var dmg: int = max(1, int(player_unit.atk * randf_range(0.85, 1.15)))
+			ally.take_damage(dmg)
+			action_result.emit(player_unit.unit_name, ally.unit_name, dmg, false)
+			_after_player_turn()
+			return
 	if target == null or not target.is_alive():
 		var alive: Array = enemies.filter(func(e) -> bool: return e.is_alive())
 		if alive.is_empty():
@@ -542,6 +582,9 @@ func _check_phase_transition(enemy) -> void:
 
 func player_cast_spell(spell, target = null) -> void:
 	if state != BattleState.PLAYER_TURN or player_unit == null:
+		return
+	if player_unit.berserk_turns > 0:
+		battle_log.emit("%s est berserk — ne peut pas lancer de sort !" % player_unit.unit_name)
 		return
 	if player_unit.status == "silence":
 		battle_log.emit("%s is silenced — can't cast!" % player_unit.unit_name)
@@ -796,7 +839,13 @@ func _ai_orc(enemy) -> void:
 		_ai_basic_attack(enemy)
 
 func _ai_shadow(enemy) -> void:
-	if randf() < 0.40:
+	var roll: float = randf()
+	if roll < 0.30:
+		var target = _random_alive_ally()
+		if target != null:
+			_apply_status(target, "confuse", 2)
+			action_result.emit(enemy.unit_name, target.unit_name, 0, false)
+	elif roll < 0.60:
 		# Soul Drain: attack + drain MP from a mage
 		var mage = _find_alive_mage()
 		var target = mage if mage != null else _random_alive_ally()
@@ -840,7 +889,13 @@ func _ai_gargoyle(enemy) -> void:
 	_ai_basic_attack(enemy)
 
 func _ai_dark_knight(enemy) -> void:
-	if randf() < 0.35:
+	var roll: float = randf()
+	if roll < 0.25:
+		var target = _random_alive_ally()
+		if target != null:
+			_apply_status(target, "stop", 2)
+			action_result.emit(enemy.unit_name, target.unit_name, 0, false)
+	elif roll < 0.60:
 		battle_log.emit("Dark Wave!")
 		var alive: Array = party.filter(func(m) -> bool: return m.is_alive())
 		for target in alive:
@@ -961,12 +1016,18 @@ func _ai_jenova(enemy) -> void:
 	_check_phase_transition(enemy)
 
 func _ai_ruby_weapon(enemy) -> void:
-	# Always attacks; 30% chance to counter-attack a second time
 	_ai_basic_attack(enemy)
 	_check_battle_end()
 	if state != BattleState.ENEMY_TURN:
 		return
-	if randf() < 0.30:
+	var roll: float = randf()
+	if roll < 0.20:
+		await get_tree().create_timer(0.4).timeout
+		var target = _random_alive_ally()
+		if target != null:
+			_apply_status(target, "berserk", 2)
+			action_result.emit(enemy.unit_name, target.unit_name, 0, false)
+	elif roll < 0.50:
 		await get_tree().create_timer(0.5).timeout
 		battle_log.emit("Ruby Weapon contre-attaque !")
 		_ai_basic_attack(enemy)

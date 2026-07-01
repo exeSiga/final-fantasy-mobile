@@ -425,6 +425,9 @@ func _refresh_party_ui() -> void:
 			"poison":  status_tag = " [PSN]"
 			"sleep":   status_tag = " [SLP]"
 			"silence": status_tag = " [SIL]"
+		if m.stop_turns > 0:   status_tag += " 🔴"
+		if m.berserk_turns > 0: status_tag += " 🟡"
+		if m.confuse_turns > 0: status_tag += " 🔵"
 		_party_name_labels[i].text = m.unit_name + status_tag
 		if not m.is_alive():
 			_party_name_labels[i].add_theme_color_override("font_color", Color(0.4, 0.4, 0.4, 1))

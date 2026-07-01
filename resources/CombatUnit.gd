@@ -25,6 +25,9 @@ var haste_turns_left: int = 0
 var base_spd: int = 0
 var status: String = ""       # "" | "poison" | "sleep" | "silence"
 var status_turns: int = 0
+var stop_turns: int = 0       # unit skips turn
+var berserk_turns: int = 0    # unit auto-attacks (ATK ×1.5), can't cast
+var confuse_turns: int = 0    # 50% chance to attack ally
 var limit_gauge: int = 0      # 0-100, fills when receiving damage
 var limit_damage_taken: int = 0  # cumulative damage taken; at 200 → tier 2 unlocks
 var limit_tier: int = 1           # 1 or 2; tier 2 unlocked at limit_damage_taken >= 200
@@ -47,6 +50,9 @@ func inflict_status(s: String) -> bool:
 func clear_status() -> void:
 	status = ""
 	status_turns = 0
+	stop_turns = 0
+	berserk_turns = 0
+	confuse_turns = 0
 
 func tick_status() -> int:
 	# Returns poison damage dealt, or 0 for other statuses
