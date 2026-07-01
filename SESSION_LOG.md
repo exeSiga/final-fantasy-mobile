@@ -8,3 +8,4 @@
 [2026-07-01] Sprint 50 (Boutique Évolutive) — DONE — 4 équipements, Thundara+Regen matérias, sections rang-gated, badge NOUVEAU doré, 90/90 tests
 [2026-07-01] Sprint 51 (Armes Élémentaires) — DONE — flame_blade/ice_brand/thunder_blade, weapon_element field, bonus ×1.5 faiblesse, HUD icône, 94/94 tests
 [2026-07-01] Sprint 52 (Trésors Donjon) — DONE — 4 rares, DUNGEON_TREASURE_POOL, try_show_dungeon_treasure popup 💎, dungeon_treasures_found, 98/98 tests
+[2026-07-01] Sprint 53 (Yuffie Kisaragi) — DONE — 6e membre Ninja SPD=45, Shuriken Throw AoE, Steal 60% ENEMY_STEAL_POOL, 14 ennemis, 101/101 tests
