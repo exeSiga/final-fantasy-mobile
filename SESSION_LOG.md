@@ -14,3 +14,4 @@
 [2026-07-01] Sprint 44 (Red XIII Beastmaster) — DONE — 5e membre, SPD=40, Lunatic High SPD×2 party, Cosmo Memory AoE Tier2, 66/66 tests
 [2026-07-01] Sprint 45 (Districts de Midgar) — DONE — Secteur 1/5/7 boutons, 3 ennemis, mako_shard+slum_herb+shinra_badge, sector_victories, 70/70 tests
 [2026-07-01] Sprint 46 (Fichiers ShinRa) — DONE — 6 entrées lore, shinra_files_seen, check_shinra_files, popup bleu 4s, persisté save, 74/74 tests
+[2026-07-01] Sprint 47 (New Game+) — DONE — ng_plus_unlocked/mode, ennemis ×1.5, rewards ×1.5, bouton Sephiroth victory, save/load, 78/78 tests
