@@ -18,3 +18,4 @@
 [2026-07-01] Sprint 48 (Dialogues à Choix) — DONE — NPC_CHOICES 3 PNJ, gold/item/lore rewards, npc_flags persist, popup modal, 82/82 tests
 [2026-07-01] Sprint 49 (Bestiaire) — DONE — 13 ennemis FF7, lore, milestone rewards, _check_bestiary_milestone, ScrollContainer, 86/86 tests
 [2026-07-01] Sprint 50 (Boutique Évolutive) — DONE — 4 équipements, Thundara+Regen matérias, sections rang-gated, badge NOUVEAU doré, 90/90 tests
+[2026-07-01] Sprint 51 (Armes Élémentaires) — DONE — flame_blade/ice_brand/thunder_blade, weapon_element field, bonus ×1.5 faiblesse, HUD icône, 94/94 tests
