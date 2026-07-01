@@ -49,6 +49,7 @@ func _ready() -> void:
 	_add_bestiary_button()
 	_add_wall_market_button()
 	_add_forge_button()
+	_add_boss_rush_button()
 	if GameManager.pending_rank_notification != "":
 		var rn: String = GameManager.pending_rank_notification
 		GameManager.pending_rank_notification = ""
@@ -805,3 +806,27 @@ func _on_encounter() -> void:
 	BattleManager.sector_mode = ""
 	BattleManager.dungeon_mode = false
 	GameManager.change_scene("res://scenes/combat/Battle.tscn")
+
+func _add_boss_rush_button() -> void:
+	var layer := CanvasLayer.new()
+	layer.layer = 9
+	add_child(layer)
+	var btn := Button.new()
+	var score: int = GameManager.boss_rush_best_score
+	if score > 0:
+		btn.text = "⚔️ Boss Rush (record: %d/5)" % score
+	else:
+		btn.text = "⚔️ Boss Rush"
+	btn.add_theme_font_size_override("font_size", 24)
+	btn.custom_minimum_size = Vector2(260, 70)
+	btn.anchor_left = 0.5
+	btn.anchor_right = 0.5
+	btn.anchor_top = 0.0
+	btn.anchor_bottom = 0.0
+	btn.offset_left = -130.0
+	btn.offset_right = 130.0
+	btn.offset_top = 10.0
+	btn.offset_bottom = 80.0
+	btn.visible = GameManager.sephiroth_defeated
+	btn.pressed.connect(func() -> void: GameManager.start_boss_rush())
+	layer.add_child(btn)

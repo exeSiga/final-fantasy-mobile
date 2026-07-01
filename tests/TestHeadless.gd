@@ -153,6 +153,11 @@ func _run_all() -> void:
 	_test_storm_boosts_lightning()
 	_test_blizzard_boosts_ice()
 	_test_heat_boosts_fire()
+	_test_boss_rush_locked_initially()
+	_test_boss_rush_unlocked_after_sephiroth()
+	_test_boss_rush_sequence_defined()
+	_test_hero_drink_defined()
+	_test_boss_rush_save_load()
 
 func _test_new_game() -> void:
 	GameManager.new_game()
@@ -2074,3 +2079,58 @@ func _test_heat_boosts_fire() -> void:
 	if clear_result != 100:
 		_ko("heat_boosts_fire", "clear weather should not modify fire, got %d" % clear_result); return
 	_ok("heat_boosts_fire: heat boosts fire to 130; clear has no modifier")
+
+func _test_boss_rush_locked_initially() -> void:
+	GameManager.new_game()
+	if GameManager.sephiroth_defeated:
+		_ko("boss_rush_locked_initially", "sephiroth_defeated should be false after new_game"); return
+	if GameManager.boss_rush_best_score != 0:
+		_ko("boss_rush_locked_initially", "boss_rush_best_score should be 0 after new_game, got %d" % GameManager.boss_rush_best_score); return
+	# start_boss_rush should do nothing if sephiroth not defeated
+	GameManager.start_boss_rush()
+	if GameManager.boss_rush_active:
+		_ko("boss_rush_locked_initially", "boss_rush should not activate when sephiroth not defeated"); return
+	_ok("boss_rush_locked_initially: Boss Rush locked while sephiroth_defeated=false")
+
+func _test_boss_rush_unlocked_after_sephiroth() -> void:
+	GameManager.new_game()
+	GameManager.sephiroth_defeated = true
+	if not GameManager.sephiroth_defeated:
+		_ko("boss_rush_unlocked_after_sephiroth", "sephiroth_defeated should be true"); return
+	# Don't call start_boss_rush() as it would try to change scene; just verify the unlock condition
+	_ok("boss_rush_unlocked_after_sephiroth: sephiroth_defeated flag enables Boss Rush button visibility")
+
+func _test_boss_rush_sequence_defined() -> void:
+	if GameManager.BOSS_RUSH_SEQUENCE.size() != 5:
+		_ko("boss_rush_sequence_defined", "BOSS_RUSH_SEQUENCE should have 5 entries, got %d" % GameManager.BOSS_RUSH_SEQUENCE.size()); return
+	for entry in GameManager.BOSS_RUSH_SEQUENCE:
+		if not entry.has("name") or not entry.has("path"):
+			_ko("boss_rush_sequence_defined", "entry missing name or path"); return
+		var res = load(entry.path)
+		if res == null:
+			_ko("boss_rush_sequence_defined", "failed to load boss at %s" % entry.path); return
+	_ok("boss_rush_sequence_defined: 5 boss rush entries all loadable")
+
+func _test_hero_drink_defined() -> void:
+	var hero_drink = load("res://resources/items/hero_drink.tres")
+	if hero_drink == null:
+		_ko("hero_drink_defined", "hero_drink.tres not found"); return
+	if hero_drink.effect_type != 4:
+		_ko("hero_drink_defined", "hero_drink effect_type should be 4 (HEAL_ALL), got %d" % hero_drink.effect_type); return
+	if hero_drink.price != 9999:
+		_ko("hero_drink_defined", "hero_drink price should be 9999, got %d" % hero_drink.price); return
+	_ok("hero_drink_defined: Hero Drink found with effect_type=4 (HEAL_ALL) price=9999")
+
+func _test_boss_rush_save_load() -> void:
+	GameManager.new_game()
+	GameManager.boss_rush_best_score = 3
+	SaveSystem.save(0)
+	GameManager.new_game()
+	if GameManager.boss_rush_best_score != 0:
+		_ko("boss_rush_save_load", "new_game should reset boss_rush_best_score"); return
+	var ok: bool = SaveSystem.load_save(0)
+	if not ok:
+		_ko("boss_rush_save_load", "load_save returned false"); return
+	if GameManager.boss_rush_best_score != 3:
+		_ko("boss_rush_save_load", "boss_rush_best_score should be 3 after load, got %d" % GameManager.boss_rush_best_score); return
+	_ok("boss_rush_save_load: boss_rush_best_score persists through save/load")

@@ -186,6 +186,8 @@ const WALL_MARKET_DEAL_ITEMS: Array = [
 const WALL_MARKET_UNLOCK_ITEM: String = "res://resources/equipment/black_materia_shard.tres"
 var wall_market_visits: int = 0
 var dungeon_treasures_found: Array = []
+var boss_rush_best_score: int = 0
+var boss_rush_active: bool = false
 var ng_plus_unlocked: bool = false
 var ng_plus_mode: bool = false
 var npc_flags: Dictionary = {}
@@ -306,6 +308,8 @@ func new_game() -> void:
 	pending_rank_notification = ""
 	materia_ap = {}
 	wall_market_visits = 0
+	boss_rush_active = false
+	boss_rush_best_score = 0
 	for m in party:
 		base_party_spell_paths.append(m.spell_paths.duplicate())
 	dungeon_boss_cleared = false
@@ -1024,3 +1028,91 @@ func _on_forge_upgrade(p_idx: int, slot_name: String, btn: Button, info_lbl: Lab
 	else:
 		var next_cost: int = FORGE_BASE_COST * (upgrade_lvl + 1)
 		btn.text = "+5 (%dG)" % next_cost
+
+const BOSS_RUSH_SEQUENCE: Array = [
+	{"name": "Guard Scorpion", "path": "res://resources/units/guard_scorpion.tres"},
+	{"name": "Jenova",         "path": "res://resources/units/jenova.tres"},
+	{"name": "Dark Knight",    "path": "res://resources/units/dark_knight.tres"},
+	{"name": "Ruby Weapon",    "path": "res://resources/units/ruby_weapon.tres"},
+	{"name": "Emerald Weapon", "path": "res://resources/units/emerald_weapon.tres"},
+]
+
+var _boss_rush_current: int = 0
+var _boss_rush_canvas: CanvasLayer = null
+
+func start_boss_rush() -> void:
+	if not sephiroth_defeated:
+		return
+	boss_rush_active = true
+	_boss_rush_current = 0
+	_boss_rush_canvas = null
+	_boss_rush_next_fight()
+
+func _boss_rush_next_fight() -> void:
+	if _boss_rush_current >= BOSS_RUSH_SEQUENCE.size():
+		_on_boss_rush_complete()
+		return
+	var entry: Dictionary = BOSS_RUSH_SEQUENCE[_boss_rush_current]
+	var canvas: CanvasLayer = CanvasLayer.new()
+	canvas.layer = 95
+	get_tree().root.add_child(canvas)
+	_boss_rush_canvas = canvas
+	var lbl: Label = Label.new()
+	lbl.text = "⚔️ Boss Rush — Combat %d/5\nProchain : %s" % [_boss_rush_current + 1, entry.name]
+	lbl.add_theme_font_size_override("font_size", 28)
+	lbl.add_theme_color_override("font_color", Color(1, 0.85, 0.1, 1))
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.set_anchors_and_offsets_preset(Control.PRESET_CENTER, Control.PRESET_MODE_MINSIZE)
+	lbl.offset_left = -300
+	lbl.offset_right = 300
+	lbl.offset_top = -60
+	lbl.offset_bottom = 60
+	canvas.add_child(lbl)
+	var btn: Button = Button.new()
+	btn.text = "Combattre !"
+	btn.add_theme_font_size_override("font_size", 28)
+	btn.set_anchors_and_offsets_preset(Control.PRESET_CENTER, Control.PRESET_MODE_MINSIZE)
+	btn.offset_left = -120
+	btn.offset_right = 120
+	btn.offset_top = 80
+	btn.offset_bottom = 140
+	btn.pressed.connect(_on_boss_rush_fight.bind(entry, canvas))
+	canvas.add_child(btn)
+
+func _on_boss_rush_fight(entry: Dictionary, canvas: CanvasLayer) -> void:
+	canvas.queue_free()
+	var enemy_res = load(entry.path)
+	if enemy_res == null:
+		_boss_rush_current += 1
+		_boss_rush_next_fight()
+		return
+	BattleManager.enemies.clear()
+	BattleManager.enemies.append(enemy_res.duplicate())
+	BattleManager.party = party
+	BattleManager.is_boss_battle = true
+	BattleManager.battle_ended.connect(_on_boss_rush_battle_ended, CONNECT_ONE_SHOT)
+	get_tree().change_scene_to_file("res://scenes/combat/Battle.tscn")
+
+func _on_boss_rush_battle_ended(result) -> void:
+	if result == "win" or result == true:
+		_boss_rush_current += 1
+		if _boss_rush_current > boss_rush_best_score:
+			boss_rush_best_score = _boss_rush_current
+		if _boss_rush_current >= BOSS_RUSH_SEQUENCE.size():
+			_on_boss_rush_complete()
+		else:
+			get_tree().change_scene_to_file("res://scenes/world/WorldMap.tscn")
+	else:
+		boss_rush_active = false
+		if _boss_rush_current > boss_rush_best_score:
+			boss_rush_best_score = _boss_rush_current
+		get_tree().change_scene_to_file("res://scenes/world/WorldMap.tscn")
+
+func _on_boss_rush_complete() -> void:
+	boss_rush_active = false
+	boss_rush_best_score = BOSS_RUSH_SEQUENCE.size()
+	var hero_drink = load("res://resources/items/hero_drink.tres")
+	for i in 3:
+		if hero_drink != null:
+			add_item(hero_drink)
+	_show_shinra_popup("🏆 Champion du Boss Rush !", "Tu as vaincu les 5 boss en séquence. Légendaire !")

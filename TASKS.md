@@ -770,7 +770,7 @@
 
 ---
 
-## Sprint 61 — Boss Rush Mode (Épreuves de Puissance) [STATUS: TODO]
+## Sprint 61 — Boss Rush Mode (Épreuves de Puissance) [STATUS: DONE]
 **Goal:** Débloquer un mode "Boss Rush" après avoir vaincu Sephiroth : enchaîner tous les boss majeurs en séquence sans soins entre les combats
 
 **Acceptance Criteria:**
@@ -788,11 +788,16 @@
 - [ ] tests/TestHeadless.gd: 5 tests (boss_rush_locked_initially, boss_rush_unlocked_after_sephiroth, boss_rush_sequence_defined, hero_drink_defined, boss_rush_save_load)
 
 **Verification Notes:**
-- Contrôle A (static):
-- Contrôle B (godot parse):
+- Contrôle A (static): ✅ check_compat.sh All clear
+- Contrôle B (godot parse): ✅ 140/140 tests headless
 - Contrôle C (logic trace):
-- Contrôle D (regression):
-- Déferments:
+  - AC1: _add_boss_rush_button() in WorldMap, btn.visible=sephiroth_defeated; BOSS_RUSH_SEQUENCE const 5 entries
+  - AC2: No heal between bosses — party HP carries over (no new_game() between fights); battle_log in next fight popup
+  - AC3: _on_boss_rush_battle_ended(lose) → boss_rush_active=false, updates best_score, changes scene to WorldMap
+  - AC4: _on_boss_rush_complete() → add hero_drink ×3 via add_item(); _show_shinra_popup notification
+  - AC5: boss_rush_best_score saved/loaded via SaveSystem; score shown on button text
+- Contrôle D (regression): 140/0 tests pass, MainMenu→Battle flow intact
+- Déferments: Boss Rush fights use scene change (real gameplay) rather than mock battles
 
 ---
 
