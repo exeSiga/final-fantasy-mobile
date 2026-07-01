@@ -92,6 +92,10 @@ func _run_all() -> void:
 	_test_shinra_files_conditions()
 	_test_shinra_files_save_load()
 	_test_shinra_files_no_repeat()
+	_test_ng_plus_flags_default()
+	_test_ng_plus_rewards()
+	_test_ng_plus_enemy_scaling()
+	_test_ng_plus_save_load()
 
 func _test_new_game() -> void:
 	GameManager.new_game()
@@ -1164,3 +1168,65 @@ func _test_shinra_files_no_repeat() -> void:
 	if GameManager.shinra_files_seen.size() != count_before:
 		_ko("shinra_files_no_repeat", "shinra_files_seen should not grow for already-seen entries"); return
 	_ok("shinra_files_no_repeat: already-seen Fichier ShinRa entries are not re-triggered")
+
+func _test_ng_plus_flags_default() -> void:
+	GameManager.new_game()
+	if GameManager.ng_plus_unlocked != false:
+		_ko("ng_plus_flags_default", "ng_plus_unlocked should default false after new_game"); return
+	if GameManager.ng_plus_mode != false:
+		_ko("ng_plus_flags_default", "ng_plus_mode should default false after new_game"); return
+	_ok("ng_plus_flags_default: ng_plus_unlocked and ng_plus_mode default to false")
+
+func _test_ng_plus_rewards() -> void:
+	GameManager.new_game()
+	GameManager.ng_plus_mode = true
+	BattleManager.is_boss1_battle = false
+	BattleManager.is_boss2_battle = false
+	BattleManager.enemies.clear()
+	var slime = load("res://resources/units/slime.tres").duplicate()
+	BattleManager.enemies.append(slime)
+	var base_xp: int = slime.xp_reward
+	var base_gold: int = slime.gold_reward
+	var gold_before: int = GameManager.gold
+	GameManager.grant_battle_rewards()
+	var expected_gold: int = gold_before + int(base_gold * 1.5)
+	if GameManager.gold != expected_gold:
+		_ko("ng_plus_rewards", "expected gold=%d got %d" % [expected_gold, GameManager.gold]); return
+	if BattleManager.last_xp != int(base_xp * 1.5):
+		_ko("ng_plus_rewards", "expected xp=%d got %d" % [int(base_xp * 1.5), BattleManager.last_xp]); return
+	GameManager.ng_plus_mode = false
+	_ok("ng_plus_rewards: XP and Gold are ×1.5 in ng_plus_mode")
+
+func _test_ng_plus_enemy_scaling() -> void:
+	GameManager.new_game()
+	GameManager.ng_plus_mode = true
+	BattleManager.enemies.clear()
+	var slime = load("res://resources/units/slime.tres").duplicate()
+	var base_hp: int = slime.max_hp
+	var base_atk: int = slime.atk
+	BattleManager.enemies.append(slime)
+	BattleManager._apply_ng_plus_scaling()
+	if BattleManager.enemies[0].max_hp != int(base_hp * 1.5):
+		_ko("ng_plus_enemy_scaling", "max_hp expected %d got %d" % [int(base_hp * 1.5), BattleManager.enemies[0].max_hp]); return
+	if BattleManager.enemies[0].atk != int(base_atk * 1.5):
+		_ko("ng_plus_enemy_scaling", "atk expected %d got %d" % [int(base_atk * 1.5), BattleManager.enemies[0].atk]); return
+	GameManager.ng_plus_mode = false
+	BattleManager.enemies.clear()
+	_ok("ng_plus_enemy_scaling: enemies get ×1.5 HP and ATK in ng_plus_mode")
+
+func _test_ng_plus_save_load() -> void:
+	GameManager.new_game()
+	GameManager.ng_plus_unlocked = true
+	GameManager.ng_plus_mode = true
+	SaveSystem.save(0)
+	GameManager.new_game()
+	if GameManager.ng_plus_unlocked != false:
+		_ko("ng_plus_save_load", "new_game should clear ng_plus_unlocked"); return
+	var ok: bool = SaveSystem.load_save(0)
+	if not ok:
+		_ko("ng_plus_save_load", "load_save returned false"); return
+	if GameManager.ng_plus_unlocked != true:
+		_ko("ng_plus_save_load", "ng_plus_unlocked should be true after load"); return
+	if GameManager.ng_plus_mode != true:
+		_ko("ng_plus_save_load", "ng_plus_mode should be true after load"); return
+	_ok("ng_plus_save_load: ng_plus_unlocked and ng_plus_mode persist through save/load")

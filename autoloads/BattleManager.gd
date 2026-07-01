@@ -202,10 +202,19 @@ func start_battle(dungeon: bool = false, boss: bool = false) -> void:
 		enemies.append(load(pool[randi() % pool.size()]).duplicate())
 		if randi() % 2 == 0:
 			enemies.append(load(pool[randi() % pool.size()]).duplicate())
+	_apply_ng_plus_scaling()
 	_build_turn_queue()
 	state = BattleState.IDLE
 	battle_started.emit(party, enemies)
 	_advance_turn()
+
+func _apply_ng_plus_scaling() -> void:
+	if not GameManager.ng_plus_mode:
+		return
+	for e in enemies:
+		e.max_hp = int(e.max_hp * 1.5)
+		e.hp = e.max_hp
+		e.atk = int(e.atk * 1.5)
 
 func _build_turn_queue() -> void:
 	turn_queue.clear()
@@ -958,6 +967,7 @@ func start_sector_battle(sector: String) -> void:
 	enemies.append(load(pool[randi() % pool.size()]).duplicate())
 	if randi() % 2 == 0 and pool.size() > 1:
 		enemies.append(load(pool[randi() % pool.size()]).duplicate())
+	_apply_ng_plus_scaling()
 	_build_turn_queue()
 	state = BattleState.IDLE
 	battle_started.emit(party, enemies)
@@ -984,6 +994,7 @@ func start_arena() -> void:
 	enemies.clear()
 	for path in _arena_enemy_pool(1):
 		enemies.append(load(path).duplicate())
+	_apply_ng_plus_scaling()
 	_build_turn_queue()
 	state = BattleState.IDLE
 	battle_started.emit(party, enemies)

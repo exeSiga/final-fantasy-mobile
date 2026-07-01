@@ -448,7 +448,17 @@ func _on_battle_ended(victory: bool) -> void:
 			BattleManager.arena_completed = false
 			_victory_title.text = "Champion de l'Arène !\n★ Champion Belt obtenu !\n+%d XP  +%d G" % [BattleManager.last_xp, BattleManager.last_gold]
 		elif BattleManager.is_boss_sephiroth_battle:
+			GameManager.ng_plus_unlocked = true
 			_victory_title.text = "Sephiroth vaincu !\nLa planète est sauvée.\n+%d XP  +%d G" % [BattleManager.last_xp, BattleManager.last_gold]
+			var ng_vbox = victory_overlay.get_node("VBox")
+			var ng_btn := Button.new()
+			ng_btn.text = "✨ New Game+"
+			ng_btn.add_theme_font_size_override("font_size", 32)
+			ng_btn.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2, 1))
+			ng_btn.custom_minimum_size = Vector2(300, 80)
+			ng_btn.pressed.connect(_on_ng_plus_pressed)
+			ng_vbox.add_child(ng_btn)
+			ng_vbox.move_child(ng_btn, 1)
 		elif BattleManager.is_ruby_weapon_battle:
 			_victory_title.text = "Ruby Weapon vaincu !\n★ Ruby Ring obtenu !\n+%d XP  +%d G" % [BattleManager.last_xp, BattleManager.last_gold]
 		elif BattleManager.is_emerald_weapon_battle:
@@ -730,6 +740,13 @@ func _on_gameover_retry_pressed() -> void:
 	gameover_overlay.hide()
 	AudioManager.play_battle_bgm()
 	BattleManager.retry_battle()
+
+func _on_ng_plus_pressed() -> void:
+	GameManager.new_game()
+	GameManager.ng_plus_unlocked = true
+	GameManager.ng_plus_mode = true
+	SaveSystem.save(0)
+	GameManager.change_scene("res://scenes/world/WorldMap.tscn")
 
 func _on_gameover_menu_pressed() -> void:
 	GameManager.change_scene("res://scenes/ui/MainMenu.tscn")

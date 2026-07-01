@@ -88,6 +88,8 @@ const SHINRA_FILES: Array = [
 		"lore": "Sephiroth... ce nom ne doit plus jamais être prononcé dans les rangs de ShinRa. Dossier scellé.",
 	},
 ]
+var ng_plus_unlocked: bool = false
+var ng_plus_mode: bool = false
 var pending_rank_notification: String = ""
 var merchant_discount: float = 1.0
 
@@ -162,6 +164,8 @@ func new_game() -> void:
 	sephiroth_defeated = false
 	shinra_files_seen = []
 	total_kills = 0
+	ng_plus_unlocked = false
+	ng_plus_mode = false
 	pending_rank_notification = ""
 	for m in party:
 		base_party_spell_paths.append(m.spell_paths.duplicate())
@@ -491,6 +495,9 @@ func grant_battle_rewards() -> void:
 	if is_named_boss:
 		total_xp *= 3
 		total_gold += 500
+	if ng_plus_mode:
+		total_xp = int(total_xp * 1.5)
+		total_gold = int(total_gold * 1.5)
 	add_gold(total_gold)
 	var xp_mult: float = get_rank_xp_mult()
 	var xp_with_bonus: int = int(total_xp * xp_mult)

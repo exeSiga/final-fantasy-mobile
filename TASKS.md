@@ -381,25 +381,28 @@
 
 ---
 
-## Sprint 47 — New Game+ (Difficulté Augmentée) [STATUS: TODO]
+## Sprint 47 — New Game+ (Difficulté Augmentée) [STATUS: DONE]
 **Goal:** Après avoir terminé le jeu (Sephiroth vaincu), débloquer un mode New Game+ qui relance avec les stats ennemis ×1.5 et des récompenses de fin améliorées
 
 **Acceptance Criteria:**
-- [ ] AC1: Après victoire sur Sephiroth, un bouton "New Game+" apparaît sur l'écran de victoire final (persisté via GameManager.ng_plus_unlocked)
-- [ ] AC2: En NG+, tous les ennemis ont leurs HP et ATK multipliés par 1.5 (BattleManager.ng_plus_mode: bool)
-- [ ] AC3: Les XP et Gold rewards sont aussi ×1.5 en NG+ (GameManager.grant_battle_rewards adapté)
-- [ ] AC4: ng_plus_unlocked et ng_plus_mode persistent à la sauvegarde
+- [x] AC1: Après victoire sur Sephiroth, un bouton "New Game+" apparaît sur l'écran de victoire final (persisté via GameManager.ng_plus_unlocked)
+- [x] AC2: En NG+, tous les ennemis ont leurs HP et ATK multipliés par 1.5 (BattleManager._apply_ng_plus_scaling())
+- [x] AC3: Les XP et Gold rewards sont aussi ×1.5 en NG+ (GameManager.grant_battle_rewards adapté)
+- [x] AC4: ng_plus_unlocked et ng_plus_mode persistent à la sauvegarde
 
 **Tasks:**
-- [ ] GameManager.gd: ng_plus_unlocked: bool, ng_plus_mode: bool
-- [ ] BattleManager.gd: ng_plus_mode: bool; dans start_battle() après chargement ennemis → si ng_plus_mode: enemy.hp *= 1.5, enemy.max_hp *= 1.5, enemy.atk *= 1.5
-- [ ] GameManager.grant_battle_rewards(): si ng_plus_mode → XP et gold ×1.5
-- [ ] Battle.gd: _on_battle_ended(victory) + is_boss_sephiroth_battle → bouton "New Game+" si victory
-- [ ] SaveSystem.gd: persister ng_plus_unlocked et ng_plus_mode
+- [x] GameManager.gd: ng_plus_unlocked: bool, ng_plus_mode: bool, reset dans new_game(), ×1.5 dans grant_battle_rewards()
+- [x] BattleManager.gd: _apply_ng_plus_scaling() appelé dans start_battle/sector/arena
+- [x] Battle.gd: bouton ✨ New Game+ ajouté dynamiquement sur victoire Sephiroth, _on_ng_plus_pressed()
+- [x] SaveSystem.gd: ng_plus_unlocked et ng_plus_mode persistés
 
 **Verification Notes:**
-- Contrôle A (static):
-- Contrôle B (godot parse):
+- Contrôle A (static): ✅ check_compat.sh All clear
+- Contrôle B (godot parse): ✅ aucun SCRIPT ERROR
 - Contrôle C (logic trace):
-- Contrôle D (regression):
-- Déferments:
+  - AC1: Battle._on_battle_ended() → ng_plus_unlocked=true + bouton VBox[1] → _on_ng_plus_pressed → new_game + flags + save + WorldMap
+  - AC2: _apply_ng_plus_scaling() appelée après chargement des ennemis dans les 3 entry points; vérifie GameManager.ng_plus_mode
+  - AC3: grant_battle_rewards() multiplie xp/gold ×1.5 avant add_gold(); vérifié par test
+  - AC4: SaveSystem.save()/load_save() sérialisent ng_plus_unlocked et ng_plus_mode avec fallback false
+- Contrôle D (regression): 78/78 tests passent; flags false par défaut = aucun impact sur le jeu normal
+- Déferments: aucun

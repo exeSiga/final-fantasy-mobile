@@ -57,6 +57,8 @@ func save(slot: int) -> void:
 		"scene_jenova_done": GameManager.scene_jenova_done,
 		"sephiroth_defeated": GameManager.sephiroth_defeated,
 		"shinra_files_seen": GameManager.shinra_files_seen,
+		"ng_plus_unlocked": GameManager.ng_plus_unlocked,
+		"ng_plus_mode": GameManager.ng_plus_mode,
 		"total_kills": GameManager.total_kills,
 		"quest_kills": QuestManager.kill_counts,
 		"quest_completed": QuestManager.completed,
@@ -111,6 +113,8 @@ func load_save(slot: int) -> bool:
 	GameManager.scene_jenova_done = d.get("scene_jenova_done", false)
 	GameManager.sephiroth_defeated = d.get("sephiroth_defeated", false)
 	GameManager.shinra_files_seen = d.get("shinra_files_seen", [])
+	GameManager.ng_plus_unlocked = d.get("ng_plus_unlocked", false)
+	GameManager.ng_plus_mode = d.get("ng_plus_mode", false)
 	GameManager.total_kills = d.get("total_kills", 0)
 	GameManager.learned_enemy_skills = d.get("learned_enemy_skills", [])
 	QuestManager.kill_counts = d.get("quest_kills", {})
