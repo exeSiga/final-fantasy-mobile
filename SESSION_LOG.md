@@ -17,3 +17,4 @@
 [2026-07-01] Sprint 47 (New Game+) — DONE — ng_plus_unlocked/mode, ennemis ×1.5, rewards ×1.5, bouton Sephiroth victory, save/load, 78/78 tests
 [2026-07-01] Sprint 48 (Dialogues à Choix) — DONE — NPC_CHOICES 3 PNJ, gold/item/lore rewards, npc_flags persist, popup modal, 82/82 tests
 [2026-07-01] Sprint 49 (Bestiaire) — DONE — 13 ennemis FF7, lore, milestone rewards, _check_bestiary_milestone, ScrollContainer, 86/86 tests
+[2026-07-01] Sprint 50 (Boutique Évolutive) — DONE — 4 équipements, Thundara+Regen matérias, sections rang-gated, badge NOUVEAU doré, 90/90 tests
