@@ -712,7 +712,7 @@
 
 ---
 
-## Sprint 59 — Forge d'Armes (Amélioration d'Équipement) [STATUS: TODO]
+## Sprint 59 — Forge d'Armes (Amélioration d'Équipement) [STATUS: DONE]
 **Goal:** Permettre d'améliorer les armes/armures équipées en dépensant de l'or, augmentant leur stat_bonus de +5 jusqu'à 3 fois par pièce
 
 **Acceptance Criteria:**
@@ -729,11 +729,15 @@
 - [ ] tests/TestHeadless.gd: 5 tests (forge_popup_defined, upgrade_cost_scales, upgrade_max_level, upgrade_stat_applied, upgrade_save_load)
 
 **Verification Notes:**
-- Contrôle A (static):
-- Contrôle B (godot parse):
+- Contrôle A (static): ✅ check_compat.sh All clear
+- Contrôle B (godot parse): ✅ 130/130 tests headless
 - Contrôle C (logic trace):
-- Contrôle D (regression):
-- Déferments:
+  - AC1: show_forge_popup() creates CanvasLayer layer=93 with equipment list; _add_forge_button() in WorldMap.gd
+  - AC2: FORGE_MAX_LEVEL=3; forge btn disabled+text=MAX when upgrade_level>=3
+  - AC3: cost=FORGE_BASE_COST*(upgrade_lvl+1) → 200/400/600G; _on_forge_upgrade() applies +FORGE_STAT_PER_LEVEL(5) immediately
+  - AC4: set_upgrade_level() stores in equip_inventory[path+"_upgrades"]; persisted via existing SaveSystem equip_inventory save
+- Contrôle D (regression): 130/0 tests pass, MainMenu→Battle flow intact
+- Déferments: equip_item needed before forge — upgrading unequipped items not possible (by design)
 
 ---
 

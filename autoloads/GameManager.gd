@@ -917,3 +917,110 @@ func _on_wall_market_buy(entry: Dictionary, gold_lbl: Label, btn: Button) -> voi
 			add_item(item)
 	else:
 		equip_inventory[entry.path] = equip_inventory.get(entry.path, 0) + 1
+
+const FORGE_BASE_COST: int = 200
+const FORGE_MAX_LEVEL: int = 3
+const FORGE_STAT_PER_LEVEL: int = 5
+
+func get_upgrade_level(path: String) -> int:
+	return int(equip_inventory.get(path + "_upgrades", 0))
+
+func set_upgrade_level(path: String, lvl: int) -> void:
+	var key: String = path + "_upgrades"
+	if lvl <= 0:
+		equip_inventory.erase(key)
+	else:
+		equip_inventory[key] = lvl
+
+func show_forge_popup() -> void:
+	var layer: CanvasLayer = CanvasLayer.new()
+	layer.layer = 93
+	get_tree().root.add_child(layer)
+	var panel: Panel = Panel.new()
+	panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER, Control.PRESET_MODE_MINSIZE)
+	panel.offset_left = -260
+	panel.offset_right = 260
+	panel.offset_top = -300
+	panel.offset_bottom = 300
+	layer.add_child(panel)
+	var vbox: VBoxContainer = VBoxContainer.new()
+	vbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	vbox.offset_left = 12
+	vbox.offset_right = -12
+	vbox.offset_top = 12
+	vbox.offset_bottom = -12
+	panel.add_child(vbox)
+	var title: Label = Label.new()
+	title.text = "🔨 Forge d'Armes"
+	title.add_theme_font_size_override("font_size", 32)
+	title.add_theme_color_override("font_color", Color(1.0, 0.8, 0.2, 1))
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(title)
+	var gold_lbl: Label = Label.new()
+	gold_lbl.text = "Or : %d G" % gold
+	gold_lbl.add_theme_font_size_override("font_size", 24)
+	gold_lbl.add_theme_color_override("font_color", Color(1.0, 0.85, 0.0, 1))
+	gold_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(gold_lbl)
+	var slot_names: Array = ["weapon", "armor"]
+	for p_idx in min(party.size(), equipment.size()):
+		var member = party[p_idx]
+		for slot_name in slot_names:
+			var item = equipment[p_idx].get(slot_name)
+			if item == null:
+				continue
+			var upgrade_lvl: int = get_upgrade_level(item.resource_path)
+			var cost: int = FORGE_BASE_COST * (upgrade_lvl + 1)
+			var row: HBoxContainer = HBoxContainer.new()
+			vbox.add_child(row)
+			var info: Label = Label.new()
+			info.text = "%s [%s] +%d (Lv%d)" % [member.unit_name, item.equip_name, item.stat_bonus, upgrade_lvl]
+			info.add_theme_font_size_override("font_size", 20)
+			info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			row.add_child(info)
+			var forge_btn: Button = Button.new()
+			if upgrade_lvl >= FORGE_MAX_LEVEL:
+				forge_btn.text = "MAX"
+				forge_btn.disabled = true
+			else:
+				forge_btn.text = "+5 (%dG)" % cost
+			forge_btn.add_theme_font_size_override("font_size", 20)
+			forge_btn.pressed.connect(_on_forge_upgrade.bind(p_idx, slot_name, forge_btn, info, gold_lbl))
+			row.add_child(forge_btn)
+	var close_btn: Button = Button.new()
+	close_btn.text = "Fermer"
+	close_btn.add_theme_font_size_override("font_size", 26)
+	close_btn.pressed.connect(func() -> void: layer.queue_free())
+	vbox.add_child(close_btn)
+
+func _on_forge_upgrade(p_idx: int, slot_name: String, btn: Button, info_lbl: Label, gold_lbl: Label) -> void:
+	if p_idx >= party.size() or p_idx >= equipment.size():
+		return
+	var member = party[p_idx]
+	var item = equipment[p_idx].get(slot_name)
+	if item == null:
+		return
+	var upgrade_lvl: int = get_upgrade_level(item.resource_path)
+	if upgrade_lvl >= FORGE_MAX_LEVEL:
+		return
+	var cost: int = FORGE_BASE_COST * (upgrade_lvl + 1)
+	if gold < cost:
+		btn.text = "Pas assez d'or !"
+		return
+	gold -= cost
+	gold_lbl.text = "Or : %d G" % gold
+	gold_changed.emit(gold)
+	item.stat_bonus += FORGE_STAT_PER_LEVEL
+	if item.slot == 0:
+		member.atk += FORGE_STAT_PER_LEVEL
+	else:
+		member.def += FORGE_STAT_PER_LEVEL
+	upgrade_lvl += 1
+	set_upgrade_level(item.resource_path, upgrade_lvl)
+	info_lbl.text = "%s [%s] +%d (Lv%d)" % [member.unit_name, item.equip_name, item.stat_bonus, upgrade_lvl]
+	if upgrade_lvl >= FORGE_MAX_LEVEL:
+		btn.text = "MAX"
+		btn.disabled = true
+	else:
+		var next_cost: int = FORGE_BASE_COST * (upgrade_lvl + 1)
+		btn.text = "+5 (%dG)" % next_cost

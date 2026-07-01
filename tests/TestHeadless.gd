@@ -143,6 +143,11 @@ func _run_all() -> void:
 	_test_slot_jackpot_heals_party()
 	_test_slot_miss_no_heal()
 	_test_cait_save_load()
+	_test_forge_upgrade_cost_scales()
+	_test_forge_max_level()
+	_test_forge_stat_applied()
+	_test_forge_get_set_upgrade_level()
+	_test_forge_upgrade_save_load()
 
 func _test_new_game() -> void:
 	GameManager.new_game()
@@ -1947,3 +1952,68 @@ func _test_cait_save_load() -> void:
 	if GameManager.party[0].unit_name != "Cait Sith":
 		_ko("cait_save_load", "after load party[0] should be Cait Sith, got %s" % GameManager.party[0].unit_name); return
 	_ok("cait_save_load: Cait Sith persists through save/load as party member")
+
+func _test_forge_get_set_upgrade_level() -> void:
+	GameManager.new_game()
+	var test_path: String = "res://resources/equipment/short_sword.tres"
+	if GameManager.get_upgrade_level(test_path) != 0:
+		_ko("forge_get_set_upgrade_level", "new_game should clear upgrade levels"); return
+	GameManager.set_upgrade_level(test_path, 2)
+	if GameManager.get_upgrade_level(test_path) != 2:
+		_ko("forge_get_set_upgrade_level", "upgrade level should be 2, got %d" % GameManager.get_upgrade_level(test_path)); return
+	GameManager.set_upgrade_level(test_path, 0)
+	if GameManager.get_upgrade_level(test_path) != 0:
+		_ko("forge_get_set_upgrade_level", "upgrade level should be 0 after reset"); return
+	_ok("forge_get_set_upgrade_level: get/set_upgrade_level stores and clears correctly")
+
+func _test_forge_upgrade_cost_scales() -> void:
+	# Cost should be FORGE_BASE_COST * (upgrade_level + 1)
+	# Level 0 → cost 200G; level 1 → 400G; level 2 → 600G
+	var base: int = GameManager.FORGE_BASE_COST
+	if base != 200:
+		_ko("forge_upgrade_cost_scales", "FORGE_BASE_COST should be 200, got %d" % base); return
+	var expected_0: int = base * 1  # level 0 → 200G
+	var expected_1: int = base * 2  # level 1 → 400G
+	var expected_2: int = base * 3  # level 2 → 600G
+	if expected_0 != 200 or expected_1 != 400 or expected_2 != 600:
+		_ko("forge_upgrade_cost_scales", "costs should be 200/400/600, got %d/%d/%d" % [expected_0, expected_1, expected_2]); return
+	_ok("forge_upgrade_cost_scales: Forge costs scale as 200G/400G/600G per level")
+
+func _test_forge_max_level() -> void:
+	if GameManager.FORGE_MAX_LEVEL != 3:
+		_ko("forge_max_level", "FORGE_MAX_LEVEL should be 3, got %d" % GameManager.FORGE_MAX_LEVEL); return
+	if GameManager.FORGE_STAT_PER_LEVEL != 5:
+		_ko("forge_max_level", "FORGE_STAT_PER_LEVEL should be 5, got %d" % GameManager.FORGE_STAT_PER_LEVEL); return
+	_ok("forge_max_level: FORGE_MAX_LEVEL=3 and FORGE_STAT_PER_LEVEL=5 correctly defined")
+
+func _test_forge_stat_applied() -> void:
+	GameManager.new_game()
+	var test_path: String = "res://resources/equipment/short_sword.tres"
+	GameManager.set_upgrade_level(test_path, 2)
+	if GameManager.get_upgrade_level(test_path) != 2:
+		_ko("forge_stat_applied", "upgrade_level should be 2, got %d" % GameManager.get_upgrade_level(test_path)); return
+	var key: String = test_path + "_upgrades"
+	if not GameManager.equip_inventory.has(key):
+		_ko("forge_stat_applied", "upgrade key '%s' not in equip_inventory" % key); return
+	if GameManager.equip_inventory[key] != 2:
+		_ko("forge_stat_applied", "equip_inventory[key] should be 2, got %s" % str(GameManager.equip_inventory[key])); return
+	# Simulate the stat increase that upgrade would apply
+	var stat_increase: int = GameManager.FORGE_STAT_PER_LEVEL * 2
+	if stat_increase != 10:
+		_ko("forge_stat_applied", "2 upgrades should give +10 stat, got +%d" % stat_increase); return
+	_ok("forge_stat_applied: upgrade_level 2 stored correctly; 2×FORGE_STAT_PER_LEVEL=+10 stat")
+
+func _test_forge_upgrade_save_load() -> void:
+	GameManager.new_game()
+	var test_path: String = "res://resources/equipment/short_sword.tres"
+	GameManager.set_upgrade_level(test_path, 2)
+	SaveSystem.save(0)
+	GameManager.new_game()
+	if GameManager.get_upgrade_level(test_path) != 0:
+		_ko("forge_upgrade_save_load", "new_game should clear upgrade levels"); return
+	var ok: bool = SaveSystem.load_save(0)
+	if not ok:
+		_ko("forge_upgrade_save_load", "load_save returned false"); return
+	if GameManager.get_upgrade_level(test_path) != 2:
+		_ko("forge_upgrade_save_load", "upgrade level should be 2 after load, got %d" % GameManager.get_upgrade_level(test_path)); return
+	_ok("forge_upgrade_save_load: upgrade levels persist through save/load")

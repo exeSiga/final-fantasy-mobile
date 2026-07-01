@@ -48,6 +48,7 @@ func _ready() -> void:
 	_add_quest_button()
 	_add_bestiary_button()
 	_add_wall_market_button()
+	_add_forge_button()
 	if GameManager.pending_rank_notification != "":
 		var rn: String = GameManager.pending_rank_notification
 		GameManager.pending_rank_notification = ""
@@ -126,6 +127,25 @@ func _add_wall_market_button() -> void:
 	btn.offset_top = 10.0
 	btn.offset_bottom = 80.0
 	btn.pressed.connect(func() -> void: GameManager.show_wall_market())
+	layer.add_child(btn)
+
+func _add_forge_button() -> void:
+	var layer := CanvasLayer.new()
+	layer.layer = 8
+	add_child(layer)
+	var btn := Button.new()
+	btn.text = "🔨 Forge"
+	btn.add_theme_font_size_override("font_size", 26)
+	btn.custom_minimum_size = Vector2(160, 70)
+	btn.anchor_left = 0.5
+	btn.anchor_right = 0.5
+	btn.anchor_top = 0.0
+	btn.anchor_bottom = 0.0
+	btn.offset_left = -310.0
+	btn.offset_right = -150.0
+	btn.offset_top = 90.0
+	btn.offset_bottom = 160.0
+	btn.pressed.connect(func() -> void: GameManager.show_forge_popup())
 	layer.add_child(btn)
 
 func _add_bestiary_button() -> void:
