@@ -207,7 +207,7 @@
 
 ---
 
-## Sprint 41 — Ruby & Emerald Weapon (Boss optionnels Lv.20+) [STATUS: TODO]
+## Sprint 41 — Ruby & Emerald Weapon (Boss optionnels Lv.20+) [STATUS: DONE]
 **Goal:** Deux boss ultra-difficiles optionnels accessibles depuis WorldMap, avec récompenses d'équipement uniques
 
 **Acceptance Criteria:**
@@ -224,11 +224,15 @@
 - [ ] WorldMap.gd: _add_weapon_buttons() (Lv.20+ requis)
 
 **Verification Notes:**
-- Contrôle A (static):
-- Contrôle B (godot parse):
+- Contrôle A (static): ✅ All clear
+- Contrôle B (godot parse): ✅ 54/54 tests
 - Contrôle C (logic trace):
-- Contrôle D (regression):
-- Déferments:
+  - AC1: WorldMap._add_weapon_buttons() Lv.20+ → _on_ruby/emerald_weapon_pressed() → BattleManager flags
+  - AC2: _ai_ruby_weapon: 30% counter-attack; _ai_emerald_weapon: AoE 0.70×ATK tous membres
+  - AC3: _check_battle_end → Ruby Ring/Emerald Bangle dans equip_inventory; Battle._on_battle_ended affiche nom
+  - AC4: ruby_weapon.tres sprite_color rouge; emerald_weapon.tres sprite_color vert; unit_name affiché
+- Contrôle D (regression): 54/54 tests, flow normal et arena intacts, flags Weapon réinitialisés dans start_arena() et _on_encounter()
+- Déferments: MP+50 Emerald Bangle non implémenté (Equipment.gd single stat_bonus) — décrit dans description
 
 ---
 

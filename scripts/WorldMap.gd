@@ -40,6 +40,7 @@ func _ready() -> void:
 	$PauseLayer/PauseButton.pressed.connect(_pause_menu.show_pause)
 	_add_zone_buttons()
 	_add_boss_buttons()
+	_add_weapon_buttons()
 	_add_arena_button()
 	_add_party_button()
 	_add_npc_buttons()
@@ -237,6 +238,77 @@ func _add_boss_buttons() -> void:
 	boss2_btn.offset_bottom = -5.0
 	boss2_btn.pressed.connect(_on_boss2_pressed)
 	layer.add_child(boss2_btn)
+
+func _add_weapon_buttons() -> void:
+	var layer := CanvasLayer.new()
+	layer.layer = 5
+	add_child(layer)
+	var ruby_btn := Button.new()
+	ruby_btn.text = "⚔ Ruby Weapon\n[Lv.20+]"
+	ruby_btn.add_theme_font_size_override("font_size", 22)
+	ruby_btn.add_theme_color_override("font_color", Color(1.0, 0.2, 0.2, 1))
+	ruby_btn.custom_minimum_size = Vector2(200, 90)
+	ruby_btn.anchor_left = 0.0
+	ruby_btn.anchor_top = 1.0
+	ruby_btn.anchor_right = 0.0
+	ruby_btn.anchor_bottom = 1.0
+	ruby_btn.offset_left = 10.0
+	ruby_btn.offset_top = -490.0
+	ruby_btn.offset_right = 215.0
+	ruby_btn.offset_bottom = -395.0
+	ruby_btn.pressed.connect(_on_ruby_weapon_pressed)
+	layer.add_child(ruby_btn)
+	var emerald_btn := Button.new()
+	emerald_btn.text = "⚔ Emerald Weapon\n[Lv.20+]"
+	emerald_btn.add_theme_font_size_override("font_size", 22)
+	emerald_btn.add_theme_color_override("font_color", Color(0.2, 0.9, 0.35, 1))
+	emerald_btn.custom_minimum_size = Vector2(200, 90)
+	emerald_btn.anchor_left = 0.0
+	emerald_btn.anchor_top = 1.0
+	emerald_btn.anchor_right = 0.0
+	emerald_btn.anchor_bottom = 1.0
+	emerald_btn.offset_left = 10.0
+	emerald_btn.offset_top = -390.0
+	emerald_btn.offset_right = 215.0
+	emerald_btn.offset_bottom = -295.0
+	emerald_btn.pressed.connect(_on_emerald_weapon_pressed)
+	layer.add_child(emerald_btn)
+
+func _on_ruby_weapon_pressed() -> void:
+	var avg_level: int = 0
+	for m in GameManager.party:
+		avg_level += m.level
+	avg_level = avg_level / max(1, GameManager.party.size())
+	if avg_level < 20:
+		_show_level_required(20)
+		return
+	GameManager.return_after_battle = "res://scenes/world/WorldMap.tscn"
+	BattleManager.is_ruby_weapon_battle = true
+	BattleManager.is_emerald_weapon_battle = false
+	BattleManager.is_boss_battle = false
+	BattleManager.is_boss1_battle = false
+	BattleManager.is_boss2_battle = false
+	BattleManager.is_boss_sephiroth_battle = false
+	BattleManager.dungeon_mode = false
+	GameManager.change_scene("res://scenes/combat/Battle.tscn")
+
+func _on_emerald_weapon_pressed() -> void:
+	var avg_level: int = 0
+	for m in GameManager.party:
+		avg_level += m.level
+	avg_level = avg_level / max(1, GameManager.party.size())
+	if avg_level < 20:
+		_show_level_required(20)
+		return
+	GameManager.return_after_battle = "res://scenes/world/WorldMap.tscn"
+	BattleManager.is_emerald_weapon_battle = true
+	BattleManager.is_ruby_weapon_battle = false
+	BattleManager.is_boss_battle = false
+	BattleManager.is_boss1_battle = false
+	BattleManager.is_boss2_battle = false
+	BattleManager.is_boss_sephiroth_battle = false
+	BattleManager.dungeon_mode = false
+	GameManager.change_scene("res://scenes/combat/Battle.tscn")
 
 func _on_sephiroth_pressed() -> void:
 	var avg_level: int = 0
@@ -547,5 +619,7 @@ func _on_encounter() -> void:
 	BattleManager.is_boss1_battle = false
 	BattleManager.is_boss2_battle = false
 	BattleManager.is_boss_sephiroth_battle = false
+	BattleManager.is_ruby_weapon_battle = false
+	BattleManager.is_emerald_weapon_battle = false
 	BattleManager.dungeon_mode = false
 	GameManager.change_scene("res://scenes/combat/Battle.tscn")

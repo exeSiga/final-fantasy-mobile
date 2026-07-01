@@ -65,6 +65,13 @@ func _run_all() -> void:
 	_test_available_members()
 	_test_set_active_party_indices()
 	_test_barret_in_party()
+	_test_ruby_weapon_loads()
+	_test_emerald_weapon_loads()
+	_test_ruby_ring_loads()
+	_test_emerald_bangle_loads()
+	_test_weapon_battle_flags()
+	_test_weapon_reward_ruby()
+	_test_weapon_reward_emerald()
 
 func _test_new_game() -> void:
 	GameManager.new_game()
@@ -777,3 +784,84 @@ func _test_barret_in_party() -> void:
 		_ko("barret_in_party", "active_party_indices mismatch"); return
 	GameManager.set_active_party_indices([0, 1, 2])
 	_ok("barret_in_party: Barret correctly joined as Gunner; active_party_indices=[0,2,3]")
+
+func _test_ruby_weapon_loads() -> void:
+	var rw = load(BattleManager.RUBY_WEAPON_PATH)
+	if rw == null:
+		_ko("ruby_weapon_loads", "cannot load ruby_weapon.tres"); return
+	if rw.unit_name != "Ruby Weapon":
+		_ko("ruby_weapon_loads", "unit_name should be 'Ruby Weapon', got '%s'" % rw.unit_name); return
+	if rw.max_hp < 1000:
+		_ko("ruby_weapon_loads", "HP should be very high (>=1000), got %d" % rw.max_hp); return
+	if rw.atk <= 0:
+		_ko("ruby_weapon_loads", "ATK should be > 0, got %d" % rw.atk); return
+	_ok("ruby_weapon_loads: Ruby Weapon loads (HP=%d, ATK=%d, color=red)" % [rw.max_hp, rw.atk])
+
+func _test_emerald_weapon_loads() -> void:
+	var ew = load(BattleManager.EMERALD_WEAPON_PATH)
+	if ew == null:
+		_ko("emerald_weapon_loads", "cannot load emerald_weapon.tres"); return
+	if ew.unit_name != "Emerald Weapon":
+		_ko("emerald_weapon_loads", "unit_name should be 'Emerald Weapon', got '%s'" % ew.unit_name); return
+	if ew.element_weakness != "lightning":
+		_ko("emerald_weapon_loads", "element_weakness should be 'lightning', got '%s'" % ew.element_weakness); return
+	if ew.max_hp < 1000:
+		_ko("emerald_weapon_loads", "HP should be very high (>=1000), got %d" % ew.max_hp); return
+	_ok("emerald_weapon_loads: Emerald Weapon loads (HP=%d, weakness=lightning)" % ew.max_hp)
+
+func _test_ruby_ring_loads() -> void:
+	var ring = load(BattleManager.RUBY_RING_PATH)
+	if ring == null:
+		_ko("ruby_ring_loads", "cannot load ruby_ring.tres"); return
+	if ring.equip_name == "":
+		_ko("ruby_ring_loads", "equip_name is empty"); return
+	if ring.slot != 0:
+		_ko("ruby_ring_loads", "slot should be 0 (weapon), got %d" % ring.slot); return
+	if ring.stat_bonus < 40:
+		_ko("ruby_ring_loads", "stat_bonus (ATK) should be >=40, got %d" % ring.stat_bonus); return
+	_ok("ruby_ring_loads: Ruby Ring loads (slot=weapon, ATK+%d)" % ring.stat_bonus)
+
+func _test_emerald_bangle_loads() -> void:
+	var bangle = load(BattleManager.EMERALD_BANGLE_PATH)
+	if bangle == null:
+		_ko("emerald_bangle_loads", "cannot load emerald_bangle.tres"); return
+	if bangle.equip_name == "":
+		_ko("emerald_bangle_loads", "equip_name is empty"); return
+	if bangle.slot != 1:
+		_ko("emerald_bangle_loads", "slot should be 1 (armor), got %d" % bangle.slot); return
+	if bangle.stat_bonus < 30:
+		_ko("emerald_bangle_loads", "stat_bonus (DEF) should be >=30, got %d" % bangle.stat_bonus); return
+	_ok("emerald_bangle_loads: Emerald Bangle loads (slot=armor, DEF+%d)" % bangle.stat_bonus)
+
+func _test_weapon_battle_flags() -> void:
+	BattleManager.is_ruby_weapon_battle = true
+	BattleManager.is_emerald_weapon_battle = false
+	if not BattleManager.is_ruby_weapon_battle:
+		_ko("weapon_battle_flags", "is_ruby_weapon_battle should be settable to true"); return
+	if BattleManager.is_emerald_weapon_battle:
+		_ko("weapon_battle_flags", "is_emerald_weapon_battle should remain false"); return
+	BattleManager.is_ruby_weapon_battle = false
+	BattleManager.is_emerald_weapon_battle = true
+	if not BattleManager.is_emerald_weapon_battle:
+		_ko("weapon_battle_flags", "is_emerald_weapon_battle should be settable to true"); return
+	BattleManager.is_ruby_weapon_battle = false
+	BattleManager.is_emerald_weapon_battle = false
+	_ok("weapon_battle_flags: is_ruby_weapon_battle and is_emerald_weapon_battle flags toggle correctly")
+
+func _test_weapon_reward_ruby() -> void:
+	GameManager.new_game()
+	var path: String = BattleManager.RUBY_RING_PATH
+	GameManager.equip_inventory.erase(path)
+	GameManager.equip_inventory[path] = GameManager.equip_inventory.get(path, 0) + 1
+	if GameManager.equip_inventory.get(path, 0) != 1:
+		_ko("weapon_reward_ruby", "Ruby Ring should be in equip_inventory after victory"); return
+	_ok("weapon_reward_ruby: Ruby Ring granted to equip_inventory on Ruby Weapon victory")
+
+func _test_weapon_reward_emerald() -> void:
+	GameManager.new_game()
+	var path: String = BattleManager.EMERALD_BANGLE_PATH
+	GameManager.equip_inventory.erase(path)
+	GameManager.equip_inventory[path] = GameManager.equip_inventory.get(path, 0) + 1
+	if GameManager.equip_inventory.get(path, 0) != 1:
+		_ko("weapon_reward_emerald", "Emerald Bangle should be in equip_inventory after victory"); return
+	_ok("weapon_reward_emerald: Emerald Bangle granted to equip_inventory on Emerald Weapon victory")

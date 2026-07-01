@@ -18,11 +18,15 @@ const HARD_POOL := [
 	"res://resources/units/troll.tres",
 	"res://resources/units/gargoyle.tres",
 ]
-const BOSS_PATH           := "res://resources/units/dark_knight.tres"
-const BOSS1_PATH          := "res://resources/units/guard_scorpion.tres"
-const BOSS2_PATH          := "res://resources/units/jenova.tres"
-const BOSS_SEPHIROTH_PATH := "res://resources/units/sephiroth.tres"
-const CHAMPION_BELT_PATH  := "res://resources/equipment/champion_belt.tres"
+const BOSS_PATH              := "res://resources/units/dark_knight.tres"
+const BOSS1_PATH             := "res://resources/units/guard_scorpion.tres"
+const BOSS2_PATH             := "res://resources/units/jenova.tres"
+const BOSS_SEPHIROTH_PATH    := "res://resources/units/sephiroth.tres"
+const RUBY_WEAPON_PATH       := "res://resources/units/ruby_weapon.tres"
+const EMERALD_WEAPON_PATH    := "res://resources/units/emerald_weapon.tres"
+const CHAMPION_BELT_PATH     := "res://resources/equipment/champion_belt.tres"
+const RUBY_RING_PATH         := "res://resources/equipment/ruby_ring.tres"
+const EMERALD_BANGLE_PATH    := "res://resources/equipment/emerald_bangle.tres"
 const ARENA_TOTAL_WAVES   := 8
 const SEPHIROTH_QUOTES: Array = [
 	"Pitoyable...",
@@ -48,6 +52,8 @@ var is_boss_battle: bool = false
 var is_boss1_battle: bool = false
 var is_boss2_battle: bool = false
 var is_boss_sephiroth_battle: bool = false
+var is_ruby_weapon_battle: bool = false
+var is_emerald_weapon_battle: bool = false
 var dungeon_mode: bool = false
 var arena_mode: bool = false
 var arena_wave: int = 0
@@ -158,7 +164,11 @@ func start_battle(dungeon: bool = false, boss: bool = false) -> void:
 	GameManager.reset_summon_charges()
 	player_unit = null
 	enemies.clear()
-	if is_boss_sephiroth_battle:
+	if is_ruby_weapon_battle:
+		enemies.append(load(RUBY_WEAPON_PATH).duplicate())
+	elif is_emerald_weapon_battle:
+		enemies.append(load(EMERALD_WEAPON_PATH).duplicate())
+	elif is_boss_sephiroth_battle:
 		enemies.append(load(BOSS_SEPHIROTH_PATH).duplicate())
 	elif is_boss1_battle:
 		enemies.append(load(BOSS1_PATH).duplicate())
@@ -519,10 +529,12 @@ func _enemy_act(enemy) -> void:
 		"Troll":          await _ai_troll(enemy)
 		"Gargoyle":       _ai_gargoyle(enemy)
 		"Dark Knight":    await _ai_dark_knight(enemy)
-		"Guard Scorpion": await _ai_guard_scorpion(enemy)
-		"Jenova":         await _ai_jenova(enemy)
-		"Sephiroth":      await _ai_sephiroth(enemy)
-		_:                _ai_basic_attack(enemy)
+		"Guard Scorpion":  await _ai_guard_scorpion(enemy)
+		"Jenova":          await _ai_jenova(enemy)
+		"Sephiroth":       await _ai_sephiroth(enemy)
+		"Ruby Weapon":     await _ai_ruby_weapon(enemy)
+		"Emerald Weapon":  await _ai_emerald_weapon(enemy)
+		_:                 _ai_basic_attack(enemy)
 	enemy.atb_gauge = 0.0
 	atb_updated.emit(enemy, 0.0)
 	_check_battle_end()
@@ -776,6 +788,28 @@ func _ai_jenova(enemy) -> void:
 		enemy.hp = min(enemy.max_hp, enemy.hp + actual)
 	_check_phase_transition(enemy)
 
+func _ai_ruby_weapon(enemy) -> void:
+	# Always attacks; 30% chance to counter-attack a second time
+	_ai_basic_attack(enemy)
+	_check_battle_end()
+	if state != BattleState.ENEMY_TURN:
+		return
+	if randf() < 0.30:
+		await get_tree().create_timer(0.5).timeout
+		battle_log.emit("Ruby Weapon contre-attaque !")
+		_ai_basic_attack(enemy)
+
+func _ai_emerald_weapon(enemy) -> void:
+	# AoE chaque tour — frappe tous les membres vivants
+	battle_log.emit("Emerald Weapon : Aire de destruction !")
+	var alive: Array = party.filter(func(m) -> bool: return m.is_alive())
+	for target in alive:
+		var dmg: int = int(enemy.atk * 0.70 * randf_range(0.85, 1.15))
+		var actual: int = target.take_damage(dmg)
+		_fill_limit_gauge(target, 20)
+		action_result.emit(enemy.unit_name, target.unit_name, actual, false)
+		await get_tree().create_timer(0.2).timeout
+
 func retry_battle() -> void:
 	for m in GameManager.party:
 		if m.max_hp > 0:
@@ -797,6 +831,8 @@ func start_arena() -> void:
 	is_boss1_battle = false
 	is_boss2_battle = false
 	is_boss_sephiroth_battle = false
+	is_ruby_weapon_battle = false
+	is_emerald_weapon_battle = false
 	dungeon_mode = false
 	if GameManager.party.is_empty():
 		GameManager.new_game()
@@ -880,6 +916,16 @@ func _check_battle_end() -> void:
 				arena_wave += 1
 				arena_wave_cleared.emit(arena_wave - 1)
 			return
+		if is_ruby_weapon_battle:
+			var ring = load(RUBY_RING_PATH)
+			if ring != null:
+				GameManager.equip_inventory[RUBY_RING_PATH] = GameManager.equip_inventory.get(RUBY_RING_PATH, 0) + 1
+				battle_log.emit("★ Ruby Ring obtenu !")
+		elif is_emerald_weapon_battle:
+			var bangle = load(EMERALD_BANGLE_PATH)
+			if bangle != null:
+				GameManager.equip_inventory[EMERALD_BANGLE_PATH] = GameManager.equip_inventory.get(EMERALD_BANGLE_PATH, 0) + 1
+				battle_log.emit("★ Emerald Bangle obtenu !")
 		battle_ended.emit(true)
 		return
 	var all_party_dead: bool = party.all(func(m) -> bool: return not m.is_alive())

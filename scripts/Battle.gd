@@ -420,6 +420,10 @@ func _on_battle_ended(victory: bool) -> void:
 			_victory_title.text = "Champion de l'Arène !\n★ Champion Belt obtenu !\n+%d XP  +%d G" % [BattleManager.last_xp, BattleManager.last_gold]
 		elif BattleManager.is_boss_sephiroth_battle:
 			_victory_title.text = "Sephiroth vaincu !\nLa planète est sauvée.\n+%d XP  +%d G" % [BattleManager.last_xp, BattleManager.last_gold]
+		elif BattleManager.is_ruby_weapon_battle:
+			_victory_title.text = "Ruby Weapon vaincu !\n★ Ruby Ring obtenu !\n+%d XP  +%d G" % [BattleManager.last_xp, BattleManager.last_gold]
+		elif BattleManager.is_emerald_weapon_battle:
+			_victory_title.text = "Emerald Weapon vaincu !\n★ Emerald Bangle obtenu !\n+%d XP  +%d G" % [BattleManager.last_xp, BattleManager.last_gold]
 		else:
 			_victory_title.text = "Victory!\n+%d XP  +%d G" % [BattleManager.last_xp, BattleManager.last_gold]
 		victory_overlay.show()

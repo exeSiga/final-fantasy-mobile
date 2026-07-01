@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="" load_steps=2 format=3 uid="uid://ruby_ring"]
+
+[ext_resource type="Script" path="res://resources/Equipment.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+equip_name = "Ruby Ring"
+slot = 0
+stat_bonus = 40
+price = 0
+allowed_classes = []
+description = "Trophy of Ruby Weapon — ATK +40."
+materia_slots = 1
