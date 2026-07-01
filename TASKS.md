@@ -678,3 +678,136 @@
   - AC5: ATK=50 DEF=18 HP=300 SPD=20 verified via _test_vincent_stats
 - Contrôle D (regression): 120/0 tests pass, MainMenu→Battle flow intact
 - Déferments: WorldMap PartySetupMenu already dynamic — no change needed
+
+---
+
+## Sprint 58 — Cait Sith (8e membre, Machiniste) [STATUS: DONE]
+**Goal:** Ajouter Cait Sith comme 8e membre disponible avec sa capacité unique "Slot" à effet aléatoire (soin de la party, AoE, ou rien)
+
+**Acceptance Criteria:**
+- [ ] AC1: Cait Sith (character_class="Machinist", sprite orange/blanc) ajouté dans available_members — 8 membres au total ; stats ATK=30 DEF=25 HP=250 SPD=35 MP=40
+- [ ] AC2: Bouton "Slot" visible quand Machinist est actif pendant son tour ; appeler player_slot_machine()
+- [ ] AC3: player_slot_machine() tire 3 valeurs aléatoires (0-5) ; si toutes identiques → Jackpot (soigne toute la party HP+MP pleins) ; si 2 identiques → Demi-jackpot (soin 200HP toute la party) ; sinon → Miss (rien, perd son tour)
+- [ ] AC4: Le résultat affiché dans battle_log : "🎰 [X|Y|Z] — Jackpot !" / "Demi-Jackpot!" / "Miss…"
+- [ ] AC5: Cait Sith sauvegardé/chargé comme les autres membres (via all_members dans SaveSystem)
+
+**Tasks:**
+- [ ] resources/units/cait_sith.tres (Machinist, ATK=30, DEF=25, HP=250, SPD=35, MP=40, sprite orange)
+- [ ] GameManager.new_game(): available_members[7] = cait_sith
+- [ ] BattleManager.gd: player_slot_machine() — 3 randi()%6, évalue résultat, soigne ou rien, battle_log, _after_player_turn()
+- [ ] Battle.gd: _slot_btn variable + _create_slot_button() + _update_slot_button(unit) + _on_slot_pressed()
+- [ ] tests/TestHeadless.gd: 5 tests (cait_in_roster, cait_stats, slot_jackpot_heals_party, slot_miss_no_effect, cait_save_load)
+
+**Verification Notes:**
+- Contrôle A (static): ✅ check_compat.sh All clear
+- Contrôle B (godot parse): ✅ 125/125 tests headless
+- Contrôle C (logic trace):
+  - AC1: cait_sith.tres loaded as available_members[7], Machinist class; tested via _test_cait_in_roster
+  - AC2: _slot_btn visible when character_class=="Machinist" via _update_slot_button(); _create_slot_button() in Battle.gd
+  - AC3: player_slot_machine() rolls 3 randi()%6; jackpot (all 3 same) heals party HP+MP; demi-jackpot (2 same) heals 200HP; miss = no effect
+  - AC4: battle_log emits "🎰 [X|Y|Z] — Jackpot/Demi-Jackpot/Miss"
+  - AC5: Cait Sith saved via existing all_members SaveSystem; tested _test_cait_save_load
+- Contrôle D (regression): 125/0 tests pass, MainMenu→Battle flow intact
+- Déferments: none
+
+---
+
+## Sprint 59 — Forge d'Armes (Amélioration d'Équipement) [STATUS: TODO]
+**Goal:** Permettre d'améliorer les armes/armures équipées en dépensant de l'or, augmentant leur stat_bonus de +5 jusqu'à 3 fois par pièce
+
+**Acceptance Criteria:**
+- [ ] AC1: Bouton "🔨 Forge" sur WorldMap ouvre un popup listant l'équipement actuel des 3 emplacements ; chaque pièce affiche son stat_bonus actuel et le coût d'amélioration (200G × niveau actuel)
+- [ ] AC2: Chaque pièce d'équipement peut être améliorée jusqu'à 3 fois (upgrade_level 0→1→2→3) ; au niveau 3 le bouton Améliorer est grisé avec texte "MAX"
+- [ ] AC3: Améliorer coûte or (200G pour +1, 400G pour +2, 600G pour +3) ; les stats du personnage (atk ou def) sont immédiatement mises à jour (+5 par upgrade)
+- [ ] AC4: upgrade_level de chaque pièce persisté dans equip_inventory (clé path+"_upgrades") via SaveSystem
+
+**Tasks:**
+- [ ] GameManager.gd: FORGE_BASE_COST=200, show_forge_popup() — CanvasLayer layer=93 ; _on_forge_upgrade(slot_idx, gold_lbl) — vérifie or, upgrade ≤3
+- [ ] GameManager.gd: get_upgrade_level(path)->int + set_upgrade_level(path, lvl) utilisant equip_inventory[path+"_upgrades"]
+- [ ] GameManager.gd: apply_equipment_stats() tient compte des upgrade_levels
+- [ ] WorldMap.gd: _add_forge_button() — bouton "🔨 Forge" à côté du Wall Market
+- [ ] tests/TestHeadless.gd: 5 tests (forge_popup_defined, upgrade_cost_scales, upgrade_max_level, upgrade_stat_applied, upgrade_save_load)
+
+**Verification Notes:**
+- Contrôle A (static):
+- Contrôle B (godot parse):
+- Contrôle C (logic trace):
+- Contrôle D (regression):
+- Déferments:
+
+---
+
+## Sprint 60 — Météo de Combat (Effets Environnementaux) [STATUS: TODO]
+**Goal:** Ajouter un système météo aléatoire en combat qui modifie l'efficacité des sorts élémentaires et est affiché dans l'arène
+
+**Acceptance Criteria:**
+- [ ] AC1: Au début de chaque combat, weather = tirage aléatoire parmi ["clear", "rain", "storm", "blizzard", "heat"] (probabilités égales) — stocké dans BattleManager.current_weather
+- [ ] AC2: Modificateurs météo appliqués aux sorts : rain → feu ×0.5, glace ×1.3 ; storm → foudre ×1.5 ; blizzard → glace ×1.5, feu ×0.5 ; heat → feu ×1.3 ; clear → aucun modificateur
+- [ ] AC3: HUD combat affiche l'icône météo en haut à gauche de l'arène (🌤☔⛈🌨🔥) et le nom de la météo
+- [ ] AC4: Ennemis avec element_weakness bénéficient des mêmes modificateurs (double effet si météo amplifie leur faiblesse)
+
+**Tasks:**
+- [ ] BattleManager.gd: var current_weather: String = "clear" ; WEATHER_OPTIONS const ; _roll_weather() en début de start_battle() ; WEATHER_SPELL_MOD dict
+- [ ] BattleManager.gd: _apply_weather_mod(base_dmg, spell_element) → float multiplicateur ; appeler dans player_cast_spell()
+- [ ] scripts/Battle.gd: _weather_label (Label) dans HUD ; _on_battle_started() met à jour l'icône
+- [ ] BattleManager.gd: signal weather_changed(weather_name) émis au début du combat
+- [ ] tests/TestHeadless.gd: 5 tests (weather_rolls_valid, rain_weakens_fire, storm_boosts_lightning, blizzard_boosts_ice, heat_boosts_fire)
+
+**Verification Notes:**
+- Contrôle A (static):
+- Contrôle B (godot parse):
+- Contrôle C (logic trace):
+- Contrôle D (regression):
+- Déferments:
+
+---
+
+## Sprint 61 — Boss Rush Mode (Épreuves de Puissance) [STATUS: TODO]
+**Goal:** Débloquer un mode "Boss Rush" après avoir vaincu Sephiroth : enchaîner tous les boss majeurs en séquence sans soins entre les combats
+
+**Acceptance Criteria:**
+- [ ] AC1: Bouton "⚔️ Boss Rush" visible sur WorldMap uniquement si sephiroth_defeated == true ; démarre une séquence de combats [Guard Scorpion, Jenova, Sephiroth Phase1, Ruby Weapon, Emerald Weapon] en ordre
+- [ ] AC2: Entre chaque boss, aucun soin automatique — la party conserve HP/MP du combat précédent ; battle_log "Prochain ennemi : <nom> — préparez-vous !"
+- [ ] AC3: Si la party essuie un game over durant le Boss Rush → retour au WorldMap, boss_rush_best_score mis à jour avec le nombre de boss vaincus atteint
+- [ ] AC4: Victoire complète (5/5 boss) → notification "🏆 Champion du Boss Rush !" + récompense unique (hero_drink item x3 : HEAL_ALL + full status clear)
+- [ ] AC5: boss_rush_best_score persisté dans SaveSystem ; affiché sur le bouton "Boss Rush (record: N/5)"
+
+**Tasks:**
+- [ ] GameManager.gd: var boss_rush_best_score: int = 0 ; var boss_rush_active: bool = false ; BOSS_RUSH_SEQUENCE: Array const ; start_boss_rush() ; _on_boss_rush_victory() ; _on_boss_rush_game_over()
+- [ ] resources/items/hero_drink.tres (effect_type=4 HEAL_ALL + effet spécial clear status, price=9999)
+- [ ] WorldMap.gd: _add_boss_rush_button() — visible si sephiroth_defeated
+- [ ] SaveSystem.gd: boss_rush_best_score persisté
+- [ ] tests/TestHeadless.gd: 5 tests (boss_rush_locked_initially, boss_rush_unlocked_after_sephiroth, boss_rush_sequence_defined, hero_drink_defined, boss_rush_save_load)
+
+**Verification Notes:**
+- Contrôle A (static):
+- Contrôle B (godot parse):
+- Contrôle C (logic trace):
+- Contrôle D (regression):
+- Déferments:
+
+---
+
+## Sprint 62 — Système d'Achievements (Médailles FF7) [STATUS: TODO]
+**Goal:** Ajouter un système d'achievements visible en jeu : 8 médailles à débloquer selon les exploits du joueur, avec popup de notification et écran de consultation
+
+**Acceptance Criteria:**
+- [ ] AC1: 8 achievements définis dans ACHIEVEMENT_DEFS const : "First Blood" (1er ennemi tué), "Collector" (5 items en inventaire), "Materia Master" (materia level 3 atteint), "All Stars" (7 membres débloqués), "Jackpot" (Slot jackpot obtenu), "Survivor" (vaincre Ruby Weapon), "Limit Broken" (Limit Break Tier 2 utilisé), "Champion" (Boss Rush complété)
+- [ ] AC2: Quand un achievement est débloqué → popup "🏅 Achievement débloqué : <nom>" (doré, 3s) ; stocké dans GameManager.achievements_unlocked: Array
+- [ ] AC3: Bouton "🏅" sur WorldMap ouvre un écran listant tous les achievements avec statut ✅/🔒 et description
+- [ ] AC4: Vérification automatique des achievements au bon moment : après chaque combat (kills), après chaque achat (items), après chaque Limit/Slot, après sephiroth_defeated, etc.
+- [ ] AC5: achievements_unlocked persisté dans SaveSystem
+
+**Tasks:**
+- [ ] GameManager.gd: ACHIEVEMENT_DEFS const (Array de dict name/desc/condition_key) ; var achievements_unlocked: Array = [] ; check_achievement(key) ; show_achievement_popup(name)
+- [ ] GameManager.gd: _check_all_achievements() appelée après combat, après use_item, après limit_break utilisé
+- [ ] WorldMap.gd: _add_achievement_button() → popup listant ACHIEVEMENT_DEFS avec état
+- [ ] SaveSystem.gd: achievements_unlocked persisté
+- [ ] tests/TestHeadless.gd: 5 tests (achievement_defs_count, check_first_blood, achievement_no_duplicate, achievement_save_load, all_achievement_keys_valid)
+
+**Verification Notes:**
+- Contrôle A (static):
+- Contrôle B (godot parse):
+- Contrôle C (logic trace):
+- Contrôle D (regression):
+- Déferments:

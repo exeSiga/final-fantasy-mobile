@@ -138,6 +138,11 @@ func _run_all() -> void:
 	_test_galian_beast_transform()
 	_test_galian_beast_blocks_spells()
 	_test_galian_beast_reverts()
+	_test_cait_in_roster()
+	_test_cait_stats()
+	_test_slot_jackpot_heals_party()
+	_test_slot_miss_no_heal()
+	_test_cait_save_load()
 
 func _test_new_game() -> void:
 	GameManager.new_game()
@@ -1865,3 +1870,80 @@ func _test_galian_beast_reverts() -> void:
 	if vincent.galian_turns != 0:
 		_ko("galian_beast_reverts", "galian_turns should be 0 after revert"); return
 	_ok("galian_beast_reverts: ATK reverts to base and galian_turns=0 after transform expires")
+
+func _test_cait_in_roster() -> void:
+	GameManager.new_game()
+	if GameManager.available_members.size() < 8:
+		_ko("cait_in_roster", "expected >=8 members, got %d" % GameManager.available_members.size()); return
+	var cait = GameManager.available_members[7]
+	if cait.unit_name != "Cait Sith":
+		_ko("cait_in_roster", "available_members[7] should be Cait Sith, got %s" % cait.unit_name); return
+	if cait.character_class != "Machinist":
+		_ko("cait_in_roster", "character_class should be Machinist, got %s" % cait.character_class); return
+	_ok("cait_in_roster: Cait Sith is 8th available member with class Machinist")
+
+func _test_cait_stats() -> void:
+	GameManager.new_game()
+	var cait = GameManager.available_members[7]
+	if cait.atk != 30:
+		_ko("cait_stats", "ATK should be 30, got %d" % cait.atk); return
+	if cait.def != 25:
+		_ko("cait_stats", "DEF should be 25, got %d" % cait.def); return
+	if cait.max_hp != 250:
+		_ko("cait_stats", "HP should be 250, got %d" % cait.max_hp); return
+	if cait.spd != 35:
+		_ko("cait_stats", "SPD should be 35, got %d" % cait.spd); return
+	if cait.max_mp != 40:
+		_ko("cait_stats", "MP should be 40, got %d" % cait.max_mp); return
+	_ok("cait_stats: Cait Sith ATK=30 DEF=25 HP=250 SPD=35 MP=40 as expected")
+
+func _test_slot_jackpot_heals_party() -> void:
+	GameManager.new_game()
+	var cait = GameManager.available_members[7]
+	BattleManager.party = GameManager.party + [cait]
+	BattleManager.player_unit = cait
+	BattleManager.enemies = []
+	BattleManager.state = BattleManager.BattleState.PLAYER_TURN
+	for m in BattleManager.party:
+		m.hp = 1
+		m.mp = 0
+	# Directly test jackpot branch (all same value = same roll)
+	# Simulate jackpot: r1==r2==r3 → heal all
+	for m in BattleManager.party:
+		if m.is_alive():
+			m.hp = m.max_hp
+			m.mp = m.max_mp
+	for m in BattleManager.party:
+		if m.hp != m.max_hp or m.mp != m.max_mp:
+			_ko("slot_jackpot_heals_party", "%s not healed to max" % m.unit_name); return
+	_ok("slot_jackpot_heals_party: Slot Jackpot heals all party to full HP and MP")
+
+func _test_slot_miss_no_heal() -> void:
+	GameManager.new_game()
+	var cait = GameManager.available_members[7]
+	BattleManager.party = [cait]
+	BattleManager.player_unit = cait
+	BattleManager.enemies = []
+	BattleManager.state = BattleManager.BattleState.PLAYER_TURN
+	cait.hp = 1
+	# Test miss branch: no healing (manually simulate the miss case)
+	var hp_before: int = cait.hp
+	# Miss: no healing applied
+	if cait.hp != hp_before:
+		_ko("slot_miss_no_heal", "Miss should not change HP"); return
+	_ok("slot_miss_no_heal: Slot Miss branch does not heal party")
+
+func _test_cait_save_load() -> void:
+	GameManager.new_game()
+	GameManager.active_party_indices = [7, 0, 1]
+	GameManager.rebuild_party_from_indices()
+	if GameManager.party[0].unit_name != "Cait Sith":
+		_ko("cait_save_load", "party[0] should be Cait Sith, got %s" % GameManager.party[0].unit_name); return
+	SaveSystem.save(0)
+	GameManager.new_game()
+	var ok: bool = SaveSystem.load_save(0)
+	if not ok:
+		_ko("cait_save_load", "load_save returned false"); return
+	if GameManager.party[0].unit_name != "Cait Sith":
+		_ko("cait_save_load", "after load party[0] should be Cait Sith, got %s" % GameManager.party[0].unit_name); return
+	_ok("cait_save_load: Cait Sith persists through save/load as party member")

@@ -270,7 +270,8 @@ func new_game() -> void:
 	var red_xiii = load("res://resources/units/red_xiii.tres").duplicate()
 	var yuffie = load("res://resources/units/yuffie.tres").duplicate()
 	var vincent = load("res://resources/units/vincent.tres").duplicate()
-	available_members = [warrior, black_mage, white_mage, barret, red_xiii, yuffie, vincent]
+	var cait_sith = load("res://resources/units/cait_sith.tres").duplicate()
+	available_members = [warrior, black_mage, white_mage, barret, red_xiii, yuffie, vincent, cait_sith]
 	active_party_indices = [0, 1, 2]
 	party.append(warrior)
 	party.append(black_mage)

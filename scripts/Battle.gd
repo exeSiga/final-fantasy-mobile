@@ -44,6 +44,7 @@ var _lunatic_btn: Button = null
 var _shuriken_btn: Button = null
 var _steal_btn: Button = null
 var _galian_btn: Button = null
+var _slot_btn: Button = null
 
 var _active_party_idx: int = -1
 var _pending_cutscene: String = ""
@@ -60,6 +61,7 @@ func _ready() -> void:
 	_create_shuriken_button()
 	_create_steal_button()
 	_create_galian_button()
+	_create_slot_button()
 	_fade_in()
 	AudioManager.play_battle_bgm()
 	BattleManager.battle_started.connect(_on_battle_started)
@@ -283,6 +285,7 @@ func _on_turn_changed(unit) -> void:
 		_update_lunatic_button(unit)
 		_update_ninja_buttons(unit)
 		_update_galian_button(unit)
+		_update_slot_button(unit)
 		_update_summon_button()
 		_update_element_indicator(unit)
 	_log("%s's turn" % unit.unit_name)
@@ -599,6 +602,25 @@ func _on_galian_pressed() -> void:
 	_shake_screen(20.0)
 	_spawn_popup("Galian Beast!", Color(0.85, 0.15, 0.15, 1))
 	BattleManager.player_galian_beast()
+
+func _create_slot_button() -> void:
+	_slot_btn = Button.new()
+	_slot_btn.text = "🎰 Slot"
+	_slot_btn.add_theme_font_size_override("font_size", 28)
+	_slot_btn.add_theme_color_override("font_color", Color(1.0, 0.8, 0.1, 1.0))
+	_slot_btn.custom_minimum_size = Vector2(130, 0)
+	_slot_btn.visible = false
+	_slot_btn.pressed.connect(_on_slot_pressed)
+	action_buttons.add_child(_slot_btn)
+
+func _update_slot_button(unit) -> void:
+	if _slot_btn != null:
+		_slot_btn.visible = (unit.character_class == "Machinist")
+
+func _on_slot_pressed() -> void:
+	action_buttons.hide()
+	_spawn_popup("🎰 Slot !", Color(1.0, 0.8, 0.1, 1))
+	BattleManager.player_slot_machine()
 
 func _on_limit_pressed() -> void:
 	action_buttons.hide()

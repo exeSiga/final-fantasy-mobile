@@ -749,6 +749,31 @@ func player_galian_beast() -> void:
 	action_result.emit(player_unit.unit_name, "", 0, false)
 	_after_player_turn()
 
+func player_slot_machine() -> void:
+	if state != BattleState.PLAYER_TURN or player_unit == null:
+		return
+	if player_unit.character_class != "Machinist":
+		return
+	var r1: int = randi() % 6
+	var r2: int = randi() % 6
+	var r3: int = randi() % 6
+	var slot_str: String = "[%d|%d|%d]" % [r1, r2, r3]
+	if r1 == r2 and r2 == r3:
+		battle_log.emit("🎰 %s — Jackpot ! Toute la party est soignée !" % slot_str)
+		for m in party:
+			if m.is_alive():
+				m.hp = m.max_hp
+				m.mp = m.max_mp
+	elif r1 == r2 or r2 == r3 or r1 == r3:
+		battle_log.emit("🎰 %s — Demi-Jackpot ! Soin 200 HP !" % slot_str)
+		for m in party:
+			if m.is_alive():
+				m.hp = min(m.max_hp, m.hp + 200)
+	else:
+		battle_log.emit("🎰 %s — Miss… Aucun effet." % slot_str)
+	action_result.emit(player_unit.unit_name, "Party", 0, false)
+	_after_player_turn()
+
 func player_run() -> void:
 	if state != BattleState.PLAYER_TURN:
 		return
