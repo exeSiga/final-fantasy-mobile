@@ -46,6 +46,7 @@ func _ready() -> void:
 	_add_party_button()
 	_add_npc_buttons()
 	_add_quest_button()
+	_add_bestiary_button()
 	if GameManager.pending_rank_notification != "":
 		var rn: String = GameManager.pending_rank_notification
 		GameManager.pending_rank_notification = ""
@@ -106,6 +107,104 @@ func _on_quest_pressed() -> void:
 	var menu := load("res://scenes/ui/QuestMenu.tscn").instantiate()
 	add_child(menu)
 	menu.closed.connect(func(): _quest_open = false)
+
+func _add_bestiary_button() -> void:
+	var layer := CanvasLayer.new()
+	layer.layer = 8
+	add_child(layer)
+	var btn := Button.new()
+	btn.text = "📖 Bestiaire"
+	btn.add_theme_font_size_override("font_size", 26)
+	btn.custom_minimum_size = Vector2(190, 70)
+	btn.anchor_left = 0.5
+	btn.anchor_right = 0.5
+	btn.anchor_top = 0.0
+	btn.anchor_bottom = 0.0
+	btn.offset_left = 110.0
+	btn.offset_right = 300.0
+	btn.offset_top = 10.0
+	btn.offset_bottom = 80.0
+	btn.pressed.connect(_on_bestiary_pressed)
+	layer.add_child(btn)
+
+func _on_bestiary_pressed() -> void:
+	var canvas := CanvasLayer.new()
+	canvas.layer = 92
+	add_child(canvas)
+	var bg := ColorRect.new()
+	bg.color = Color(0, 0, 0, 0.75)
+	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	canvas.add_child(bg)
+	var scroll := ScrollContainer.new()
+	scroll.set_anchors_preset(Control.PRESET_FULL_RECT)
+	scroll.offset_left = 40.0
+	scroll.offset_right = -40.0
+	scroll.offset_top = 60.0
+	scroll.offset_bottom = -60.0
+	canvas.add_child(scroll)
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 6)
+	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(vbox)
+	var title := Label.new()
+	title.text = "📖 Bestiaire"
+	title.add_theme_font_size_override("font_size", 36)
+	title.add_theme_color_override("font_color", Color(1.0, 0.9, 0.4, 1))
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(title)
+	var all_enemies: Array = GameManager.BESTIARY.keys()
+	all_enemies.sort()
+	for en in all_enemies:
+		var kills: int = QuestManager.kill_counts.get(en, 0)
+		var entry: Dictionary = GameManager.BESTIARY[en]
+		var row := VBoxContainer.new()
+		row.add_theme_constant_override("separation", 2)
+		var row_bg := PanelContainer.new()
+		var inner := VBoxContainer.new()
+		inner.add_theme_constant_override("separation", 4)
+		var name_lbl := Label.new()
+		name_lbl.add_theme_font_size_override("font_size", 28)
+		if kills == 0:
+			name_lbl.text = "??? (non rencontré)"
+			name_lbl.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5, 1))
+			inner.add_child(name_lbl)
+		else:
+			name_lbl.text = "%s  [%d kills]" % [en, kills]
+			name_lbl.add_theme_color_override("font_color", Color(1.0, 0.85, 0.4, 1))
+			var stats_lbl := Label.new()
+			stats_lbl.text = "HP: %d  ATK: %d" % [entry.base_hp, entry.base_atk]
+			stats_lbl.add_theme_font_size_override("font_size", 22)
+			stats_lbl.add_theme_color_override("font_color", Color(0.7, 0.9, 1.0, 1))
+			var lore_lbl := Label.new()
+			lore_lbl.text = entry.lore
+			lore_lbl.add_theme_font_size_override("font_size", 20)
+			lore_lbl.add_theme_color_override("font_color", Color(0.85, 0.85, 0.85, 1))
+			lore_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			var milestone: int = entry.get("milestone", 10)
+			var given: bool = GameManager.bestiary_milestones_given.get(en, false)
+			var milestone_lbl := Label.new()
+			if given:
+				milestone_lbl.text = "★ Récompense %d kills obtenue !" % milestone
+				milestone_lbl.add_theme_color_override("font_color", Color(0.4, 1.0, 0.5, 1))
+			else:
+				milestone_lbl.text = "Récompense à %d kills (%d/%d)" % [milestone, kills, milestone]
+				milestone_lbl.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7, 1))
+			milestone_lbl.add_theme_font_size_override("font_size", 20)
+			inner.add_child(name_lbl)
+			inner.add_child(stats_lbl)
+			inner.add_child(lore_lbl)
+			inner.add_child(milestone_lbl)
+		row_bg.add_child(inner)
+		vbox.add_child(row_bg)
+	var close_btn := Button.new()
+	close_btn.text = "Fermer"
+	close_btn.add_theme_font_size_override("font_size", 30)
+	close_btn.custom_minimum_size = Vector2(200, 70)
+	close_btn.pressed.connect(canvas.queue_free)
+	var close_row := HBoxContainer.new()
+	close_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	close_row.add_child(close_btn)
+	vbox.add_child(close_row)
 
 func _add_zone_buttons() -> void:
 	var layer := CanvasLayer.new()

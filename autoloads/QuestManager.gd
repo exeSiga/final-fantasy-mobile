@@ -41,6 +41,7 @@ var completed: Dictionary = {}     # quest_id → bool
 func notify_kill(enemy_name: String) -> void:
 	kill_counts[enemy_name] = kill_counts.get(enemy_name, 0) + 1
 	_check_completions()
+	_check_bestiary_milestone(enemy_name)
 
 func _check_completions() -> void:
 	for q in QUESTS:
@@ -64,6 +65,22 @@ func _complete_quest(q: Dictionary) -> void:
 		if item != null:
 			GameManager.equip_inventory[q.reward_item_path] = GameManager.equip_inventory.get(q.reward_item_path, 0) + 1
 	quest_completed.emit(qid)
+
+func _check_bestiary_milestone(enemy_name: String) -> void:
+	if GameManager.bestiary_milestones_given.get(enemy_name, false):
+		return
+	var entry: Dictionary = GameManager.BESTIARY.get(enemy_name, {})
+	if entry.is_empty():
+		return
+	var threshold: int = entry.get("milestone", 10)
+	if kill_counts.get(enemy_name, 0) >= threshold:
+		GameManager.bestiary_milestones_given[enemy_name] = true
+		var item_path: String = entry.get("milestone_item", "")
+		if item_path != "":
+			var item = load(item_path)
+			if item != null:
+				GameManager.add_item(item)
+				BattleManager.battle_log.emit("★ Bestiaire : %dx %s → %s !" % [threshold, enemy_name, item.item_name])
 
 func get_quest_data(quest_id: String) -> Dictionary:
 	for q in QUESTS:

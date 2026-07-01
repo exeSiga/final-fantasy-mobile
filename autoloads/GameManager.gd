@@ -88,6 +88,23 @@ const SHINRA_FILES: Array = [
 		"lore": "Sephiroth... ce nom ne doit plus jamais être prononcé dans les rangs de ShinRa. Dossier scellé.",
 	},
 ]
+const BESTIARY: Dictionary = {
+	"Slime":          {"lore": "Résidu de Mako muté. La base de l'écosystème hostile des réacteurs.", "base_hp": 30,  "base_atk": 8,  "milestone": 10, "milestone_item": "res://resources/items/potion.tres"},
+	"Goblin":         {"lore": "Creature agressive des bas-fonds. Adepte des coups sournois et de la paralysie.", "base_hp": 45,  "base_atk": 12, "milestone": 10, "milestone_item": "res://resources/items/hi_potion.tres"},
+	"Skeleton":       {"lore": "Guerrier déchu animé par le Mako noir. Insensible à la douleur.", "base_hp": 55,  "base_atk": 14, "milestone": 10, "milestone_item": "res://resources/items/ether.tres"},
+	"Bat":            {"lore": "Créature des cavernes sombres. Son ultrason perturbe les incantations magiques.", "base_hp": 40,  "base_atk": 10, "milestone": 10, "milestone_item": "res://resources/items/phoenix_down.tres"},
+	"Orc":            {"lore": "Bête sauvage des collines de Kalm. Sa cri de guerre booste temporairement sa puissance.", "base_hp": 80,  "base_atk": 18, "milestone": 10, "milestone_item": "res://resources/items/mako_shard.tres"},
+	"Shadow":         {"lore": "Entité spectrale qui draine le MP. On dit qu'elle est née des expériences ShinRa.", "base_hp": 70,  "base_atk": 16, "milestone": 10, "milestone_item": "res://resources/items/ether.tres"},
+	"Troll":          {"lore": "Géant régénérant des montagnes. Sa peau épaisse résiste à la plupart des lames.", "base_hp": 120, "base_atk": 22, "milestone": 10, "milestone_item": "res://resources/items/hi_potion.tres"},
+	"Gargoyle":       {"lore": "Gardien de pierre des ruines ShinRa. Son regard pétrifiant est redouté des aventuriers.", "base_hp": 100, "base_atk": 20, "milestone": 10, "milestone_item": "res://resources/items/mako_crystal.tres"},
+	"Dark Knight":    {"lore": "Prototype SOLDIER raté, abandonné par ShinRa. Maîtrise des attaques de ténèbres.", "base_hp": 200, "base_atk": 30, "milestone": 5,  "milestone_item": "res://resources/items/ether.tres"},
+	"Guard Scorpion": {"lore": "Arme ShinRa déployée dans les réacteurs. Phase 2 : laser de queue dévastateur.", "base_hp": 800, "base_atk": 30, "milestone": 1,  "milestone_item": "res://resources/items/hi_potion.tres"},
+	"MP Soldier":     {"lore": "Soldat ShinRa de base. Discipliné, peu imaginatif, mais toujours en groupe.", "base_hp": 60,  "base_atk": 13, "milestone": 10, "milestone_item": "res://resources/items/potion.tres"},
+	"Hedgehog Pie":   {"lore": "Mutant des Slums de Midgar. Son pelage hérissé peut retourner les dégâts.", "base_hp": 50,  "base_atk": 11, "milestone": 10, "milestone_item": "res://resources/items/slum_herb.tres"},
+	"Shinra Guard":   {"lore": "Garde d'élite du Secteur 7. Mieux équipé que les soldats standards.", "base_hp": 70,  "base_atk": 15, "milestone": 10, "milestone_item": "res://resources/items/mako_shard.tres"},
+}
+var bestiary_milestones_given: Dictionary = {}
+
 var ng_plus_unlocked: bool = false
 var ng_plus_mode: bool = false
 var npc_flags: Dictionary = {}
@@ -198,6 +215,7 @@ func new_game() -> void:
 	ng_plus_unlocked = false
 	ng_plus_mode = false
 	npc_flags = {}
+	bestiary_milestones_given = {}
 	pending_rank_notification = ""
 	for m in party:
 		base_party_spell_paths.append(m.spell_paths.duplicate())

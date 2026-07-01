@@ -432,27 +432,27 @@
 
 ---
 
-## Sprint 49 — Bestiaire (Compendium des Monstres) [STATUS: TODO]
+## Sprint 49 — Bestiaire (Compendium des Monstres) [STATUS: DONE]
 **Goal:** Un menu Bestiaire accessible depuis WorldMap liste tous les types d'ennemis rencontrés avec stats de base, nb de kills, et une ligne de lore FF7
 
 **Acceptance Criteria:**
-- [ ] AC1: Menu Bestiaire accessible via bouton sur la WorldMap (ou StatusMenu) ; liste scrollable des ennemis découverts (QuestManager.kill_counts > 0)
-- [ ] AC2: Chaque entrée affiche : nom ennemi, kills, HP/ATK de base, une ligne de description lore FF7
-- [ ] AC3: Les ennemis non encore rencontrés affichent "???" (nom masqué, stats masquées)
-- [ ] AC4: Milestone reward : à 10 kills d'un même ennemi, obtenir un item bonus (ex: 10 Slimes → Potion ; 10 Goblins → Antidote)
+- [x] AC1: Bouton "📖 Bestiaire" sur WorldMap → popup ScrollContainer avec 13 ennemis triés alphabétiquement
+- [x] AC2: Kills > 0 → affiche nom, kills, HP/ATK de base, lore FF7; milestone progress
+- [x] AC3: Kills == 0 → "??? (non rencontré)" en gris
+- [x] AC4: QuestManager._check_bestiary_milestone() → item reward à N kills; battle_log notification
 
 **Tasks:**
-- [ ] GameManager.gd: BESTIARY const (dict ennemi → {lore, kill_reward_item_path, kill_reward_threshold})
-- [ ] scripts/BestiaryMenu.gd: ScrollContainer + VBoxContainer ; itère ENEMY_POOL + DUNGEON_POOL + tous les ennemis connus ; pour chaque: label nom/stats/kills/lore
-- [ ] WorldMap.gd: bouton "Bestiaire" → instancie BestiaryMenu en popup (CanvasLayer)
-- [ ] QuestManager.gd: après notify_kill(), vérifier milestone reward via GameManager.BESTIARY
+- [x] GameManager.gd: BESTIARY const (13 ennemis), bestiary_milestones_given: Dictionary
+- [x] QuestManager.gd: _check_bestiary_milestone() appelé depuis notify_kill()
+- [x] WorldMap.gd: _add_bestiary_button() + _on_bestiary_pressed() avec popup ScrollContainer inline
+- [x] SaveSystem.gd: bestiary_milestones_given persisté
 
 **Verification Notes:**
-- Contrôle A (static):
-- Contrôle B (godot parse):
-- Contrôle C (logic trace):
-- Contrôle D (regression):
-- Déferments:
+- Contrôle A (static): ✅ All clear
+- Contrôle B (godot parse): ✅ aucun SCRIPT ERROR
+- Contrôle C (logic trace): BESTIARY 13 entries; notify_kill → _check_bestiary_milestone → add_item + flag; déjà-donné guard
+- Contrôle D (regression): 86/86 tests passent
+- Déferments: aucun
 
 ---
 

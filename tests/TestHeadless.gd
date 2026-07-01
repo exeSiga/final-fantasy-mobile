@@ -100,6 +100,10 @@ func _run_all() -> void:
 	_test_npc_gold_reward()
 	_test_npc_item_reward()
 	_test_npc_flags_save_load()
+	_test_bestiary_entries_defined()
+	_test_bestiary_milestone_reward()
+	_test_bestiary_milestone_no_repeat()
+	_test_bestiary_milestone_save_load()
 
 func _test_new_game() -> void:
 	GameManager.new_game()
@@ -1282,3 +1286,60 @@ func _test_npc_flags_save_load() -> void:
 	if not GameManager.npc_flags.get("npc_soldier", false):
 		_ko("npc_flags_save_load", "npc_soldier flag should be true after load"); return
 	_ok("npc_flags_save_load: npc_flags persist through save/load")
+
+func _test_bestiary_entries_defined() -> void:
+	if GameManager.BESTIARY.size() < 10:
+		_ko("bestiary_entries_defined", "expected ≥10 BESTIARY entries, got %d" % GameManager.BESTIARY.size()); return
+	for en in ["Slime", "Goblin", "Skeleton", "Bat", "Orc"]:
+		if not GameManager.BESTIARY.has(en):
+			_ko("bestiary_entries_defined", "missing BESTIARY entry for %s" % en); return
+		var entry: Dictionary = GameManager.BESTIARY[en]
+		if not entry.has("lore") or not entry.has("milestone") or not entry.has("milestone_item"):
+			_ko("bestiary_entries_defined", "%s missing lore/milestone/milestone_item" % en); return
+	_ok("bestiary_entries_defined: ≥10 BESTIARY entries with lore/milestone/milestone_item")
+
+func _test_bestiary_milestone_reward() -> void:
+	GameManager.new_game()
+	QuestManager.kill_counts = {}
+	QuestManager.completed = {}
+	GameManager.bestiary_milestones_given = {}
+	var slime_milestone: int = GameManager.BESTIARY["Slime"].milestone
+	var item_path: String = GameManager.BESTIARY["Slime"].milestone_item
+	for i in slime_milestone:
+		QuestManager.notify_kill("Slime")
+	var inv_count: int = GameManager.inventory.get(item_path, 0)
+	if inv_count < 1:
+		_ko("bestiary_milestone_reward", "expected milestone item in inventory after %d Slime kills" % slime_milestone); return
+	if not GameManager.bestiary_milestones_given.get("Slime", false):
+		_ko("bestiary_milestone_reward", "bestiary_milestones_given[Slime] should be true"); return
+	_ok("bestiary_milestone_reward: Slime milestone reward given after %d kills" % slime_milestone)
+
+func _test_bestiary_milestone_no_repeat() -> void:
+	GameManager.new_game()
+	QuestManager.kill_counts = {}
+	GameManager.bestiary_milestones_given = {"Slime": true}
+	var item_path: String = GameManager.BESTIARY["Slime"].milestone_item
+	var inv_before: int = GameManager.inventory.get(item_path, 0)
+	var slime_milestone: int = GameManager.BESTIARY["Slime"].milestone
+	for i in slime_milestone:
+		QuestManager.notify_kill("Slime")
+	var inv_after: int = GameManager.inventory.get(item_path, 0)
+	if inv_after != inv_before:
+		_ko("bestiary_milestone_no_repeat", "milestone should not trigger again when already given"); return
+	_ok("bestiary_milestone_no_repeat: Slime milestone not repeated when already given")
+
+func _test_bestiary_milestone_save_load() -> void:
+	GameManager.new_game()
+	GameManager.bestiary_milestones_given = {"Slime": true, "Goblin": true}
+	SaveSystem.save(0)
+	GameManager.new_game()
+	if GameManager.bestiary_milestones_given.size() != 0:
+		_ko("bestiary_milestone_save_load", "new_game should clear bestiary_milestones_given"); return
+	var ok: bool = SaveSystem.load_save(0)
+	if not ok:
+		_ko("bestiary_milestone_save_load", "load_save returned false"); return
+	if not GameManager.bestiary_milestones_given.get("Slime", false):
+		_ko("bestiary_milestone_save_load", "Slime milestone should persist after load"); return
+	if not GameManager.bestiary_milestones_given.get("Goblin", false):
+		_ko("bestiary_milestone_save_load", "Goblin milestone should persist after load"); return
+	_ok("bestiary_milestone_save_load: bestiary_milestones_given persist through save/load")
