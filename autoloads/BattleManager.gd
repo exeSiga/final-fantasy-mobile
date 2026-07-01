@@ -290,6 +290,10 @@ func _fill_limit_gauge(unit, amount: int) -> void:
 	if not unit.is_player:
 		return
 	unit.limit_gauge = min(100, unit.limit_gauge + amount)
+	unit.limit_damage_taken += amount
+	if unit.limit_tier == 1 and unit.limit_damage_taken >= 200:
+		unit.limit_tier = 2
+		battle_log.emit("★ %s déverrouille son Limit Break Tier 2 !" % unit.unit_name)
 	limit_gauge_updated.emit(unit)
 
 func _compute_phys_damage(atk: int, target) -> Dictionary:
@@ -301,6 +305,14 @@ func _compute_phys_damage(atk: int, target) -> Dictionary:
 	_fill_limit_gauge(target, 20)
 	return {dmg = dmg, crit = is_crit}
 
+func _limit_name(unit) -> String:
+	match unit.character_class:
+		"Warrior":   return "BLADE FURY"  if unit.limit_tier == 1 else "METEORAIN"
+		"Black Mage": return "METEOR"     if unit.limit_tier == 1 else "FINAL HEAVEN"
+		"White Mage": return "HOLY LIGHT" if unit.limit_tier == 1 else "GREAT GOSPEL"
+		"Gunner":    return "CANNONBALL"  if unit.limit_tier == 1 else "CATASTROPHE"
+		_:           return "LIMIT BREAK"
+
 func player_limit_break() -> void:
 	if state != BattleState.PLAYER_TURN or player_unit == null:
 		return
@@ -308,34 +320,79 @@ func player_limit_break() -> void:
 		return
 	player_unit.limit_gauge = 0
 	limit_gauge_updated.emit(player_unit)
+	var tier: int = player_unit.limit_tier
+	var name_str: String = _limit_name(player_unit)
+	battle_log.emit("⚡ %s!" % name_str)
 	match player_unit.character_class:
 		"Warrior":
-			battle_log.emit("⚡ BLADE FURY!")
-			var alive: Array = enemies.filter(func(e) -> bool: return e.is_alive())
-			for e in alive:
-				var dmg: int = int(player_unit.atk * 2.5 * randf_range(0.90, 1.10))
-				e.take_damage_ignore_def(dmg)
-				action_result.emit(player_unit.unit_name, e.unit_name, dmg, true)
+			if tier == 1:
+				var alive: Array = enemies.filter(func(e) -> bool: return e.is_alive())
+				for e in alive:
+					var dmg: int = int(player_unit.atk * 2.5 * randf_range(0.90, 1.10))
+					e.take_damage_ignore_def(dmg)
+					action_result.emit(player_unit.unit_name, e.unit_name, dmg, true)
+			else:
+				# Meteorain: 4 hits aléatoires, ATK×1.8 chacun
+				for i in 4:
+					var alive: Array = enemies.filter(func(e) -> bool: return e.is_alive())
+					if alive.is_empty():
+						break
+					var e = alive[randi() % alive.size()]
+					var dmg: int = int(player_unit.atk * 1.8 * randf_range(0.90, 1.10))
+					e.take_damage_ignore_def(dmg)
+					action_result.emit(player_unit.unit_name, e.unit_name, dmg, true)
 		"Black Mage":
-			battle_log.emit("⚡ METEOR!")
-			var alive: Array = enemies.filter(func(e) -> bool: return e.is_alive())
-			for e in alive:
-				var dmg: int = int(player_unit.atk * 3.0 * randf_range(0.90, 1.10))
-				e.hp = max(0, e.hp - dmg)
-				action_result.emit(player_unit.unit_name, e.unit_name, dmg, true)
+			if tier == 1:
+				var alive: Array = enemies.filter(func(e) -> bool: return e.is_alive())
+				for e in alive:
+					var dmg: int = int(player_unit.atk * 3.0 * randf_range(0.90, 1.10))
+					e.hp = max(0, e.hp - dmg)
+					action_result.emit(player_unit.unit_name, e.unit_name, dmg, true)
+			else:
+				# Final Heaven: ATK×4.0 à tous les ennemis, ignore DEF
+				var alive: Array = enemies.filter(func(e) -> bool: return e.is_alive())
+				for e in alive:
+					var dmg: int = int(player_unit.atk * 4.0 * randf_range(0.90, 1.10))
+					e.take_damage_ignore_def(dmg)
+					action_result.emit(player_unit.unit_name, e.unit_name, dmg, true)
 		"White Mage":
-			battle_log.emit("⚡ HOLY LIGHT!")
-			for m in party:
-				if m.is_alive():
-					m.hp = m.max_hp
-					action_result.emit(player_unit.unit_name, m.unit_name, -m.max_hp, false)
-				else:
-					m.hp = int(m.max_hp * 0.5)
-					m.clear_status()
-					battle_log.emit("%s revived!" % m.unit_name)
-					action_result.emit(player_unit.unit_name, m.unit_name, 0, false)
+			if tier == 1:
+				for m in party:
+					if m.is_alive():
+						m.hp = m.max_hp
+						action_result.emit(player_unit.unit_name, m.unit_name, -m.max_hp, false)
+					else:
+						m.hp = int(m.max_hp * 0.5)
+						m.clear_status()
+						battle_log.emit("%s revived!" % m.unit_name)
+						action_result.emit(player_unit.unit_name, m.unit_name, 0, false)
+			else:
+				# Great Gospel: soigne 100% HP tous membres vivants + clear all status
+				for m in party:
+					if m.is_alive():
+						m.hp = m.max_hp
+						m.clear_status()
+						action_result.emit(player_unit.unit_name, m.unit_name, -m.max_hp, false)
+					else:
+						m.hp = int(m.max_hp * 0.75)
+						m.clear_status()
+						battle_log.emit("%s revived by Great Gospel!" % m.unit_name)
+						action_result.emit(player_unit.unit_name, m.unit_name, 0, false)
+		"Gunner":
+			if tier == 1:
+				var alive: Array = enemies.filter(func(e) -> bool: return e.is_alive())
+				for e in alive:
+					var dmg: int = int(player_unit.atk * 2.0 * randf_range(0.90, 1.10))
+					e.take_damage_ignore_def(dmg)
+					action_result.emit(player_unit.unit_name, e.unit_name, dmg, true)
+			else:
+				# Catastrophe: ATK×3.0 AoE, ignore DEF
+				var alive: Array = enemies.filter(func(e) -> bool: return e.is_alive())
+				for e in alive:
+					var dmg: int = int(player_unit.atk * 3.0 * randf_range(0.90, 1.10))
+					e.take_damage_ignore_def(dmg)
+					action_result.emit(player_unit.unit_name, e.unit_name, dmg, true)
 		_:
-			battle_log.emit("⚡ LIMIT BREAK!")
 			var alive: Array = enemies.filter(func(e) -> bool: return e.is_alive())
 			for e in alive:
 				var dmg: int = int(player_unit.atk * 2.0 * randf_range(0.90, 1.10))

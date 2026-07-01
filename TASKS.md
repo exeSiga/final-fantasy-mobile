@@ -262,3 +262,132 @@
   - AC4: DialogueManager.show_dialogue() existant; dialogue_finished signal → _on_cutscene_ended() → navigate
 - Contrôle D (regression): 58/58 tests, _pending_cutscene="" pour combats normaux → navigate directement, aucune régression
 - Déferments: aucun
+
+---
+
+## Sprint 43 — Limit Breaks Tier 2 (Coups Spéciaux par personnage) [STATUS: DONE]
+**Goal:** Chaque personnage déverrouille un second Limit Break plus puissant lorsque sa jauge dépasse 200 (compteur cumulatif de dégâts reçus)
+
+**Acceptance Criteria:**
+- [ ] AC1: Chaque membre cumule les dégâts reçus dans `limit_damage_taken` ; quand ce compteur atteint 200, le `limit_tier` passe à 2 (une seule fois par new_game, persisté en save)
+- [ ] AC2: Au tier 2, le bouton LIMIT affiche le nom du Limit Break du personnage (Cloud : "Météorain", Tifa : "Final Heaven", Aerith : "Gospel", Barret : "Catastrophe") et fait plus de dégâts (×3.5 ATK ou soin total)
+- [ ] AC3: Tier 1 reste disponible tant que tier 2 n'est pas déverrouillé ; tier 2 remplace tier 1 une fois atteint
+- [ ] AC4: Le tier et le compteur persistent à la sauvegarde
+
+**Tasks:**
+- [ ] CombatUnit.gd: limit_damage_taken: int, limit_tier: int (1 ou 2)
+- [ ] BattleManager._fill_limit_gauge(): incrémenter limit_damage_taken; si >= 200 et limit_tier == 1 → limit_tier = 2
+- [ ] BattleManager.player_limit_break(): dispatcher sur character_class + limit_tier
+- [ ] Battle.gd: bouton LIMIT affiche nom du Limit Break selon limit_tier
+- [ ] SaveSystem.gd: persister limit_damage_taken et limit_tier par membre
+
+**Verification Notes:**
+- Contrôle A (static): ✅ All clear
+- Contrôle B (godot parse): ✅ 62/62 tests
+- Contrôle C (logic trace):
+  - AC1: CombatUnit.limit_damage_taken += amount dans _fill_limit_gauge(); check >= 200 → limit_tier=2
+  - AC2: player_limit_break() dispatche match class + tier; Meteorain 4 hits×1.8, Final Heaven ×4.0, Great Gospel soin+revive 75%, Catastrophe ×3.0 AoE
+  - AC3: limit_tier==1 → tier1 name/behavior; tier2 only after unlock
+  - AC4: _unit_to_dict + load_save: limit_damage_taken et limit_tier persistés
+- Contrôle D (regression): 62/62 tests, limit gauge ordinaire (tier 1) intact, ATB/arena/boss flows inchangés
+- Déferments: aucun
+
+---
+
+## Sprint 44 — Red XIII (5e membre, Beastmaster) [STATUS: TODO]
+**Goal:** Ajouter Red XIII comme 5e membre disponible avec une attaque spéciale "Lunatic High" qui augmente la VIT de toute la party
+
+**Acceptance Criteria:**
+- [ ] AC1: Red XIII (character_class="Beastmaster", sprite rouge/orange) ajouté dans available_members — 5 membres disponibles au total
+- [ ] AC2: Le menu Party sur WorldMap permet de sélectionner 3 membres parmi 5
+- [ ] AC3: Attaque spéciale "Lunatic High" : double le SPD de tous les membres vivants pendant 2 tours, bouton visible quand Red XIII est actif et c'est son tour
+- [ ] AC4: Red XIII a des stats distinctives (SPD élevé, HP moyen, ATK physique moyenne)
+
+**Tasks:**
+- [ ] resources/units/red_xiii.tres (Beastmaster, SPD=40, HP=320, ATK=38, sprite orange)
+- [ ] GameManager.new_game(): available_members[4] = Red XIII
+- [ ] BattleManager.gd: player_lunatic_high() — double spd party vivante pour 2 tours
+- [ ] Battle.gd: bouton "Lunatic High" visible si Beastmaster + son tour
+- [ ] WorldMap.gd: PartySetupMenu mis à jour pour 5 membres (validation toujours 3 actifs)
+
+**Verification Notes:**
+- Contrôle A (static):
+- Contrôle B (godot parse):
+- Contrôle C (logic trace):
+- Contrôle D (regression):
+- Déferments:
+
+---
+
+## Sprint 45 — Districts de Midgar (Secteurs 1, 5, 7) [STATUS: TODO]
+**Goal:** Trois zones spéciales de Midgar accessibles depuis la WorldMap avec events uniques et ennemis propres à chaque secteur
+
+**Acceptance Criteria:**
+- [ ] AC1: Boutons "Secteur 1 — Réacteur", "Secteur 5 — Slums", "Secteur 7 — Seventh Heaven" sur WorldMap (accessible dès Lv.1)
+- [ ] AC2: Chaque secteur déclenche un combat avec un pool d'ennemis propre (Secteur 1 : MP Soldier+Guard; Secteur 5 : Hedgehog Pie+Mu; Secteur 7 : Shinra Guard+Attack Squad)
+- [ ] AC3: Victoire dans chaque secteur accorde un item unique introuvable en shop (Secteur 1 : Mako Shard, Secteur 5 : Slum Herb ×3 heal, Secteur 7 : ShinRa Badge équip)
+- [ ] AC4: Un compteur de victoires par secteur (BattleManager.sector_victories) incrémente à chaque victoire
+
+**Tasks:**
+- [ ] resources/units/: mp_soldier.tres, hedgehog_pie.tres, shinra_guard.tres (3 nouveaux ennemis simples)
+- [ ] resources/items/mako_shard.tres (buff ATK temporaire), slum_herb.tres (heal), shinra_badge.tres (équipement slot=1 DEF+8)
+- [ ] BattleManager.gd: sector_victories: Dictionary; SECTOR1/5/7_POOL; start_sector_battle(sector)
+- [ ] WorldMap.gd: _add_sector_buttons() → boutons; _on_sector_pressed(sector) → start_sector_battle
+- [ ] BattleManager._check_battle_end(): si sector_mode → grant item unique (une fois) + sector_victories++
+
+**Verification Notes:**
+- Contrôle A (static):
+- Contrôle B (godot parse):
+- Contrôle C (logic trace):
+- Contrôle D (regression):
+- Déferments:
+
+---
+
+## Sprint 46 — Fichiers ShinRa (Notifications de Lore) [STATUS: TODO]
+**Goal:** Après certains jalons (premier kill par type d'ennemi, boss vaincu, rang atteint), afficher un popup "Fichier ShinRa déverrouillé" avec une ligne de lore FF7
+
+**Acceptance Criteria:**
+- [ ] AC1: 6 fichiers ShinRa définis (ex: premier Slime tué, Guard Scorpion vaincu, rang 2nd Class atteint, Jenova vaincue, 50 kills total, Sephiroth vaincu)
+- [ ] AC2: Chaque fichier ne s'affiche qu'une fois (GameManager.shinra_files_seen: Array), persisté en save
+- [ ] AC3: Popup stylisé "📁 Fichier ShinRa" avec titre + une ligne de lore (fond bleu ShinRa), visible 4 secondes ou sur tap
+- [ ] AC4: Les checks se font dans BattleManager._check_battle_end() et GameManager (rank change signal)
+
+**Tasks:**
+- [ ] GameManager.gd: shinra_files_seen: Array; SHINRA_FILES const (6 entrées: condition + titre + texte); check_shinra_files()
+- [ ] SaveSystem.gd: persister shinra_files_seen
+- [ ] scripts/ShinraFilePopup.gd + scenes/ui/ShinraFilePopup.tscn (fond bleu, titre + lore, auto-dismiss 4s)
+- [ ] BattleManager._check_battle_end(): appel GameManager.check_shinra_files() après rewards
+- [ ] WorldMap/_ready(): appel check_shinra_files() pour le rang au retour
+
+**Verification Notes:**
+- Contrôle A (static):
+- Contrôle B (godot parse):
+- Contrôle C (logic trace):
+- Contrôle D (regression):
+- Déferments:
+
+---
+
+## Sprint 47 — New Game+ (Difficulté Augmentée) [STATUS: TODO]
+**Goal:** Après avoir terminé le jeu (Sephiroth vaincu), débloquer un mode New Game+ qui relance avec les stats ennemis ×1.5 et des récompenses de fin améliorées
+
+**Acceptance Criteria:**
+- [ ] AC1: Après victoire sur Sephiroth, un bouton "New Game+" apparaît sur l'écran de victoire final (persisté via GameManager.ng_plus_unlocked)
+- [ ] AC2: En NG+, tous les ennemis ont leurs HP et ATK multipliés par 1.5 (BattleManager.ng_plus_mode: bool)
+- [ ] AC3: Les XP et Gold rewards sont aussi ×1.5 en NG+ (GameManager.grant_battle_rewards adapté)
+- [ ] AC4: ng_plus_unlocked et ng_plus_mode persistent à la sauvegarde
+
+**Tasks:**
+- [ ] GameManager.gd: ng_plus_unlocked: bool, ng_plus_mode: bool
+- [ ] BattleManager.gd: ng_plus_mode: bool; dans start_battle() après chargement ennemis → si ng_plus_mode: enemy.hp *= 1.5, enemy.max_hp *= 1.5, enemy.atk *= 1.5
+- [ ] GameManager.grant_battle_rewards(): si ng_plus_mode → XP et gold ×1.5
+- [ ] Battle.gd: _on_battle_ended(victory) + is_boss_sephiroth_battle → bouton "New Game+" si victory
+- [ ] SaveSystem.gd: persister ng_plus_unlocked et ng_plus_mode
+
+**Verification Notes:**
+- Contrôle A (static):
+- Contrôle B (godot parse):
+- Contrôle C (logic trace):
+- Contrôle D (regression):
+- Déferments:

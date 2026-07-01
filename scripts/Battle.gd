@@ -253,6 +253,8 @@ func _update_limit_button(unit) -> void:
 	var ready: bool = unit.limit_gauge >= 100
 	_limit_btn.visible = ready
 	_attack_btn.visible = not ready
+	if ready:
+		_limit_btn.text = "⚡ %s" % BattleManager._limit_name(unit)
 
 func _on_limit_gauge_updated(unit) -> void:
 	_refresh_party_ui()

@@ -17,6 +17,8 @@ func _unit_to_dict(u) -> Dictionary:
 		"atk": u.atk, "def": u.def, "spd": u.spd,
 		"level": u.level, "xp": u.xp,
 		"xp_to_next_level": u.xp_to_next_level,
+		"limit_damage_taken": u.limit_damage_taken,
+		"limit_tier": u.limit_tier,
 	}
 
 func _equipment_to_array() -> Array:
@@ -93,6 +95,8 @@ func load_save(slot: int) -> bool:
 		m.level = md.get("level", 1)
 		m.xp = md.get("xp", 0)
 		m.xp_to_next_level = md.get("xp_to_next_level", 100)
+		m.limit_damage_taken = md.get("limit_damage_taken", 0)
+		m.limit_tier = md.get("limit_tier", 1)
 	var saved_indices: Array = d.get("active_party_indices", [0, 1, 2])
 	GameManager.active_party_indices = saved_indices
 	GameManager.rebuild_party_from_indices()

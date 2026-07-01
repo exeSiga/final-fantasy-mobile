@@ -26,6 +26,8 @@ var base_spd: int = 0
 var status: String = ""       # "" | "poison" | "sleep" | "silence"
 var status_turns: int = 0
 var limit_gauge: int = 0      # 0-100, fills when receiving damage
+var limit_damage_taken: int = 0  # cumulative damage taken; at 200 → tier 2 unlocks
+var limit_tier: int = 1           # 1 or 2; tier 2 unlocked at limit_damage_taken >= 200
 var current_phase: int = 0   # boss phase tracker
 var spell_immune: bool = false  # blocks player spells (boss phase 2)
 var atb_gauge: float = 0.0    # 0-100 ATB charge, fills based on spd before the unit can act
