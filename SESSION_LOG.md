@@ -14,3 +14,4 @@
 [2026-07-01] Sprint 56 (Wall Market) — DONE — popup-shop 6 items exclusifs, Affaire Louche 30% (50% bon deal), black_materia_shard unlock visite 5, wall_market_visits persist, 115/115 tests
 [2026-07-01] Sprint 57 (Vincent Valentine) — DONE — DarkWarrior 7e membre, galian_turns×2 ATK×2.5, _galian_btn DarkWarrior, auto-revert + log, 120/120 tests
 [2026-07-01] Sprint 58 (Cait Sith Machinist) — DONE — Slot machine jackpot/demi/miss, _slot_btn Machinist, 8e membre, 125/125 tests
+[2026-07-01] Sprint 59 (Forge d'Armes) — DONE — upgrade équipement max Lv3 +5 stat par niveau, 200/400/600G, WorldMap btn, persist, 130/130 tests
