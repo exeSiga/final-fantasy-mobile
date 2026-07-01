@@ -19,3 +19,4 @@
 [2026-07-01] Sprint 49 (Bestiaire) — DONE — 13 ennemis FF7, lore, milestone rewards, _check_bestiary_milestone, ScrollContainer, 86/86 tests
 [2026-07-01] Sprint 50 (Boutique Évolutive) — DONE — 4 équipements, Thundara+Regen matérias, sections rang-gated, badge NOUVEAU doré, 90/90 tests
 [2026-07-01] Sprint 51 (Armes Élémentaires) — DONE — flame_blade/ice_brand/thunder_blade, weapon_element field, bonus ×1.5 faiblesse, HUD icône, 94/94 tests
+[2026-07-01] Sprint 52 (Trésors Donjon) — DONE — 4 rares, DUNGEON_TREASURE_POOL, try_show_dungeon_treasure popup 💎, dungeon_treasures_found, 98/98 tests
