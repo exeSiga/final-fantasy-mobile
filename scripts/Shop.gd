@@ -29,6 +29,21 @@ const SHINRA_ARMORY: Array[String] = [
 	"res://resources/equipment/shinra_armor.tres",
 ]
 
+const RANK_2ND_EQUIP: Array[String] = [
+	"res://resources/equipment/mithril_sword.tres",
+	"res://resources/equipment/guard_bangle.tres",
+]
+const RANK_2ND_MATERIAS: Array[String] = [
+	"res://resources/materias/thundara_materia.tres",
+]
+const RANK_1ST_EQUIP: Array[String] = [
+	"res://resources/equipment/hardedge.tres",
+	"res://resources/equipment/wizard_rod.tres",
+]
+const RANK_1ST_MATERIAS: Array[String] = [
+	"res://resources/materias/regen_materia.tres",
+]
+
 const SHOP_EQUIP: Array[String] = [
 	"res://resources/equipment/short_sword.tres",
 	"res://resources/equipment/long_sword.tres",
@@ -85,6 +100,30 @@ func _build_shop() -> void:
 			var bonus_stat: String = "ATK" if item.slot == 0 else "DEF"
 			var lbl_extra: String = " [+%d %s]" % [item.stat_bonus, bonus_stat]
 			_add_item_row(item.equip_name + lbl_extra, item.price, _on_buy_equip.bind(item))
+	# --- 2nd Class Arsenal ---
+	var rank: String = GameManager.get_soldier_rank()
+	var prev_rank: String = GameManager.shop_last_rank
+	if rank == "2nd Class" or rank == "1st Class":
+		var new_2nd: bool = (prev_rank == "3rd Class")
+		_add_section_header("★ Arsenal 2nd Class" + (" [NOUVEAU]" if new_2nd else ""))
+		for path in RANK_2ND_EQUIP:
+			var item = load(path)
+			var bonus_stat: String = "ATK" if item.slot == 0 else "DEF"
+			_add_item_row(item.equip_name + " [+%d %s]" % [item.stat_bonus, bonus_stat], item.price, _on_buy_equip.bind(item), new_2nd)
+		for path in RANK_2ND_MATERIAS:
+			var mat = load(path)
+			_add_item_row(mat.materia_name + " — " + mat.description, mat.price, _on_buy_materia.bind(mat), new_2nd)
+	if rank == "1st Class":
+		var new_1st: bool = (prev_rank != "1st Class")
+		_add_section_header("★ Arsenal 1st Class" + (" [NOUVEAU]" if new_1st else ""))
+		for path in RANK_1ST_EQUIP:
+			var item = load(path)
+			var bonus_stat: String = "ATK" if item.slot == 0 else "DEF"
+			_add_item_row(item.equip_name + " [+%d %s]" % [item.stat_bonus, bonus_stat], item.price, _on_buy_equip.bind(item), new_1st)
+		for path in RANK_1ST_MATERIAS:
+			var mat = load(path)
+			_add_item_row(mat.materia_name + " — " + mat.description, mat.price, _on_buy_materia.bind(mat), new_1st)
+	GameManager.shop_last_rank = rank
 
 func _add_craft_button() -> void:
 	var btn := Button.new()
@@ -107,7 +146,7 @@ func _add_section_header(title: String) -> void:
 	lbl.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2, 1))
 	item_list.add_child(lbl)
 
-func _add_item_row(label_text: String, price: int, callback: Callable) -> void:
+func _add_item_row(label_text: String, price: int, callback: Callable, is_new: bool = false) -> void:
 	var row := HBoxContainer.new()
 	var lbl := Label.new()
 	var display_price: int = GameManager.get_discounted_price(price)
@@ -115,6 +154,8 @@ func _add_item_row(label_text: String, price: int, callback: Callable) -> void:
 	lbl.text = "%s — %s" % [label_text, price_text]
 	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	lbl.add_theme_font_size_override("font_size", 26)
+	if is_new:
+		lbl.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2, 1))
 	var btn := Button.new()
 	btn.text = "Buy"
 	btn.add_theme_font_size_override("font_size", 26)

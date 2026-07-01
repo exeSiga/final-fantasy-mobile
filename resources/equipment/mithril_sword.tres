@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="" load_steps=2 format=3 uid="uid://equip_mithril_sword"]
+
+[ext_resource type="Script" path="res://resources/Equipment.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+equip_name = "Mithril Sword"
+slot = 0
+stat_bonus = 25
+price = 600
+allowed_classes = ["Warrior", "Gunner"]
+description = "Blade forged from mithril alloy. Sharp and light."
+materia_slots = 2

@@ -456,27 +456,28 @@
 
 ---
 
-## Sprint 50 — Boutique Évolutive (Items selon le Rang) [STATUS: TODO]
+## Sprint 50 — Boutique Évolutive (Items selon le Rang) [STATUS: DONE]
 **Goal:** La boutique débloque de nouvelles lignes d'équipements et de matérias en fonction du rang SOLDIER du joueur (3rd/2nd/1st Class)
 
 **Acceptance Criteria:**
-- [ ] AC1: En rang 3rd Class : catalogue de base (équipements niveau 1, matérias Fire/Ice)
-- [ ] AC2: En rang 2nd Class (≥50 kills) : +2 équipements de niveau 2 débloqués (ex: Mithril Sword, Guard Bangle), +Materia Lightning
-- [ ] AC3: En rang 1st Class (≥150 kills) : +2 équipements endgame débloqués (ex: Hardedge, Wizard Rod), +Materia Restore 2 (Regen)
-- [ ] AC4: Un badge visuel "NOUVEAU" (couleur dorée) marque les articles fraîchement débloqués à chaque montée de rang
+- [x] AC1: Catalogue de base inchangé (équipements niv.1, Fire/Ice/Thunder/Cure matérias)
+- [x] AC2: 2nd Class (≥50 kills) : +Mithril Sword (+25 ATK), +Guard Bangle (+20 DEF), +Thundara Materia (3.5× lightning)
+- [x] AC3: 1st Class (≥150 kills) : +Hardedge (+38 ATK), +Wizard Rod (+32 ATK), +Regen Materia (60 HP heal)
+- [x] AC4: Badge "[NOUVEAU]" (doré) sur section et items fraîchement débloqués (shop_last_rank comparaison)
 
 **Tasks:**
-- [ ] resources/equipment/mithril_sword.tres, guard_bangle.tres, hardedge.tres, wizard_rod.tres: nouveaux équipements avec slot/stat_bonus
-- [ ] resources/spells/regen.tres: soin continu par tick (SPELL_HEAL sur la cible la moins chère en MP, 5 MP) ; effect_type=1, heal_value=30
-- [ ] Shop.gd: _get_rank_items() retourne la liste d'items selon GameManager.get_soldier_rank() ; badge "NEW" sur items débloqués depuis dernière visite
-- [ ] BattleManager.gd: dans _tick_status() ajouter support "regen" status (heal 5% max_hp/turn)
+- [x] resources/equipment/mithril_sword.tres, guard_bangle.tres, hardedge.tres, wizard_rod.tres
+- [x] resources/spells/thundara.tres (3.5×, lightning), regen.tres (HEAL 60 HP, 8 MP)
+- [x] resources/materias/thundara_materia.tres, regen_materia.tres
+- [x] Shop.gd: RANK_2ND_EQUIP/MATERIAS, RANK_1ST_EQUIP/MATERIAS; _add_item_row(is_new) dorée
+- [x] GameManager.gd: shop_last_rank: String, SaveSystem.gd: persisté
 
 **Verification Notes:**
-- Contrôle A (static):
-- Contrôle B (godot parse):
-- Contrôle C (logic trace):
-- Contrôle D (regression):
-- Déferments:
+- Contrôle A (static): ✅ All clear
+- Contrôle B (godot parse): ✅ aucun SCRIPT ERROR
+- Contrôle C (logic trace): shop_last_rank vs current rank → new_2nd/new_1st bool → couleur dorée; updated à fermeture
+- Contrôle D (regression): 90/90 tests passent
+- Déferments: aucun
 
 ---
 

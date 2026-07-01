@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="Spell" load_steps=2 format=3 uid="uid://spell_thundara"]
+
+[ext_resource type="Script" path="res://resources/Spell.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+spell_name = "Thundara"
+mp_cost = 18
+damage_multiplier = 3.5
+effect_type = 0
+description = "Powerful lightning strike — upgraded Thunder."
+element = "lightning"
+heal_value = 0

@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="Materia" load_steps=2 format=3 uid="uid://mat_thundara"]
+
+[ext_resource type="Script" path="res://scripts/Materia.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+materia_name = "Thundara Materia"
+materia_type = "spell"
+spell_path = "res://resources/spells/thundara.tres"
+passive_stat = ""
+passive_pct = 0.3
+price = 900
+description = "Grants the Thundara spell. 3.5x lightning damage."

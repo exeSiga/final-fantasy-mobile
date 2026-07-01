@@ -104,6 +104,10 @@ func _run_all() -> void:
 	_test_bestiary_milestone_reward()
 	_test_bestiary_milestone_no_repeat()
 	_test_bestiary_milestone_save_load()
+	_test_rank_equip_resources_load()
+	_test_rank_materia_resources_load()
+	_test_regen_spell_effect()
+	_test_thundara_spell_element()
 
 func _test_new_game() -> void:
 	GameManager.new_game()
@@ -1343,3 +1347,47 @@ func _test_bestiary_milestone_save_load() -> void:
 	if not GameManager.bestiary_milestones_given.get("Goblin", false):
 		_ko("bestiary_milestone_save_load", "Goblin milestone should persist after load"); return
 	_ok("bestiary_milestone_save_load: bestiary_milestones_given persist through save/load")
+
+func _test_rank_equip_resources_load() -> void:
+	for path in ["res://resources/equipment/mithril_sword.tres", "res://resources/equipment/guard_bangle.tres",
+				 "res://resources/equipment/hardedge.tres", "res://resources/equipment/wizard_rod.tres"]:
+		var item = load(path)
+		if item == null:
+			_ko("rank_equip_resources_load", "failed to load %s" % path); return
+		if item.stat_bonus <= 0:
+			_ko("rank_equip_resources_load", "%s has stat_bonus<=0" % item.equip_name); return
+	_ok("rank_equip_resources_load: 4 rank-gated equipment resources load correctly")
+
+func _test_rank_materia_resources_load() -> void:
+	for path in ["res://resources/materias/thundara_materia.tres", "res://resources/materias/regen_materia.tres"]:
+		var mat = load(path)
+		if mat == null:
+			_ko("rank_materia_resources_load", "failed to load %s" % path); return
+		if mat.spell_path == "":
+			_ko("rank_materia_resources_load", "%s has empty spell_path" % mat.materia_name); return
+		var spell = load(mat.spell_path)
+		if spell == null:
+			_ko("rank_materia_resources_load", "spell at %s not found" % mat.spell_path); return
+	_ok("rank_materia_resources_load: thundara_materia and regen_materia load with valid spell paths")
+
+func _test_regen_spell_effect() -> void:
+	var regen = load("res://resources/spells/regen.tres")
+	if regen == null:
+		_ko("regen_spell_effect", "regen.tres failed to load"); return
+	if regen.effect_type != 1:
+		_ko("regen_spell_effect", "regen effect_type should be 1 (HEAL), got %d" % regen.effect_type); return
+	if regen.heal_value <= 0:
+		_ko("regen_spell_effect", "regen heal_value should be >0, got %d" % regen.heal_value); return
+	if regen.mp_cost <= 0:
+		_ko("regen_spell_effect", "regen mp_cost should be >0, got %d" % regen.mp_cost); return
+	_ok("regen_spell_effect: Regen is HEAL type with heal_value=%d, mp_cost=%d" % [regen.heal_value, regen.mp_cost])
+
+func _test_thundara_spell_element() -> void:
+	var spell = load("res://resources/spells/thundara.tres")
+	if spell == null:
+		_ko("thundara_spell_element", "thundara.tres failed to load"); return
+	if spell.element != "lightning":
+		_ko("thundara_spell_element", "thundara element should be 'lightning', got '%s'" % spell.element); return
+	if spell.damage_multiplier <= 2.0:
+		_ko("thundara_spell_element", "thundara damage_multiplier should be >2.0, got %.1f" % spell.damage_multiplier); return
+	_ok("thundara_spell_element: Thundara has lightning element and %.1f×damage" % spell.damage_multiplier)

@@ -108,6 +108,7 @@ var bestiary_milestones_given: Dictionary = {}
 var ng_plus_unlocked: bool = false
 var ng_plus_mode: bool = false
 var npc_flags: Dictionary = {}
+var shop_last_rank: String = "3rd Class"
 var pending_rank_notification: String = ""
 
 const NPC_CHOICES: Dictionary = {
@@ -216,6 +217,7 @@ func new_game() -> void:
 	ng_plus_mode = false
 	npc_flags = {}
 	bestiary_milestones_given = {}
+	shop_last_rank = "3rd Class"
 	pending_rank_notification = ""
 	for m in party:
 		base_party_spell_paths.append(m.spell_paths.duplicate())

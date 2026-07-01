@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="" load_steps=2 format=3 uid="uid://equip_wizard_rod"]
+
+[ext_resource type="Script" path="res://resources/Equipment.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+equip_name = "Wizard Rod"
+slot = 0
+stat_bonus = 32
+price = 1100
+allowed_classes = ["Black Mage", "White Mage"]
+description = "Ancient rod channeling raw Mako. Amplifies magic to devastating levels."
+materia_slots = 3

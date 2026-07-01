@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="Spell" load_steps=2 format=3 uid="uid://spell_regen"]
+
+[ext_resource type="Script" path="res://resources/Spell.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+spell_name = "Regen"
+mp_cost = 8
+damage_multiplier = 0.0
+effect_type = 1
+description = "Restores 60 HP to the most injured ally."
+element = ""
+heal_value = 60

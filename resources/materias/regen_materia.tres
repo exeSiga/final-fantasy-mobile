@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="Materia" load_steps=2 format=3 uid="uid://mat_regen"]
+
+[ext_resource type="Script" path="res://scripts/Materia.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+materia_name = "Regen Materia"
+materia_type = "spell"
+spell_path = "res://resources/spells/regen.tres"
+passive_stat = ""
+passive_pct = 0.3
+price = 1400
+description = "Grants the Regen spell. Heals 60 HP to the weakest ally."
