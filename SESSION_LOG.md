@@ -9,3 +9,4 @@
 [2026-07-01] Sprint 60 (Météo de Combat) — DONE — 5 météos, WEATHER_SPELL_MOD, _apply_weather_mod dans player_cast_spell, HUD label, 135/135 tests
 [2026-07-01] Sprint 61 (Boss Rush Mode) — DONE — séquence 5 boss, no-heal entre combats, hero_drink récompense, best_score persist, 140/140 tests
 [2026-07-05] Sprint 62 (Achievements) — DONE — terminé une session interrompue (appel à fonction inexistante cassait WorldMap.gd) ; + 2 bugs de compilation préexistants corrigés (Shop.gd Object.get(), WorldMap.gd type inference) ; + Contrôle B remplacé (check_parse.sh/validate_scripts.gd, l'ancien --check-only ne rendait jamais la main) ; + 5 popups préexistants avec add_child non-déferré corrigés ; 145/145 tests, vérifié visuellement (MainMenu/WorldMap/Battle screenshots)
+[2026-07-05 20:55] Sprint — assets integration (Cinzel font, Tiny Dungeon sprites, WorldMap NPC tiles, Battle floor) — DONE
