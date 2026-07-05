@@ -46,9 +46,17 @@ bash check_compat.sh
 
 #### Contrôle B — Parse Godot headless
 ```bash
-timeout 12 /home/siga/godot4 --headless --check-only . 2>&1 | grep "SCRIPT ERROR"
+bash check_parse.sh
 ```
-→ Résultat doit être **vide**. Si une erreur apparaît : corriger avant de continuer.
+→ Doit afficher `✅ All clear`. Si ❌ : corriger avant de continuer.
+
+**Ne jamais utiliser** `godot4 --headless --check-only .` directement : ce flag est réservé aux
+builds "editor" de Godot et ne rend jamais la main sur le binaire installé ici — un `timeout` sur
+cette commande la tue sans qu'elle ait rien vérifié, et un `grep "SCRIPT ERROR"` sur une sortie
+vide affiche donc toujours "aucune erreur" à tort. C'est resté un no-op silencieux pendant plus de
+60 sprints avant d'être détecté. `check_parse.sh` charge chaque script individuellement
+(`tools/validate_scripts.gd`) — ça déclenche la même compilation statique GDScript, mais avec une
+commande qui se termine réellement et un exit code fiable.
 
 #### Contrôle C — Trace logique par Acceptance Criterion
 Pour chaque AC du sprint, répondre mentalement à :

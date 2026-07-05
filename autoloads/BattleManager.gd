@@ -418,6 +418,8 @@ func player_limit_break() -> void:
 	player_unit.limit_gauge = 0
 	limit_gauge_updated.emit(player_unit)
 	var tier: int = player_unit.limit_tier
+	if tier == 2:
+		GameManager.check_achievement("limit_broken")
 	var name_str: String = _limit_name(player_unit)
 	battle_log.emit("⚡ %s!" % name_str)
 	match player_unit.character_class:
@@ -801,6 +803,7 @@ func player_slot_machine() -> void:
 			if m.is_alive():
 				m.hp = m.max_hp
 				m.mp = m.max_mp
+		GameManager.check_achievement("jackpot")
 	elif r1 == r2 or r2 == r3 or r1 == r3:
 		battle_log.emit("🎰 %s — Demi-Jackpot ! Soin 200 HP !" % slot_str)
 		for m in party:
@@ -1253,6 +1256,8 @@ func _check_battle_end() -> void:
 		for e in enemies:
 			QuestManager.notify_kill(e.unit_name)
 			GameManager.total_kills += 1
+		GameManager.check_kills_achievement()
+		GameManager.check_all_stars_achievement()
 		var new_rank: String = GameManager.get_soldier_rank()
 		if new_rank != prev_rank:
 			GameManager.pending_rank_notification = new_rank
@@ -1260,6 +1265,7 @@ func _check_battle_end() -> void:
 		GameManager.grant_battle_rewards()
 		var ap_gain: int = 10 + (arena_wave * 5 if arena_mode else 0)
 		GameManager.grant_materia_ap(ap_gain)
+		GameManager.check_materia_master_achievement()
 		if arena_mode:
 			if arena_wave >= ARENA_TOTAL_WAVES:
 				var belt = load(CHAMPION_BELT_PATH)
@@ -1278,6 +1284,7 @@ func _check_battle_end() -> void:
 			if ring != null:
 				GameManager.equip_inventory[RUBY_RING_PATH] = GameManager.equip_inventory.get(RUBY_RING_PATH, 0) + 1
 				battle_log.emit("★ Ruby Ring obtenu !")
+			GameManager.check_achievement("survivor")
 		elif is_emerald_weapon_battle:
 			var bangle = load(EMERALD_BANGLE_PATH)
 			if bangle != null:

@@ -158,6 +158,11 @@ func _run_all() -> void:
 	_test_boss_rush_sequence_defined()
 	_test_hero_drink_defined()
 	_test_boss_rush_save_load()
+	_test_achievement_defs_count()
+	_test_check_first_blood()
+	_test_achievement_no_duplicate()
+	_test_achievement_save_load()
+	_test_all_achievement_keys_valid()
 
 func _test_new_game() -> void:
 	GameManager.new_game()
@@ -2134,3 +2139,56 @@ func _test_boss_rush_save_load() -> void:
 	if GameManager.boss_rush_best_score != 3:
 		_ko("boss_rush_save_load", "boss_rush_best_score should be 3 after load, got %d" % GameManager.boss_rush_best_score); return
 	_ok("boss_rush_save_load: boss_rush_best_score persists through save/load")
+
+func _test_achievement_defs_count() -> void:
+	if GameManager.ACHIEVEMENT_DEFS.size() != 8:
+		_ko("achievement_defs_count", "ACHIEVEMENT_DEFS should have 8 entries, got %d" % GameManager.ACHIEVEMENT_DEFS.size()); return
+	_ok("achievement_defs_count: 8 achievements defined")
+
+func _test_check_first_blood() -> void:
+	GameManager.new_game()
+	if "first_blood" in GameManager.achievements_unlocked:
+		_ko("check_first_blood", "first_blood should not be unlocked after new_game"); return
+	GameManager.total_kills = 1
+	GameManager.check_kills_achievement()
+	if not "first_blood" in GameManager.achievements_unlocked:
+		_ko("check_first_blood", "first_blood should unlock once total_kills >= 1"); return
+	_ok("check_first_blood: first_blood unlocks after first kill")
+
+func _test_achievement_no_duplicate() -> void:
+	GameManager.new_game()
+	GameManager.check_achievement("first_blood")
+	GameManager.check_achievement("first_blood")
+	var count: int = 0
+	for k in GameManager.achievements_unlocked:
+		if k == "first_blood":
+			count += 1
+	if count != 1:
+		_ko("achievement_no_duplicate", "first_blood should appear once, got %d" % count); return
+	_ok("achievement_no_duplicate: check_achievement is idempotent")
+
+func _test_achievement_save_load() -> void:
+	GameManager.new_game()
+	GameManager.achievements_unlocked = ["first_blood", "jackpot"]
+	SaveSystem.save(0)
+	GameManager.new_game()
+	if not GameManager.achievements_unlocked.is_empty():
+		_ko("achievement_save_load", "new_game should reset achievements_unlocked"); return
+	var ok: bool = SaveSystem.load_save(0)
+	if not ok:
+		_ko("achievement_save_load", "load_save returned false"); return
+	if not ("first_blood" in GameManager.achievements_unlocked and "jackpot" in GameManager.achievements_unlocked):
+		_ko("achievement_save_load", "achievements_unlocked should contain first_blood and jackpot after load, got %s" % str(GameManager.achievements_unlocked)); return
+	_ok("achievement_save_load: achievements_unlocked persists through save/load")
+
+func _test_all_achievement_keys_valid() -> void:
+	var seen_keys: Array = []
+	for d in GameManager.ACHIEVEMENT_DEFS:
+		if not (d.has("key") and d.has("name") and d.has("desc")):
+			_ko("all_achievement_keys_valid", "entry missing key/name/desc: %s" % str(d)); return
+		if d.key == "" or d.name == "" or d.desc == "":
+			_ko("all_achievement_keys_valid", "entry has empty field: %s" % str(d)); return
+		if d.key in seen_keys:
+			_ko("all_achievement_keys_valid", "duplicate key: %s" % d.key); return
+		seen_keys.append(d.key)
+	_ok("all_achievement_keys_valid: all 8 achievement keys unique and non-empty")

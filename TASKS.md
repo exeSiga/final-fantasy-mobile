@@ -801,26 +801,35 @@
 
 ---
 
-## Sprint 62 — Système d'Achievements (Médailles FF7) [STATUS: TODO]
+## Sprint 62 — Système d'Achievements (Médailles FF7) [STATUS: DONE]
 **Goal:** Ajouter un système d'achievements visible en jeu : 8 médailles à débloquer selon les exploits du joueur, avec popup de notification et écran de consultation
 
 **Acceptance Criteria:**
-- [ ] AC1: 8 achievements définis dans ACHIEVEMENT_DEFS const : "First Blood" (1er ennemi tué), "Collector" (5 items en inventaire), "Materia Master" (materia level 3 atteint), "All Stars" (7 membres débloqués), "Jackpot" (Slot jackpot obtenu), "Survivor" (vaincre Ruby Weapon), "Limit Broken" (Limit Break Tier 2 utilisé), "Champion" (Boss Rush complété)
-- [ ] AC2: Quand un achievement est débloqué → popup "🏅 Achievement débloqué : <nom>" (doré, 3s) ; stocké dans GameManager.achievements_unlocked: Array
-- [ ] AC3: Bouton "🏅" sur WorldMap ouvre un écran listant tous les achievements avec statut ✅/🔒 et description
-- [ ] AC4: Vérification automatique des achievements au bon moment : après chaque combat (kills), après chaque achat (items), après chaque Limit/Slot, après sephiroth_defeated, etc.
-- [ ] AC5: achievements_unlocked persisté dans SaveSystem
+- [x] AC1: 8 achievements définis dans ACHIEVEMENT_DEFS const : "First Blood" (1er ennemi tué), "Collector" (5 items en inventaire), "Materia Master" (materia level 3 atteint), "All Stars" (7 membres débloqués), "Jackpot" (Slot jackpot obtenu), "Survivor" (vaincre Ruby Weapon), "Limit Broken" (Limit Break Tier 2 utilisé), "Champion" (Boss Rush complété)
+- [x] AC2: Quand un achievement est débloqué → popup "🏅 Achievement débloqué : <nom>" (doré, 3s) ; stocké dans GameManager.achievements_unlocked: Array
+- [x] AC3: Bouton "🏅" sur WorldMap ouvre un écran listant tous les achievements avec statut ✅/🔒 et description
+- [x] AC4: Vérification automatique des achievements au bon moment : après chaque combat (kills), après chaque achat (items), après chaque Limit/Slot, après sephiroth_defeated, etc.
+- [x] AC5: achievements_unlocked persisté dans SaveSystem
 
 **Tasks:**
-- [ ] GameManager.gd: ACHIEVEMENT_DEFS const (Array de dict name/desc/condition_key) ; var achievements_unlocked: Array = [] ; check_achievement(key) ; show_achievement_popup(name)
-- [ ] GameManager.gd: _check_all_achievements() appelée après combat, après use_item, après limit_break utilisé
-- [ ] WorldMap.gd: _add_achievement_button() → popup listant ACHIEVEMENT_DEFS avec état
-- [ ] SaveSystem.gd: achievements_unlocked persisté
-- [ ] tests/TestHeadless.gd: 5 tests (achievement_defs_count, check_first_blood, achievement_no_duplicate, achievement_save_load, all_achievement_keys_valid)
+- [x] GameManager.gd: ACHIEVEMENT_DEFS const (Array de dict name/desc/condition_key) ; var achievements_unlocked: Array = [] ; check_achievement(key) ; show_achievement_popup(name)
+- [x] GameManager.gd: check_kills/collector/all_stars/materia_master_achievement() appelées après combat, add_item, materia AP gain ; hooks jackpot/survivor/limit_broken/champion dans BattleManager.gd
+- [x] WorldMap.gd: _add_achievement_button() → GameManager.show_achievements_screen() listant ACHIEVEMENT_DEFS avec état
+- [x] SaveSystem.gd: achievements_unlocked persisté
+- [x] tests/TestHeadless.gd: 5 tests (achievement_defs_count, check_first_blood, achievement_no_duplicate, achievement_save_load, all_achievement_keys_valid)
 
 **Verification Notes:**
-- Contrôle A (static):
-- Contrôle B (godot parse):
+- Contrôle A (static): ✅ check_compat.sh All clear
+- Contrôle B (godot parse): ✅ check_parse.sh All clear (voir Déferments — l'ancienne commande `--check-only` était cassée et a été remplacée)
 - Contrôle C (logic trace):
-- Contrôle D (regression):
-- Déferments:
+  - AC1/AC2: check_achievement(key) idempotent (guard `if key in achievements_unlocked: return`), popup show_achievement_popup() avec CanvasLayer layer=98, add_child différé (voir Déferments)
+  - AC3: _add_achievement_button() (WorldMap.gd) → show_achievements_screen() (GameManager.gd), ScrollContainer listant les 8 défs avec ✅/🔒
+  - AC4: hooks câblés — check_kills_achievement()+check_all_stars_achievement() dans BattleManager._check_battle_end() ; check_collector_achievement() dans GameManager.add_item() ; check_materia_master_achievement() après grant_materia_ap() ; check_achievement("jackpot") dans player_slot_machine() ; check_achievement("survivor") sur victoire Ruby Weapon ; check_achievement("limit_broken") dans player_limit_break() si tier==2 ; check_achievement("champion") dans _on_boss_rush_complete()
+  - AC5: achievements_unlocked ajouté à SaveSystem.save()/load_save()
+- Contrôle D (regression): 145/145 tests ; MainMenu → WorldMap → Battle vérifiés visuellement (test_visual.sh, captures dans /tmp/game_screenshots) sans erreur — chemin critique intact
+- Déferments / hotfix effectués dans la même session :
+  - **Bug bloquant trouvé** : ce sprint avait été laissé inachevé lors d'une session précédente (limite de session atteinte) — `WorldMap.gd` appelait déjà `_add_achievement_button()` dans `_ready()` sans que la fonction existe, ce qui cassait le chargement de WorldMap.gd pour TOUT le monde (script non attaché → aucun bouton, aucune interaction). Corrigé en complétant l'implémentation ci-dessus.
+  - **2 bugs de compilation préexistants, sans rapport avec ce sprint, trouvés en creusant pourquoi "les tests passent mais le jeu ne marche pas"** : `Shop.gd:86` utilisait `item.get("weapon_element", "")` (syntaxe Dictionary sur un Object — `Object.get()` natif ne prend qu'1 argument) → corrigé en `item.weapon_element` (propriété toujours définie sur Equipment.gd). `WorldMap.gd:111` utilisait `var menu := load(...).instantiate()` (inférence de type impossible sur le retour de `load()`) → corrigé en `var menu = ...`. Ces deux erreurs faisaient échouer la compilation de Shop.gd et WorldMap.gd purement et simplement (confirmé en chargeant ces scènes directement avec `godot4 --headless ... res://scenes/....tscn`).
+  - **Contrôle B lui-même était cassé** : `godot4 --headless --check-only .` (documenté dans CLAUDE.md) ne rend jamais la main sur le binaire installé ici (`--check-only` est réservé aux builds "editor" de Godot). Un `grep "SCRIPT ERROR"` sur une commande tuée par timeout retournait donc toujours vide, faisant passer ce contrôle à "✅" sans jamais rien vérifier, depuis le sprint 1. Remplacé par `check_parse.sh` + `tools/validate_scripts.gd`, qui charge chaque script individuellement (déclenche la même compilation statique GDScript) avec une commande qui se termine réellement. Sanity-testé positif et négatif (réintroduction volontaire d'un bug, confirmée détectée, puis annulée) avant adoption.
+  - **5 popups préexistants (non liés à ce sprint) avaient un bug latent** : `_show_shinra_popup`, `_show_npc_done_popup`, `try_show_dungeon_treasure` appelaient `get_tree().root.add_child(canvas)` de façon synchrone, ce qui échoue silencieusement ("Parent node is busy") si appelé pendant que l'arbre de scène est encore en cours de construction. Corrigé avec `add_child.call_deferred(...)`, même pattern déjà nécessaire pour `show_achievement_popup()` de ce sprint.
+  - Le rendu visuel de WorldMap reste très encombré (boutons qui se chevauchent, accumulés sprint après sprint sans jamais de vérification visuelle) — hors scope de ce sprint, à traiter séparément (voir note de session).

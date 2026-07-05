@@ -83,7 +83,7 @@ func _build_shop() -> void:
 	for path in SHOP_EQUIP:
 		var item = load(path)
 		var bonus_stat: String = "ATK" if item.slot == 0 else "DEF"
-		var elem_icon: String = _element_icon(item.get("weapon_element", ""))
+		var elem_icon: String = _element_icon(item.weapon_element)
 		var lbl_extra: String = " [+%d %s%s]" % [item.stat_bonus, bonus_stat, elem_icon]
 		_add_item_row(item.equip_name + lbl_extra, item.price, _on_buy_equip.bind(item))
 	# --- Materia section ---

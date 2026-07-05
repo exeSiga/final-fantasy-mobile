@@ -66,6 +66,7 @@ func save(slot: int) -> void:
 		"materia_ap": GameManager.materia_ap,
 		"wall_market_visits": GameManager.wall_market_visits,
 		"boss_rush_best_score": GameManager.boss_rush_best_score,
+		"achievements_unlocked": GameManager.achievements_unlocked,
 		"total_kills": GameManager.total_kills,
 		"quest_kills": QuestManager.kill_counts,
 		"quest_completed": QuestManager.completed,
@@ -129,6 +130,7 @@ func load_save(slot: int) -> bool:
 	GameManager.materia_ap = d.get("materia_ap", {})
 	GameManager.wall_market_visits = d.get("wall_market_visits", 0)
 	GameManager.boss_rush_best_score = d.get("boss_rush_best_score", 0)
+	GameManager.achievements_unlocked = d.get("achievements_unlocked", [])
 	GameManager.total_kills = d.get("total_kills", 0)
 	GameManager.learned_enemy_skills = d.get("learned_enemy_skills", [])
 	QuestManager.kill_counts = d.get("quest_kills", {})

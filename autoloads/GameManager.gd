@@ -188,6 +188,7 @@ var wall_market_visits: int = 0
 var dungeon_treasures_found: Array = []
 var boss_rush_best_score: int = 0
 var boss_rush_active: bool = false
+var achievements_unlocked: Array = []
 var ng_plus_unlocked: bool = false
 var ng_plus_mode: bool = false
 var npc_flags: Dictionary = {}
@@ -310,6 +311,7 @@ func new_game() -> void:
 	wall_market_visits = 0
 	boss_rush_active = false
 	boss_rush_best_score = 0
+	achievements_unlocked = []
 	for m in party:
 		base_party_spell_paths.append(m.spell_paths.duplicate())
 	dungeon_boss_cleared = false
@@ -339,7 +341,7 @@ func _check_shinra_condition(file_id: String) -> bool:
 func _show_shinra_popup(title: String, lore: String) -> void:
 	var canvas := CanvasLayer.new()
 	canvas.layer = 88
-	get_tree().root.add_child(canvas)
+	get_tree().root.add_child.call_deferred(canvas)
 	var panel := PanelContainer.new()
 	panel.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
 	panel.offset_top = -220.0
@@ -380,7 +382,7 @@ func try_show_dungeon_treasure() -> Node:
 	equip_inventory[item_path] = equip_inventory.get(item_path, 0) + 1
 	var canvas := CanvasLayer.new()
 	canvas.layer = 91
-	get_tree().root.add_child(canvas)
+	get_tree().root.add_child.call_deferred(canvas)
 	var panel := PanelContainer.new()
 	panel.set_anchors_preset(Control.PRESET_CENTER)
 	panel.offset_left = -300.0
@@ -486,7 +488,7 @@ func _apply_npc_reward(choice: Dictionary) -> void:
 func _show_npc_done_popup(text: String) -> void:
 	var canvas := CanvasLayer.new()
 	canvas.layer = 90
-	get_tree().root.add_child(canvas)
+	get_tree().root.add_child.call_deferred(canvas)
 	var panel := PanelContainer.new()
 	panel.set_anchors_preset(Control.PRESET_CENTER)
 	panel.offset_left = -280.0
@@ -509,6 +511,7 @@ func _show_npc_done_popup(text: String) -> void:
 func add_item(item: Resource, qty: int = 1) -> void:
 	var key: String = item.resource_path
 	inventory[key] = min(item.max_stack, inventory.get(key, 0) + qty)
+	check_collector_achievement()
 
 func use_item(item: Resource) -> bool:
 	var key: String = item.resource_path
@@ -1115,4 +1118,114 @@ func _on_boss_rush_complete() -> void:
 	for i in 3:
 		if hero_drink != null:
 			add_item(hero_drink)
+	check_achievement("champion")
 	_show_shinra_popup("🏆 Champion du Boss Rush !", "Tu as vaincu les 5 boss en séquence. Légendaire !")
+
+const ACHIEVEMENT_DEFS: Array = [
+	{"key": "first_blood",     "name": "First Blood",      "desc": "Vaincu le premier ennemi."},
+	{"key": "collector",       "name": "Collector",         "desc": "5 items en inventaire simultanément."},
+	{"key": "materia_master",  "name": "Materia Master",    "desc": "Materia évolue au niveau 3."},
+	{"key": "all_stars",       "name": "All Stars",         "desc": "7 membres disponibles dans le roster."},
+	{"key": "jackpot",         "name": "Jackpot",           "desc": "Obtenu un jackpot avec le Slot de Cait Sith."},
+	{"key": "survivor",        "name": "Survivor",          "desc": "Vaincu Ruby Weapon."},
+	{"key": "limit_broken",    "name": "Limit Broken",      "desc": "Utilisé un Limit Break Tier 2."},
+	{"key": "champion",        "name": "Champion",          "desc": "Boss Rush complété (5/5 boss)."},
+]
+
+func check_achievement(key: String) -> void:
+	if key in achievements_unlocked:
+		return
+	achievements_unlocked.append(key)
+	var def_entry: Dictionary = {}
+	for d in ACHIEVEMENT_DEFS:
+		if d.key == key:
+			def_entry = d
+			break
+	if def_entry.is_empty():
+		return
+	show_achievement_popup(def_entry.name)
+
+func show_achievement_popup(ach_name: String) -> void:
+	var canvas: CanvasLayer = CanvasLayer.new()
+	canvas.layer = 98
+	get_tree().root.add_child.call_deferred(canvas)
+	var lbl: Label = Label.new()
+	lbl.text = "🏅 Achievement débloqué : %s" % ach_name
+	lbl.add_theme_font_size_override("font_size", 26)
+	lbl.add_theme_color_override("font_color", Color(1.0, 0.85, 0.1, 1))
+	lbl.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+	lbl.offset_top = 10
+	lbl.offset_bottom = 60
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	canvas.add_child(lbl)
+	get_tree().create_timer(3.0).timeout.connect(func() -> void: canvas.queue_free())
+
+func check_kills_achievement() -> void:
+	if total_kills >= 1 and not "first_blood" in achievements_unlocked:
+		check_achievement("first_blood")
+
+func check_collector_achievement() -> void:
+	var total_items: int = 0
+	for k in inventory:
+		total_items += inventory[k]
+	if total_items >= 5 and not "collector" in achievements_unlocked:
+		check_achievement("collector")
+
+func check_all_stars_achievement() -> void:
+	if available_members.size() >= 7 and not "all_stars" in achievements_unlocked:
+		check_achievement("all_stars")
+
+func check_materia_master_achievement() -> void:
+	if "materia_master" in achievements_unlocked:
+		return
+	for key in materia_equipped:
+		var mat_path: String = materia_equipped[key]
+		if mat_path != "" and get_materia_level(mat_path) == 3:
+			check_achievement("materia_master")
+			return
+
+func show_achievements_screen() -> void:
+	var canvas := CanvasLayer.new()
+	canvas.layer = 93
+	get_tree().root.add_child(canvas)
+	var panel := PanelContainer.new()
+	panel.set_anchors_preset(Control.PRESET_CENTER)
+	panel.offset_left = -320.0
+	panel.offset_top = -420.0
+	panel.offset_right = 320.0
+	panel.offset_bottom = 420.0
+	canvas.add_child(panel)
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 10)
+	panel.add_child(vbox)
+	var title := Label.new()
+	title.text = "🏅 Achievements (%d/%d)" % [achievements_unlocked.size(), ACHIEVEMENT_DEFS.size()]
+	title.add_theme_font_size_override("font_size", 30)
+	title.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2, 1.0))
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(title)
+	var scroll := ScrollContainer.new()
+	scroll.custom_minimum_size = Vector2(0, 560)
+	vbox.add_child(scroll)
+	var list_vbox := VBoxContainer.new()
+	list_vbox.add_theme_constant_override("separation", 8)
+	scroll.add_child(list_vbox)
+	for def_entry in ACHIEVEMENT_DEFS:
+		var unlocked: bool = def_entry.key in achievements_unlocked
+		var row := VBoxContainer.new()
+		var name_lbl := Label.new()
+		name_lbl.text = "%s %s" % ["✅" if unlocked else "🔒", def_entry.name]
+		name_lbl.add_theme_font_size_override("font_size", 22)
+		name_lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 1.0) if unlocked else Color(0.6, 0.6, 0.6, 1.0))
+		row.add_child(name_lbl)
+		var desc_lbl := Label.new()
+		desc_lbl.text = def_entry.desc
+		desc_lbl.add_theme_font_size_override("font_size", 16)
+		desc_lbl.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8, 1.0))
+		row.add_child(desc_lbl)
+		list_vbox.add_child(row)
+	var close_btn := Button.new()
+	close_btn.text = "Fermer"
+	close_btn.add_theme_font_size_override("font_size", 26)
+	close_btn.pressed.connect(canvas.queue_free)
+	vbox.add_child(close_btn)
