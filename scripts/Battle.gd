@@ -79,12 +79,39 @@ func _ready() -> void:
 	BattleManager.arena_wave_cleared.connect(_on_arena_wave_cleared)
 	BattleManager.weather_changed.connect(_on_weather_changed)
 	GameManager.level_up.connect(_on_level_up)
+	_setup_ember_particles()
 	if BattleManager.arena_mode:
 		BattleManager.start_arena()
 	elif BattleManager.sector_mode != "":
 		BattleManager.start_sector_battle(BattleManager.sector_mode)
 	else:
 		BattleManager.start_battle(BattleManager.dungeon_mode, BattleManager.is_boss_battle)
+
+func _setup_ember_particles() -> void:
+	var particles := CPUParticles2D.new()
+	particles.amount = 22
+	particles.lifetime = 4.0
+	particles.explosiveness = 0.0
+	particles.randomness = 1.0
+	particles.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+	particles.emission_rect_extents = Vector2(540, 8)
+	particles.position = Vector2(540, 1860)
+	particles.direction = Vector2(0.0, -1.0)
+	particles.spread = 22.0
+	particles.gravity = Vector2(6.0, -12.0)
+	particles.initial_velocity_min = 35.0
+	particles.initial_velocity_max = 110.0
+	particles.scale_amount_min = 2.0
+	particles.scale_amount_max = 6.0
+	var grad := Gradient.new()
+	grad.colors = PackedColorArray([
+		Color(1.00, 0.80, 0.20, 1.00),
+		Color(1.00, 0.30, 0.05, 0.60),
+		Color(0.30, 0.05, 0.00, 0.00)
+	])
+	grad.offsets = PackedFloat32Array([0.0, 0.5, 1.0])
+	particles.color_ramp = grad
+	add_child(particles)
 
 func _fade_in() -> void:
 	var overlay := ColorRect.new()

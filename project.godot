@@ -51,6 +51,10 @@ TransitionManager="*res://autoloads/TransitionManager.gd"
 DialogueManager="*res://autoloads/DialogueManager.gd"
 QuestManager="*res://autoloads/QuestManager.gd"
 
+[gui]
+
+theme/custom="res://resources/ff_theme.tres"
+
 [rendering]
 
 renderer/rendering_method="mobile"

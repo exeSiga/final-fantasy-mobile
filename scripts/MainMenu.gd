@@ -10,6 +10,8 @@ func _ready() -> void:
 	)
 	_animate_stars()
 	_animate_title()
+	_setup_particles()
+	_animate_buttons_in()
 
 func _on_new_game() -> void:
 	AudioManager.play_sfx_button()
@@ -49,3 +51,38 @@ func _animate_title() -> void:
 	tw.tween_property(lbl, "position:y", -120.0, 14.0)
 	tw.tween_interval(0.5)
 	tw.tween_property(lbl, "position:y", 1920.0, 0.01)
+
+func _setup_particles() -> void:
+	var particles := CPUParticles2D.new()
+	particles.amount = 45
+	particles.lifetime = 5.0
+	particles.explosiveness = 0.0
+	particles.randomness = 1.0
+	particles.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+	particles.emission_rect_extents = Vector2(540, 960)
+	particles.position = Vector2(540, 960)
+	particles.direction = Vector2(0.0, -1.0)
+	particles.spread = 55.0
+	particles.gravity = Vector2(0.0, -4.0)
+	particles.initial_velocity_min = 15.0
+	particles.initial_velocity_max = 75.0
+	particles.scale_amount_min = 2.0
+	particles.scale_amount_max = 5.0
+	var grad := Gradient.new()
+	grad.colors = PackedColorArray([
+		Color(0.20, 0.60, 1.00, 0.90),
+		Color(0.80, 0.70, 0.20, 0.55),
+		Color(0.50, 0.20, 1.00, 0.00)
+	])
+	grad.offsets = PackedFloat32Array([0.0, 0.5, 1.0])
+	particles.color_ramp = grad
+	add_child(particles)
+
+func _animate_buttons_in() -> void:
+	var buttons := [$VBox/NewGameButton, $VBox/LoadGameButton, $VBox/SettingsButton]
+	for i in buttons.size():
+		var btn = buttons[i]
+		btn.modulate.a = 0.0
+		var tw := create_tween()
+		tw.tween_interval(0.35 + i * 0.18)
+		tw.tween_property(btn, "modulate:a", 1.0, 0.45).set_ease(Tween.EASE_OUT)

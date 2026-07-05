@@ -6,13 +6,28 @@ var active_highlight: bool = false
 var _flash_active: bool = false
 var _flash_color: Color = Color.WHITE
 
+var _idle_time: float = 0.0
+var _idle_phase: float = 0.0
+var _base_y: float = 0.0
+var _base_set: bool = false
+
 const W := 160.0
 const H := 200.0
 
 func setup(color: Color, unit_name: String) -> void:
 	sprite_color = color
 	unit_name_label = unit_name
+	if not _base_set:
+		_base_y = position.y
+		_idle_phase = randf_range(0.0, TAU)
+		_base_set = true
 	queue_redraw()
+
+func _process(delta: float) -> void:
+	if not _base_set:
+		return
+	_idle_time += delta
+	position.y = _base_y + sin(_idle_time * 1.8 + _idle_phase) * 3.0
 
 func set_active(active: bool) -> void:
 	active_highlight = active

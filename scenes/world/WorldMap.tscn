@@ -36,21 +36,42 @@ script = ExtResource("1")
 [node name="Grass" type="ColorRect" parent="Terrain"]
 offset_right = 3200.0
 offset_bottom = 3200.0
-color = Color(0.18, 0.45, 0.12, 1)
+color = Color(0.14, 0.52, 0.10, 1)
+
+[node name="Forest" type="ColorRect" parent="Terrain"]
+offset_left = 200.0
+offset_top = 900.0
+offset_right = 900.0
+offset_bottom = 1800.0
+color = Color(0.05, 0.28, 0.05, 1)
 
 [node name="MountainRegion" type="ColorRect" parent="Terrain"]
 offset_left = 2400.0
 offset_top = 0.0
 offset_right = 3200.0
 offset_bottom = 1200.0
-color = Color(0.45, 0.35, 0.25, 1)
+color = Color(0.40, 0.30, 0.20, 1)
+
+[node name="SnowCap" type="ColorRect" parent="Terrain"]
+offset_left = 2500.0
+offset_top = 0.0
+offset_right = 3200.0
+offset_bottom = 350.0
+color = Color(0.88, 0.92, 0.96, 1)
 
 [node name="Lake" type="ColorRect" parent="Terrain"]
 offset_left = 800.0
 offset_top = 1600.0
 offset_right = 1400.0
 offset_bottom = 2200.0
-color = Color(0.1, 0.3, 0.7, 1)
+color = Color(0.08, 0.20, 0.82, 1)
+
+[node name="Desert" type="ColorRect" parent="Terrain"]
+offset_left = 1800.0
+offset_top = 2200.0
+offset_right = 3000.0
+offset_bottom = 3200.0
+color = Color(0.72, 0.60, 0.28, 1)
 
 [node name="Boundaries" type="Node2D" parent="."]
 
