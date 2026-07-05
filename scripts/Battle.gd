@@ -80,6 +80,7 @@ func _ready() -> void:
 	BattleManager.weather_changed.connect(_on_weather_changed)
 	GameManager.level_up.connect(_on_level_up)
 	_setup_ember_particles()
+	_setup_floor_strip()
 	if BattleManager.arena_mode:
 		BattleManager.start_arena()
 	elif BattleManager.sector_mode != "":
@@ -112,6 +113,22 @@ func _setup_ember_particles() -> void:
 	grad.offsets = PackedFloat32Array([0.0, 0.5, 1.0])
 	particles.color_ramp = grad
 	add_child(particles)
+
+func _setup_floor_strip() -> void:
+	var tex: Texture2D = load("res://assets/Tiny Dungeon/Tiles/tile_0001.png")
+	if tex == null:
+		return
+	var strip := TextureRect.new()
+	strip.texture = tex
+	strip.stretch_mode = TextureRect.STRETCH_TILE
+	strip.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	strip.texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
+	strip.position = Vector2(0.0, 1350.0)
+	strip.size = Vector2(180.0, 95.0)
+	strip.scale = Vector2(6.0, 6.0)
+	strip.modulate = Color(0.65, 0.50, 0.35, 0.50)
+	add_child(strip)
+	move_child(strip, 1)
 
 func _fade_in() -> void:
 	var overlay := ColorRect.new()

@@ -1,4 +1,10 @@
-[gd_resource type="Theme" load_steps=9 format=3 uid="uid://ff_theme"]
+[gd_resource type="Theme" load_steps=11 format=3 uid="uid://ff_theme"]
+
+[sub_resource type="FontFile" id="FontFile_regular"]
+path = "res://assets/Cinzel Font/static/Cinzel-Regular.ttf"
+
+[sub_resource type="FontFile" id="FontFile_bold"]
+path = "res://assets/Cinzel Font/static/Cinzel-Bold.ttf"
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
 bg_color = Color(0.04, 0.04, 0.18, 1)
@@ -118,6 +124,8 @@ Button/styles/hover = SubResource("StyleBoxFlat_btn_hover")
 Button/styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
 Button/styles/focus = SubResource("StyleBoxFlat_btn_focus")
 Button/styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
+Label/fonts/font = SubResource("FontFile_regular")
+Button/fonts/font = SubResource("FontFile_bold")
 Button/colors/font_color = Color(0.90, 0.88, 0.82, 1)
 Button/colors/font_hover_color = Color(1.00, 0.95, 0.70, 1)
 Button/colors/font_pressed_color = Color(0.80, 0.75, 0.60, 1)

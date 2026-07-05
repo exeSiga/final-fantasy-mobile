@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://worldmap"]
+[gd_scene load_steps=17 format=3 uid="uid://worldmap"]
 
 [ext_resource type="Script" path="res://scripts/WorldMap.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/characters/Player.tscn" id="2"]
@@ -6,6 +6,8 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/VirtualJoystick.tscn" id="4"]
 [ext_resource type="PackedScene" path="res://scenes/ui/Shop.tscn" id="5"]
 [ext_resource type="PackedScene" path="res://scenes/ui/PauseMenu.tscn" id="6"]
+[ext_resource type="Texture2D" path="res://assets/Tiny Dungeon/Tiles/tile_0087.png" id="7"]
+[ext_resource type="Texture2D" path="res://assets/Tiny Dungeon/Tiles/tile_0085.png" id="8"]
 
 [sub_resource type="RectangleShape2D" id="Wall_Top"]
 size = Vector2(3200, 32)
@@ -118,12 +120,11 @@ zoom = Vector2(0.8, 0.8)
 position = Vector2(1200, 1600)
 [node name="ShopNPCShape" type="CollisionShape2D" parent="ShopNPC"]
 shape = SubResource("Shop_Shape")
-[node name="ShopNPCSprite" type="ColorRect" parent="ShopNPC"]
-offset_left = -40.0
-offset_top = -60.0
-offset_right = 40.0
-offset_bottom = 60.0
-color = Color(0.9, 0.7, 0.1, 1)
+[node name="ShopNPCSprite" type="Sprite2D" parent="ShopNPC"]
+position = Vector2(0, -20)
+scale = Vector2(4, 4)
+texture = ExtResource("7")
+texture_filter = 1
 [node name="ShopLabel" type="Label" parent="ShopNPC"]
 position = Vector2(-60, -90)
 text = "Shop"
@@ -135,12 +136,11 @@ position = Vector2(1400, 1600)
 [node name="InnShape" type="CollisionShape2D" parent="InnNPC"]
 shape = SubResource("Inn_Shape")
 
-[node name="InnSprite" type="ColorRect" parent="InnNPC"]
-offset_left = -40.0
-offset_top = -60.0
-offset_right = 40.0
-offset_bottom = 0.0
-color = Color(0.2, 0.4, 0.8, 1)
+[node name="InnSprite" type="Sprite2D" parent="InnNPC"]
+position = Vector2(0, -20)
+scale = Vector2(4, 4)
+texture = ExtResource("8")
+texture_filter = 1
 
 [node name="InnLabel" type="Label" parent="InnNPC"]
 position = Vector2(-40, -90)

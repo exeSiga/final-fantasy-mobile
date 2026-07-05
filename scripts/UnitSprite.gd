@@ -11,8 +11,42 @@ var _idle_phase: float = 0.0
 var _base_y: float = 0.0
 var _base_set: bool = false
 
+var _sprite: Sprite2D = null
+var _flash_rect: ColorRect = null
+
 const W := 160.0
 const H := 200.0
+const SPRITE_SCALE := 10.0
+
+const TILE_MAP := {
+	"Cloud":       "res://assets/Tiny Dungeon/Tiles/tile_0087.png",
+	"Tifa":        "res://assets/Tiny Dungeon/Tiles/tile_0085.png",
+	"Aerith":      "res://assets/Tiny Dungeon/Tiles/tile_0086.png",
+	"Barret":      "res://assets/Tiny Dungeon/Tiles/tile_0088.png",
+	"Warrior":     "res://assets/Tiny Dungeon/Tiles/tile_0087.png",
+	"Black Mage":  "res://assets/Tiny Dungeon/Tiles/tile_0084.png",
+	"White Mage":  "res://assets/Tiny Dungeon/Tiles/tile_0086.png",
+	"Dark Knight": "res://assets/Tiny Dungeon/Tiles/tile_0096.png",
+	"Sephiroth":   "res://assets/Tiny Dungeon/Tiles/tile_0096.png",
+	"Slime":       "res://assets/Tiny Dungeon/Tiles/tile_0108.png",
+	"Goblin":      "res://assets/Tiny Dungeon/Tiles/tile_0110.png",
+	"Skeleton":    "res://assets/Tiny Dungeon/Tiles/tile_0121.png",
+	"Bat":         "res://assets/Tiny Dungeon/Tiles/tile_0093.png",
+	"Orc":         "res://assets/Tiny Dungeon/Tiles/tile_0092.png",
+	"Shadow":      "res://assets/Tiny Dungeon/Tiles/tile_0121.png",
+	"Troll":       "res://assets/Tiny Dungeon/Tiles/tile_0109.png",
+	"Gargoyle":    "res://assets/Tiny Dungeon/Tiles/tile_0110.png",
+}
+
+const SCALE_MAP := {
+	"Slime": 8.0,
+	"Bat": 8.0,
+	"Troll": 14.0,
+	"Orc": 12.0,
+	"Gargoyle": 12.0,
+	"Sephiroth": 16.0,
+	"Dark Knight": 14.0,
+}
 
 func setup(color: Color, unit_name: String) -> void:
 	sprite_color = color
@@ -21,7 +55,34 @@ func setup(color: Color, unit_name: String) -> void:
 		_base_y = position.y
 		_idle_phase = randf_range(0.0, TAU)
 		_base_set = true
+	_rebuild_sprite()
 	queue_redraw()
+
+func _rebuild_sprite() -> void:
+	if _sprite != null:
+		_sprite.queue_free()
+		_sprite = null
+	if _flash_rect != null:
+		_flash_rect.queue_free()
+		_flash_rect = null
+	var path: String = TILE_MAP.get(unit_name_label, "")
+	if path.is_empty():
+		return
+	var tex: Texture2D = load(path)
+	if tex == null:
+		return
+	var sc: float = SCALE_MAP.get(unit_name_label, SPRITE_SCALE)
+	_sprite = Sprite2D.new()
+	_sprite.texture = tex
+	_sprite.scale = Vector2(sc, sc)
+	_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	add_child(_sprite)
+	var half: float = sc * 8.0
+	_flash_rect = ColorRect.new()
+	_flash_rect.size = Vector2(half * 2.0, half * 2.0)
+	_flash_rect.position = Vector2(-half, -half)
+	_flash_rect.color = Color(0.0, 0.0, 0.0, 0.0)
+	add_child(_flash_rect)
 
 func _process(delta: float) -> void:
 	if not _base_set:
@@ -36,51 +97,41 @@ func set_active(active: bool) -> void:
 func flash(color: Color) -> void:
 	_flash_color = color
 	_flash_active = true
+	if _flash_rect != null:
+		_flash_rect.color = Color(color.r, color.g, color.b, 0.65)
 	queue_redraw()
 	await get_tree().create_timer(0.18).timeout
 	_flash_active = false
+	if _flash_rect != null:
+		_flash_rect.color = Color(0.0, 0.0, 0.0, 0.0)
 	queue_redraw()
 
 func _draw() -> void:
 	if active_highlight:
-		draw_rect(Rect2(-W*0.50, -H*0.55, W*1.00, H*1.10), Color(1,1,0.4,0.12))
+		draw_rect(Rect2(-W * 0.55, -H * 0.60, W * 1.10, H * 1.20), Color(1, 1, 0.4, 0.12))
+	if _sprite != null:
+		return
 	match unit_name_label:
-		"Cloud":
-			_draw_cloud()
-		"Tifa":
-			_draw_tifa()
-		"Aerith":
-			_draw_aerith()
-		"Warrior":
-			_draw_warrior()
-		"Black Mage":
-			_draw_black_mage()
-		"White Mage":
-			_draw_white_mage()
-		"Slime":
-			_draw_slime()
-		"Goblin":
-			_draw_goblin()
-		"Skeleton":
-			_draw_skeleton()
-		"Bat":
-			_draw_bat()
-		"Dark Knight":
-			_draw_dark_knight()
-		"Orc":
-			_draw_orc()
-		"Shadow":
-			_draw_shadow()
-		"Troll":
-			_draw_troll()
-		"Gargoyle":
-			_draw_gargoyle()
-		"Barret":
-			_draw_barret()
+		"Cloud":       _draw_cloud()
+		"Tifa":        _draw_tifa()
+		"Aerith":      _draw_aerith()
+		"Warrior":     _draw_warrior()
+		"Black Mage":  _draw_black_mage()
+		"White Mage":  _draw_white_mage()
+		"Slime":       _draw_slime()
+		"Goblin":      _draw_goblin()
+		"Skeleton":    _draw_skeleton()
+		"Bat":         _draw_bat()
+		"Dark Knight": _draw_dark_knight()
+		"Orc":         _draw_orc()
+		"Shadow":      _draw_shadow()
+		"Troll":       _draw_troll()
+		"Gargoyle":    _draw_gargoyle()
+		"Barret":      _draw_barret()
 		_:
-			draw_rect(Rect2(-W*0.40, -H*0.50, W*0.80, H*1.00), sprite_color)
+			draw_rect(Rect2(-W * 0.40, -H * 0.50, W * 0.80, H * 1.00), sprite_color)
 	if _flash_active:
-		draw_rect(Rect2(-W*0.50, -H*0.55, W*1.00, H*1.10), Color(_flash_color.r, _flash_color.g, _flash_color.b, 0.65))
+		draw_rect(Rect2(-W * 0.50, -H * 0.55, W * 1.00, H * 1.10), Color(_flash_color.r, _flash_color.g, _flash_color.b, 0.65))
 
 func _draw_warrior() -> void:
 	var c := sprite_color
@@ -96,103 +147,76 @@ func _draw_warrior() -> void:
 func _draw_black_mage() -> void:
 	var c := sprite_color
 	var hat_c := c.darkened(0.1)
-	# Robe body (wide trapezoid look via rects)
 	draw_rect(Rect2(-W*0.32, h(-0.10), W*0.64, H*0.55), c.darkened(0.05))
 	draw_rect(Rect2(-W*0.42, h(0.22), W*0.84, H*0.22), c.darkened(0.10))
-	# Belt
 	draw_rect(Rect2(-W*0.32, h(0.10), W*0.64, H*0.08), Color(0.6, 0.4, 0.0, 1))
-	# Hat brim
 	draw_rect(Rect2(-W*0.40, h(-0.22), W*0.80, H*0.10), hat_c.lightened(0.05))
-	# Pointy hat (triangle)
 	draw_polygon(
 		PackedVector2Array([Vector2(0, h(-0.72)), Vector2(-W*0.28, h(-0.18)), Vector2(W*0.28, h(-0.18))]),
 		PackedColorArray([hat_c]))
-	# Face (black void under brim)
 	draw_circle(Vector2(0, h(-0.30)), W*0.18, Color(0.05, 0.02, 0.08, 1))
-	# Glowing yellow eyes
 	draw_circle(Vector2(-W*0.10, h(-0.32)), W*0.07, Color(1.0, 0.92, 0.1, 1))
 	draw_circle(Vector2( W*0.10, h(-0.32)), W*0.07, Color(1.0, 0.92, 0.1, 1))
-	# Staff (right side)
 	draw_rect(Rect2(W*0.32, h(-0.60), W*0.10, H*0.90), Color(0.5, 0.3, 0.1, 1))
 	draw_circle(Vector2(W*0.37, h(-0.62)), W*0.14, Color(0.7, 0.2, 0.9, 1))
 	draw_circle(Vector2(W*0.37, h(-0.62)), W*0.08, Color(0.95, 0.6, 1.0, 1))
 
 func _draw_white_mage() -> void:
 	var c := sprite_color
-	# Robe (wide, A-line)
 	draw_polygon(
 		PackedVector2Array([Vector2(-W*0.24, h(-0.10)), Vector2(W*0.24, h(-0.10)),
 							Vector2(W*0.44, h(0.45)),  Vector2(-W*0.44, h(0.45))]),
 		PackedColorArray([c.lightened(0.05)]))
-	# Cross emblem on robe
 	draw_rect(Rect2(-W*0.06, h(0.06), W*0.12, H*0.24), Color(0.85, 0.15, 0.15, 1))
 	draw_rect(Rect2(-W*0.14, h(0.12), W*0.28, H*0.08), Color(0.85, 0.15, 0.15, 1))
-	# Hood (rounded)
 	draw_circle(Vector2(0, h(-0.30)), W*0.30, c.lightened(0.15))
-	# Face inside hood
 	draw_circle(Vector2(0, h(-0.30)), W*0.20, Color(0.98, 0.88, 0.78, 1))
-	# Eyes (gentle, closed look)
 	draw_rect(Rect2(-W*0.12, h(-0.34), W*0.08, H*0.03), Color(0.3, 0.2, 0.1, 1))
 	draw_rect(Rect2( W*0.04, h(-0.34), W*0.08, H*0.03), Color(0.3, 0.2, 0.1, 1))
-	# Staff (left side, golden)
 	draw_rect(Rect2(-W*0.42, h(-0.58), W*0.10, H*0.88), Color(0.7, 0.55, 0.1, 1))
 	draw_circle(Vector2(-W*0.37, h(-0.60)), W*0.14, Color(0.9, 0.75, 0.1, 1))
 	draw_circle(Vector2(-W*0.37, h(-0.60)), W*0.07, Color(1.0, 1.0, 0.9, 1))
 
 func _draw_cloud() -> void:
 	var c := sprite_color
-	# Legs
 	draw_rect(Rect2(-W*0.28, h(0.12), W*0.22, H*0.32), Color(0.15, 0.15, 0.2))
 	draw_rect(Rect2(W*0.06,  h(0.12), W*0.22, H*0.32), Color(0.15, 0.15, 0.2))
-	# Torso (SOLDIER 1st Class uniform, dark blue)
 	draw_rect(Rect2(-W*0.38, h(-0.26), W*0.76, H*0.40), c.darkened(0.15))
-	# Shoulder pauldron
 	draw_rect(Rect2(W*0.20, h(-0.34), W*0.22, H*0.18), Color(0.75, 0.75, 0.8))
-	# Head + spiky blond hair
 	draw_circle(Vector2(0, h(-0.50)), W*0.24, Color(0.96, 0.84, 0.68))
 	var spikes := PackedVector2Array([
 		Vector2(-W*0.26, h(-0.58)), Vector2(-W*0.12, h(-0.86)), Vector2(0, h(-0.62)),
 		Vector2(W*0.12, h(-0.88)), Vector2(W*0.26, h(-0.58))])
 	draw_polygon(spikes, PackedColorArray([Color(1.0, 0.92, 0.4)]))
 	draw_circle(Vector2(0, h(-0.50)), W*0.07, Color(0.3, 0.7, 1.0))
-	# Buster Sword (large gray blade behind back)
 	draw_rect(Rect2(W*0.34, h(-0.80), W*0.14, H*1.10), Color(0.65, 0.68, 0.72))
 	draw_rect(Rect2(W*0.30, h(0.20), W*0.22, H*0.10), Color(0.35, 0.25, 0.15))
 
 func _draw_tifa() -> void:
 	var c := sprite_color
-	# Legs (black shorts/tights)
 	draw_rect(Rect2(-W*0.26, h(0.10), W*0.20, H*0.34), Color(0.1, 0.1, 0.1))
 	draw_rect(Rect2(W*0.06,  h(0.10), W*0.20, H*0.34), Color(0.1, 0.1, 0.1))
-	# Torso (white tank top + suspenders)
 	draw_rect(Rect2(-W*0.32, h(-0.22), W*0.64, H*0.34), Color(0.95, 0.95, 0.9))
 	draw_rect(Rect2(-W*0.30, h(0.04), W*0.60, H*0.10), c)
-	# Head + ponytail
 	draw_circle(Vector2(0, h(-0.46)), W*0.22, Color(0.96, 0.84, 0.68))
 	draw_polygon(
 		PackedVector2Array([Vector2(-W*0.18, h(-0.62)), Vector2(W*0.18, h(-0.62)), Vector2(0, h(-0.86))]),
 		PackedColorArray([Color(0.25, 0.12, 0.08)]))
 	draw_rect(Rect2(W*0.18, h(-0.58), W*0.10, H*0.50), Color(0.25, 0.12, 0.08))
-	# Fighting gloves (fists forward)
 	draw_circle(Vector2(-W*0.34, h(-0.06)), W*0.14, Color(0.85, 0.2, 0.2))
 	draw_circle(Vector2(W*0.34, h(-0.06)), W*0.14, Color(0.85, 0.2, 0.2))
 
 func _draw_aerith() -> void:
 	var c := sprite_color
-	# Pink dress (A-line)
 	draw_polygon(
 		PackedVector2Array([Vector2(-W*0.22, h(-0.12)), Vector2(W*0.22, h(-0.12)),
 							Vector2(W*0.40, h(0.42)),  Vector2(-W*0.40, h(0.42))]),
 		PackedColorArray([c]))
-	# Pink jacket trim
 	draw_rect(Rect2(-W*0.24, h(-0.20), W*0.48, H*0.14), c.darkened(0.2))
-	# Head + braid
 	draw_circle(Vector2(0, h(-0.46)), W*0.22, Color(0.96, 0.84, 0.68))
 	draw_circle(Vector2(0, h(-0.58)), W*0.24, Color(0.55, 0.30, 0.15))
 	draw_rect(Rect2(-W*0.06, h(-0.40), W*0.12, H*0.62), Color(0.55, 0.30, 0.15))
-	# Pink ribbon on hair
 	draw_rect(Rect2(-W*0.14, h(-0.68), W*0.28, H*0.08), Color(1.0, 0.3, 0.5))
-	# Staff (right side, simple rod with materia orb)
 	draw_rect(Rect2(W*0.38, h(-0.50), W*0.08, H*0.80), Color(0.6, 0.45, 0.3))
 	draw_circle(Vector2(W*0.42, h(-0.52)), W*0.12, Color(0.4, 0.9, 0.5))
 
@@ -312,23 +336,17 @@ func _draw_gargoyle() -> void:
 
 func _draw_barret() -> void:
 	var c := sprite_color
-	# Legs (heavy boots)
 	draw_rect(Rect2(-W*0.30, h(0.14), W*0.24, H*0.30), Color(0.2, 0.15, 0.1))
 	draw_rect(Rect2(W*0.06,  h(0.14), W*0.24, H*0.30), Color(0.2, 0.15, 0.1))
-	# Large torso (tank top, vest)
 	draw_rect(Rect2(-W*0.44, h(-0.28), W*0.88, H*0.46), c)
 	draw_rect(Rect2(-W*0.44, h(-0.28), W*0.88, H*0.12), Color(0.1, 0.1, 0.1))
-	# Head (dark, bald with goatee)
 	draw_circle(Vector2(0, h(-0.50)), W*0.25, Color(0.30, 0.20, 0.15))
 	draw_rect(Rect2(-W*0.10, h(-0.34), W*0.20, H*0.08), Color(0.15, 0.10, 0.08))
-	# Left arm (normal, clenched fist)
 	draw_rect(Rect2(-W*0.54, h(-0.24), W*0.16, H*0.36), c.darkened(0.1))
 	draw_circle(Vector2(-W*0.46, h(0.16)), W*0.12, Color(0.25, 0.15, 0.10))
-	# Right arm — gun arm (metal barrel)
 	draw_rect(Rect2(W*0.38, h(-0.22), W*0.20, H*0.32), Color(0.50, 0.50, 0.55))
 	draw_rect(Rect2(W*0.50, h(-0.16), W*0.22, H*0.12), Color(0.35, 0.35, 0.38))
 	draw_circle(Vector2(W*0.72, h(-0.10)), W*0.09, Color(0.15, 0.15, 0.15))
 
-# Helper: convert fraction of H to absolute Y offset (centered on origin)
 func h(frac: float) -> float:
 	return H * frac
