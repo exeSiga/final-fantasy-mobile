@@ -137,7 +137,7 @@ func _draw_cloud() -> void:
 	draw_circle(Vector2(0, h(-0.50)), W*0.24, Color(0.96, 0.84, 0.68))
 	var spikes := PackedVector2Array([
 		Vector2(-W*0.26, h(-0.58)), Vector2(-W*0.12, h(-0.86)), Vector2(0, h(-0.62)),
-		Vector2(W*0.12, h(-0.88)), Vector2(W*0.26, h(-0.58)), Vector2(0, h(-0.68))])
+		Vector2(W*0.12, h(-0.88)), Vector2(W*0.26, h(-0.58))])
 	draw_polygon(spikes, PackedColorArray([Color(1.0, 0.92, 0.4)]))
 	draw_circle(Vector2(0, h(-0.50)), W*0.07, Color(0.3, 0.7, 1.0))
 	# Buster Sword (large gray blade behind back)

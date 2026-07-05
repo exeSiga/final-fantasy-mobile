@@ -49,6 +49,7 @@ var _slot_btn: Button = null
 
 var _active_party_idx: int = -1
 var _pending_cutscene: String = ""
+var _victory_continue_clicked: bool = false
 
 func _ready() -> void:
 	victory_overlay.hide()
@@ -810,6 +811,9 @@ func _on_run_pressed() -> void:
 	BattleManager.player_run()
 
 func _on_victory_continue_pressed() -> void:
+	if _victory_continue_clicked:
+		return
+	_victory_continue_clicked = true
 	if _pending_cutscene != "":
 		var scene_id: String = _pending_cutscene
 		_pending_cutscene = ""
