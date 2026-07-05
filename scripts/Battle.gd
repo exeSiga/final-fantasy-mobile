@@ -554,7 +554,7 @@ func _on_battle_ended(victory: bool) -> void:
 		victory_overlay.show()
 	else:
 		_show_gameover()
-	_fade_out()
+		_fade_out()
 
 func _fade_out() -> void:
 	await get_tree().create_timer(1.2).timeout
